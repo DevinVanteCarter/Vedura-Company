@@ -877,7 +877,6 @@
 
 <script>
 const API = 'http://localhost:8000';
-const OLLAMA = 'http://localhost:11434';
 
 // Scroll animations
 const observer = new IntersectionObserver(entries => {
@@ -1019,21 +1018,15 @@ async function sendMessage() {
   messages.scrollTop = messages.scrollHeight;
 
   try {
-    const res = await fetch(`${OLLAMA}/api/generate`, {
+    const res = await fetch('/api/advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'llama3.1',
-        prompt: `You are Vedura, a warm and knowledgeable solarpunk homestead advisor built by The Vedura Company. You help people live off-grid successfully. Keep responses concise and practical — 2-4 sentences. Focus on plant health, solar power, water systems, food growing, and sustainable living.
-
-User question: ${text}`,
-        stream: false
-      })
+      body: JSON.stringify({ message: text })
     });
     const data = await res.json();
-    thinkingMsg.innerHTML = `<p class="msg-sender">Vedura AI</p>${data.response}`;
+    thinkingMsg.innerHTML = `<p class="msg-sender">Vedura AI</p>${data.reply}`;
   } catch(err) {
-    thinkingMsg.innerHTML = '<p class="msg-sender">Vedura AI</p>Make sure Ollama is running locally with llama3.1 installed.';
+    thinkingMsg.innerHTML = '<p class="msg-sender">Vedura AI</p>Unable to reach the advisor endpoint.';
   }
 
   sendBtn.disabled = false;
