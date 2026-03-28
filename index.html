@@ -624,12 +624,41 @@ footer{
 <div class="cursor-ring" id="cursor-ring"></div>
 
 <nav>
-  <a href="#" class="nav-logo">Vedura <span>/ Zen Vision</span></a>
+  <a href="#" class="nav-logo" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 88" width="36" height="36">
+    <defs>
+      <linearGradient id="nlG" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#52B788;stop-opacity:1"/>
+        <stop offset="60%" style="stop-color:#2D6A4F;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#1B4332;stop-opacity:1"/>
+      </linearGradient>
+      <radialGradient id="nsG" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" style="stop-color:#FFD166;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#F4A261;stop-opacity:0.6"/>
+      </radialGradient>
+      <filter id="ng"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <polygon points="54,4 78,17 78,43 54,56 30,43 30,17" fill="none" stroke="#2D6A4F" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="54,12 72,22 72,38 54,48 36,38 36,22" fill="none" stroke="#52B788" stroke-width="0.8" opacity="0.4"/>
+    <path d="M 36,22 A 22,22 0 0,1 72,22" fill="none" stroke="url(#nsG)" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+    <circle cx="54" cy="16" r="3.5" fill="url(#nsG)" filter="url(#ng)" opacity="0.95"/>
+    <line x1="54" y1="8" x2="54" y2="5" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <line x1="62" y1="10" x2="64" y2="8" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <line x1="44" y1="10" x2="42" y2="8" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 54,48 C 42,40 32,32 36,22 C 40,30 48,36 54,30 C 60,36 68,30 72,22 C 76,32 66,40 54,48 Z" fill="url(#nlG)" opacity="0.92" filter="url(#ng)"/>
+    <line x1="54" y1="30" x2="54" y2="48" stroke="#95D5B2" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 54,36 L 47,32" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 54,36 L 61,32" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="47" cy="32" r="1.2" fill="#95D5B2" opacity="0.7"/>
+    <circle cx="61" cy="32" r="1.2" fill="#95D5B2" opacity="0.7"/>
+  </svg>
+  <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#52B788;letter-spacing:3px">VEDURA</span>
+</a>
   <ul class="nav-links">
     <li><a href="#product">Product</a></li>
     <li><a href="#mission">Mission</a></li>
     <li><a href="#why">Why Vedura</a></li>
-    <li><a href="/app.html" target="_blank" class="nav-cta">Try it free</a></li>
+    <li><a href="https://zen-vision-sigma.vercel.app" target="_blank" class="nav-cta">Try it free</a></li>
   </ul>
 </nav>
 
@@ -641,7 +670,49 @@ footer{
     <div class="orb orb-3"></div>
   </div>
 
-  <p class="hero-eyebrow">The Vedura Company · Loveland, Ohio</p>
+  <div style="margin-bottom:40px;opacity:0;animation:fadeUp 1s ease forwards 0.1s">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" width="280" height="112">
+    <defs>
+      <linearGradient id="hlG" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#52B788;stop-opacity:1"/>
+        <stop offset="60%" style="stop-color:#2D6A4F;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#1B4332;stop-opacity:1"/>
+      </linearGradient>
+      <linearGradient id="hcG" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#95D5B2;stop-opacity:0"/>
+        <stop offset="40%" style="stop-color:#52B788;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#95D5B2;stop-opacity:0.4"/>
+      </linearGradient>
+      <radialGradient id="hsG" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" style="stop-color:#FFD166;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#F4A261;stop-opacity:0.6"/>
+      </radialGradient>
+      <filter id="hg"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="hsg"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <polygon points="80,18 104,31 104,57 80,70 56,57 56,31" fill="none" stroke="#2D6A4F" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="80,26 98,36 98,52 80,62 62,52 62,36" fill="none" stroke="#52B788" stroke-width="0.8" opacity="0.4"/>
+    <path d="M 62,36 A 22,22 0 0,1 98,36" fill="none" stroke="url(#hsG)" stroke-width="2.5" stroke-linecap="round" filter="url(#hsg)" opacity="0.9"/>
+    <circle cx="80" cy="30" r="3.5" fill="url(#hsG)" filter="url(#hg)" opacity="0.95"/>
+    <line x1="80" y1="22" x2="80" y2="19" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <line x1="88" y1="24" x2="90" y2="22" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <line x1="70" y1="24" x2="68" y2="22" stroke="#FFD166" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 80,62 C 68,54 58,46 62,36 C 66,44 74,50 80,44 C 86,50 94,44 98,36 C 102,46 92,54 80,62 Z" fill="url(#hlG)" opacity="0.92" filter="url(#hg)"/>
+    <line x1="80" y1="44" x2="80" y2="62" stroke="#95D5B2" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 80,50 L 73,46" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 80,50 L 87,46" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 80,55 L 74,52" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+    <path d="M 80,55 L 86,52" stroke="#95D5B2" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="73" cy="46" r="1.2" fill="#95D5B2" opacity="0.7"/>
+    <circle cx="87" cy="46" r="1.2" fill="#95D5B2" opacity="0.7"/>
+    <circle cx="74" cy="52" r="1" fill="#95D5B2" opacity="0.6"/>
+    <circle cx="86" cy="52" r="1" fill="#95D5B2" opacity="0.6"/>
+    <text x="128" y="56" font-family="'Cormorant Garamond', 'Garamond', 'Georgia', serif" font-size="38" font-weight="300" letter-spacing="8" fill="#F8F4E3">VEDURA</text>
+    <line x1="128" y1="65" x2="340" y2="65" stroke="url(#hcG)" stroke-width="0.8" opacity="0.7"/>
+    <text x="129" y="82" font-family="'DM Mono', 'Courier New', monospace" font-size="9" font-weight="400" letter-spacing="3.5" fill="#52B788" opacity="0.85">OFF-GRID INTELLIGENCE</text>
+  </svg>
+</div>
+<p class="hero-eyebrow">The Vedura Company · Loveland, Ohio</p>
 
   <h1>
     The earth knows<br>
@@ -652,7 +723,7 @@ footer{
   <p class="hero-sub">Zen Vision is an AI platform for off-grid living — plant health intelligence, solar power management, and a local AI advisor that runs entirely on your own hardware. Private. Free. Yours.</p>
 
   <div class="hero-actions">
-    <a href="/app.html" target="_blank" class="btn-primary">Try Zen Vision free →</a>
+    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="btn-primary">Try Zen Vision free →</a>
     <a href="#mission" class="btn-outline">Our mission</a>
   </div>
 
@@ -802,8 +873,8 @@ footer{
   <h2 class="cta-title fade-el">The exit ramp<br><em>exists.</em></h2>
   <p class="cta-sub fade-el">Try Zen Vision free — scan a plant, check your solar, ask your AI advisor anything. No account needed. No cloud. No cost.</p>
   <div class="cta-actions fade-el">
-    <a href="/app.html" target="_blank" class="btn-primary">Open Zen Vision →</a>
-    <a href="mailto:hello@vedura.co" class="btn-outline">Get in touch</a>
+    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="btn-primary">Open Zen Vision →</a>
+    <a href="/cdn-cgi/l/email-protection#147c7178787b546271706166753a777b" class="btn-outline">Get in touch</a>
   </div>
 </section>
 
@@ -817,7 +888,7 @@ footer{
   <div class="footer-links">
     <h4>Product</h4>
     <ul>
-      <li><a href="/app.html" target="_blank">Zen Vision app</a></li>
+      <li><a href="https://zen-vision-sigma.vercel.app" target="_blank">Zen Vision app</a></li>
       <li><a href="https://zen-vision-production.up.railway.app/docs" target="_blank">API documentation</a></li>
       <li><a href="#product">Plant health AI</a></li>
       <li><a href="#product">Solar power AI</a></li>
@@ -831,12 +902,12 @@ footer{
       <span class="status-text">All systems operational</span>
     </div>
     <a href="https://zen-vision-production.up.railway.app" target="_blank" class="live-url">API · railway.app ↗</a>
-    <a href="/app.html" target="_blank" class="live-url">App · vercel.app ↗</a>
+    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="live-url">App · vercel.app ↗</a>
     <a href="https://github.com/AspenLaurent/zen-vision" target="_blank" class="live-url">GitHub · open source ↗</a>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -866,7 +937,4 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
 
-document.querySelectorAll('.fade-el, .stat-item, .section-marker, .section-title, .section-body, .feature-card, .why-moat, .why-right, .mission-quote, .mission-sub, .mission-line, .mission-tag, .cta-title, .cta-sub, .cta-actions').forEach(el => observer.observe(el));
-</script>
-</body>
-</html>
+document.querySelectorAll('.fade-el, .stat-item, .section-marker, .section-title, .section-body, .feature-card, .why-moat, .why-right, .mission-quot
