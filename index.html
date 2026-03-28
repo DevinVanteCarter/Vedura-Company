@@ -29,6 +29,26 @@ body{
   cursor:auto;
 }
 
+/* Make animated content visible if JS does not run */
+.fade-el,
+.stat-item,
+.section-marker,
+.section-title,
+.section-body,
+.feature-card,
+.why-moat,
+.why-right,
+.mission-quote,
+.mission-line,
+.mission-sub,
+.mission-tag,
+.cta-title,
+.cta-sub,
+.cta-actions {
+  opacity:1 !important;
+  transform:none !important;
+}
+
 /* Custom cursor */
 .cursor{
   position:fixed;
@@ -246,6 +266,15 @@ nav{
 }
 
 /* STATS */
+.fade-el{
+  opacity:0;
+  transform:translateY(20px);
+  transition:all 0.6s ease;
+}
+.fade-el.visible{
+  opacity:1;
+  transform:translateY(0);
+}
 .stats-strip{
   position:relative;z-index:1;
   border-top:1px solid rgba(82,183,136,0.1);
@@ -665,7 +694,7 @@ footer{
     <div class="orb orb-3"></div>
   </div>
 
-  <div style="margin-bottom:32px;opacity:0;animation:fadeUp 1s ease forwards 0.1s">
+  <div class="fade-el" style="margin-bottom:32px;">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="260" height="65">
     <defs>
       <linearGradient id="hero_lG" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -701,22 +730,22 @@ footer{
     <text x="75" y="52" font-family="'DM Mono', monospace" font-size="7" font-weight="400" letter-spacing="3" fill="#52B788" opacity="0.85">OFF-GRID INTELLIGENCE</text>
   </svg>
 </div>
-<p class="hero-eyebrow">The Vedura Company · Loveland, Ohio</p>
+<p class="hero-eyebrow fade-el">The Vedura Company · Loveland, Ohio</p>
 
-  <h1>
+  <h1 class="fade-el">
     The earth knows<br>
     <span class="line-2"><em>how to sustain us.</em></span>
     <span class="line-3">We help you listen.</span>
   </h1>
 
-  <p class="hero-sub">Zen Vision is an AI platform for off-grid living — plant health intelligence, solar power management, and a local AI advisor that runs entirely on your own hardware. Private. Free. Yours.</p>
+  <p class="hero-sub fade-el">Zen Vision is an AI platform for off-grid living — plant health intelligence, solar power management, and a local AI advisor that runs entirely on your own hardware. Private. Free. Yours.</p>
 
-  <div class="hero-actions">
+  <div class="hero-actions fade-el">
     <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="btn-primary">Try Zen Vision free →</a>
     <a href="#mission" class="btn-outline">Our mission</a>
   </div>
 
-  <div class="scroll-hint">
+  <div class="scroll-hint fade-el">
     <div class="scroll-line"></div>
     <span class="scroll-text">Scroll</span>
   </div>
