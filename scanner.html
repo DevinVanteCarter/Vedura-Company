@@ -758,6 +758,8 @@ async function apiFetch(path, options = {}) {
 let stream = null;
 let mode = 'idle';
 
+resolveApiHost();
+
 const video          = document.getElementById('video');
 const idleScreen     = document.getElementById('idle-screen');
 const hudOverlay     = document.getElementById('hud-overlay');
@@ -845,10 +847,11 @@ async function analyzeFile(file) {
   }, 600);
 
   try {
+    await resolveApiHost();
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(`${API}/plant/analyze/image`, { method: 'POST', body: formData });
+    const res = await apiFetch('/plant/analyze/image', { method: 'POST', body: formData });
 
     clearInterval(stepInterval);
 

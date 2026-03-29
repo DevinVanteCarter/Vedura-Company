@@ -828,9 +828,10 @@
           <span>Loading solar data...</span>
         </div>
       </div>
+      <p class="api-status" id="api-status">API host: resolving…</p>
     </div>
 
-    <button class="refresh-btn" onclick="loadSolar()">↻ Refresh solar data</button>
+    <button class="refresh-btn" onclick="resolveApiHost().then(loadSolar)">↻ Refresh solar data</button>
   </section>
 
   <!-- AI ADVISOR -->
@@ -896,21 +897,28 @@ async function testApiHost(host) {
   }
 }
 
+async function setApiStatus(message, isError = false) {
+  const statusEl = document.getElementById('api-status');
+  if (!statusEl) return;
+  statusEl.textContent = message;
+  statusEl.style.color = isError ? '#E24B4A' : '';
+}
+
 async function resolveApiHost() {
+  setApiStatus('API host: testing…');
   const preferLocal = location.protocol !== 'https:';
   if (preferLocal && await testApiHost(LOCAL_API)) {
     API = LOCAL_API;
+    setApiStatus(`API host: local (${LOCAL_API})`);
     return;
   }
   if (await testApiHost(REMOTE_API)) {
     API = REMOTE_API;
+    setApiStatus(`API host: remote (${REMOTE_API})`);
     return;
   }
-  if (preferLocal) {
-    API = LOCAL_API;
-  } else {
-    API = REMOTE_API;
-  }
+  API = preferLocal ? LOCAL_API : REMOTE_API;
+  setApiStatus(`API host: fallback to ${API} — check the backend`, true);
 }
 
 async function apiFetch(path, options = {}) {
@@ -925,6 +933,7 @@ async function apiFetch(path, options = {}) {
       lastError = err;
     }
   }
+  setApiStatus('API host: unreachable — tried local and remote', true);
   throw lastError;
 }
 
@@ -966,9 +975,10 @@ async function analyzePlant(file) {
   document.getElementById('plant-results').classList.remove('visible');
 
   try {
+    await resolveApiHost();
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API}/plant/analyze/image`, { method: 'POST', body: formData });
+    const res = await apiFetch('/plant/analyze/image', { method: 'POST', body: formData });
     const data = await res.json();
 
     document.getElementById('plant-loading').classList.remove('visible');
@@ -1009,7 +1019,7 @@ async function analyzePlant(file) {
 // Solar dashboard
 async function loadSolar() {
   try {
-    const res = await fetch(`${API}/solar/status`);
+    const res = await apiFetch('/solar/status', { cache: 'no-cache', mode: 'cors' });
     const data = await res.json();
 
     document.getElementById('solar-output').innerHTML = `${data.solar_output_kw}<span> kW</span>`;
@@ -1036,6 +1046,7 @@ async function loadSolar() {
       recList.appendChild(div);
     });
   } catch(err) {
+    setApiStatus('Unable to load solar data — API unreachable', true);
     document.getElementById('rec-list').innerHTML = 
       '<div class="rec-item"><div class="rec-dot"></div><span>Unable to reach the Zen Vision API — check your network or deployment endpoint.</span></div>';
   }
