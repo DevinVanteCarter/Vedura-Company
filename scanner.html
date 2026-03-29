@@ -704,54 +704,77 @@ html, body {
 
 <script>
 const REMOTE_API = 'https://zen-vision-production.up.railway.app';
-const LOCAL_API = 'http://127.0.0.1:8000';
+const LOCAL_API_HOSTS = ['http://127.0.0.1:8000', 'http://localhost:8000'];
 let API = REMOTE_API;
 
 async function testApiHost(host) {
+  console.log('testing API host', host);
+  let controller = new AbortController();
+  let timeout = setTimeout(() => controller.abort(), 1800);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1800);
     const res = await fetch(`${host}/health`, {
       method: 'GET',
       cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'omit',
       signal: controller.signal
     });
+    return res.ok || res.type === 'opaque';
+  } catch (err) {
+    console.warn('host test failed cors', host, err);
+  } finally {
     clearTimeout(timeout);
-    return res.ok;
-  } catch (_) {
+  }
+
+  controller = new AbortController();
+  timeout = setTimeout(() => controller.abort(), 1800);
+  try {
+    const res = await fetch(`${host}/health`, {
+      method: 'GET',
+      cache: 'no-cache',
+      mode: 'no-cors',
+      credentials: 'omit',
+      signal: controller.signal
+    });
+    return res.type === 'opaque';
+  } catch (err) {
+    console.warn('host test failed no-cors', host, err);
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
 async function resolveApiHost() {
-  const preferLocal = location.protocol !== 'https:';
-  if (preferLocal && await testApiHost(LOCAL_API)) {
-    API = LOCAL_API;
-    return;
+  for (const localHost of LOCAL_API_HOSTS) {
+    if (await testApiHost(localHost)) {
+      API = localHost;
+      return;
+    }
   }
   if (await testApiHost(REMOTE_API)) {
     API = REMOTE_API;
     return;
   }
-  if (preferLocal) {
-    API = LOCAL_API;
-  } else {
-    API = REMOTE_API;
-  }
+  API = LOCAL_API_HOSTS[0];
 }
 
 async function apiFetch(path, options = {}) {
-  const hosts = [API, API === LOCAL_API ? REMOTE_API : LOCAL_API];
+  const defaultOptions = { cache: 'no-cache', mode: 'cors' };
+  const mergedOptions = { ...defaultOptions, ...options };
+  const hosts = [API, ...LOCAL_API_HOSTS.filter(host => host !== API), REMOTE_API].filter((value, index, self) => self.indexOf(value) === index);
   let lastError = null;
   for (const host of hosts) {
     try {
-      const res = await fetch(`${host}${path}`, options);
+      console.log('fetching', path, 'from', host);
+      const res = await fetch(`${host}${path}`, mergedOptions);
       if (res.ok) return res;
       lastError = new Error(`API request failed: ${res.status}`);
     } catch (err) {
       lastError = err;
     }
   }
+  console.error('apiFetch failed', path, hosts, lastError);
   throw lastError;
 }
 
