@@ -362,13 +362,14 @@
 
   .camera-scan-btn {
     position: relative;
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    background: rgba(82,183,136,0.14);
+    background: rgba(8,28,21,0.92);
     color: var(--cream);
-    border: 1px solid rgba(82,183,136,0.25);
+    border: 1px solid rgba(82,183,136,0.35);
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-transform: uppercase;
@@ -376,9 +377,34 @@
     font-size: 11px;
     letter-spacing: 1.5px;
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
     z-index: 1;
+    box-shadow: 0 0 0 1px rgba(82,183,136,0.08), inset 0 0 0 1px rgba(82,183,136,0.06);
+  }
+
+  .camera-scan-btn:hover {
+    background: rgba(82,183,136,0.16);
+    transform: scale(1.05);
+    box-shadow: 0 0 0 1px rgba(82,183,136,0.12), inset 0 0 0 1px rgba(82,183,136,0.08);
+  }
+
+  .camera-scan-btn:active {
+    transform: scale(0.97);
+  }
+
+  .camera-scan-btn .scan-btn-icon {
+    font-size: 38px;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .camera-scan-btn .scan-btn-label {
+    color: var(--moss);
+    letter-spacing: 2px;
+    font-size: 12px;
+    display: block;
+    text-transform: uppercase;
   }
 
   .camera-scan-btn::before {
@@ -914,7 +940,10 @@
       </div>
 
       <div class="scanner-actions">
-        <button class="camera-scan-btn" id="start-camera-scan-btn"><span>Scan</span></button>
+        <button class="camera-scan-btn" id="start-camera-scan-btn">
+          <span class="scan-btn-icon">🌿</span>
+          <span class="scan-btn-label">Scan</span>
+        </button>
       </div>
 
       <div class="upload-zone" id="upload-zone">
