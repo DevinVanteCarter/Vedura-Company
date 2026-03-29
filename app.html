@@ -328,6 +328,83 @@
     margin-bottom: 6px;
   }
 
+  .scanner-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 12px;
+  }
+
+  .camera-scan-btn {
+    background: var(--moss);
+    color: var(--dark);
+    border: none;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .camera-scan-btn:hover {
+    background: var(--sage);
+  }
+
+  .camera-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8,28,21,0.92);
+    padding: 24px;
+  }
+
+  .camera-modal.active {
+    display: flex;
+  }
+
+  .camera-panel {
+    width: min(720px, 100%);
+    max-width: 720px;
+    border: 1px solid rgba(82,183,136,0.25);
+    background: rgba(8,28,21,0.95);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .camera-panel video {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    background: #000;
+  }
+
+  .camera-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .camera-controls button {
+    flex: 1;
+  }
+
+  .camera-close-btn {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid rgba(82,183,136,0.3);
+  }
+
+  .camera-close-btn:hover {
+    border-color: var(--moss);
+    color: var(--moss);
+  }
+
   /* Results */
   .results {
     display: none;
@@ -772,7 +849,21 @@
         </p>
       </div>
 
+      <div class="scanner-actions">
+        <button class="camera-scan-btn" id="start-camera-scan-btn">Use camera scan</button>
+      </div>
+
       <img id="image-preview" alt="Plant preview" />
+
+      <div class="camera-modal" id="camera-modal">
+        <div class="camera-panel">
+          <video id="camera-video" autoplay playsinline muted></video>
+          <div class="camera-controls">
+            <button class="camera-scan-btn" id="camera-capture-btn">Capture & analyze</button>
+            <button class="camera-close-btn" id="close-camera-btn">Close camera</button>
+          </div>
+        </div>
+      </div>
 
       <div class="loading" id="plant-loading">
         <p class="loading-text">Analyzing plant health...</p>
@@ -888,6 +979,12 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 const fileInput = document.getElementById('plant-file');
 const uploadZone = document.getElementById('upload-zone');
 const preview = document.getElementById('image-preview');
+const cameraModal = document.getElementById('camera-modal');
+const cameraVideo = document.getElementById('camera-video');
+const startCameraScan = document.getElementById('start-camera-scan-btn');
+const cameraCaptureBtn = document.getElementById('camera-capture-btn');
+const closeCameraBtn = document.getElementById('close-camera-btn');
+let cameraStream = null;
 
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
@@ -902,6 +999,46 @@ fileInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if(file) analyzePlant(file);
 });
+
+startCameraScan.addEventListener('click', openCameraScan);
+cameraCaptureBtn.addEventListener('click', captureCameraImage);
+closeCameraBtn.addEventListener('click', closeCameraScan);
+
+async function openCameraScan() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    cameraVideo.srcObject = cameraStream;
+    cameraModal.classList.add('active');
+  } catch (err) {
+    alert('Camera access denied or unavailable. Upload a photo instead.');
+  }
+}
+
+function closeCameraScan() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  cameraVideo.srcObject = null;
+  cameraModal.classList.remove('active');
+}
+
+function captureCameraImage() {
+  if (!cameraStream) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = cameraVideo.videoWidth;
+  canvas.height = cameraVideo.videoHeight;
+  canvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+  canvas.toBlob(blob => {
+    if (blob) {
+      analyzePlant(new File([blob], 'capture.jpg', { type: 'image/jpeg' }));
+    }
+  }, 'image/jpeg', 0.92);
+  closeCameraScan();
+}
 
 async function analyzePlant(file) {
   // Show preview
