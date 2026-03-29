@@ -5,6 +5,10 @@ Solarpunk off-grid intelligence platform.
 Plant health + Solar AI + Knowledge guide — all in one API.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,9 +19,9 @@ import os
 import shutil
 import json
 
-from zenvision_api.plant_health.image_analyzer import analyze_image
-from zenvision_api.plant_health.video_analyzer import analyze_video
-from zenvision_api.plant_health.solar_ai import SolarAIController
+from .plant_health.image_analyzer import analyze_image
+from .plant_health.video_analyzer import analyze_video
+from .plant_health.solar_ai import SolarAIController
 
 app = FastAPI(
     title="Zen Vision API",
