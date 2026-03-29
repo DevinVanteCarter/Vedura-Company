@@ -46,7 +46,7 @@ class SolarAIController:
         ]
         
         self.battery_charge_level = 40.0  # % of capacity
-        self.grid_demand_price = 1.0  # $/kWh
+        self.grid_demand_price = 1.5  # $/kWh - grid is expensive backup
         self.total_power_distributed = 0.0
         self.simulation_hour = 0
     
@@ -125,27 +125,25 @@ class SolarAIController:
                     routing[load.name]['grid'] = need
                     grid_usage += need
             else:
-                # Non-essential: only use excess solar and cheap grid periods
+                # Non-essential: use excess solar first, then battery only if the system is healthy
                 use_solar = min(remaining_solar, need)
                 routing[load.name]['solar'] = use_solar
                 remaining_solar -= use_solar
                 need -= use_solar
 
-                if need > 0 and self.grid_demand_price < 0.5 and remaining_battery > (0.1 * self.battery_bank.capacity):
-                    # allow some battery discharge for non-essential during cheap grid
+                if need > 0 and remaining_battery > (0.25 * self.battery_bank.capacity):
                     use_batt = min(remaining_battery, need)
                     routing[load.name]['battery'] = use_batt
                     remaining_battery -= use_batt
                     need -= use_batt
 
-                if need > 0:
-                    # defer non-essential (leave grid 0 unless cheap price)
-                    if self.grid_demand_price < 0.4:
-                        routing[load.name]['grid'] = need
-                        grid_usage += need
-                    else:
-                        # deferred => all zeros (no supply)
-                        pass
+                # Non-essential load only takes grid power as a last-resort backup
+                if need > 0 and self.grid_demand_price < 0.6:
+                    routing[load.name]['grid'] = need
+                    grid_usage += need
+                else:
+                    # defer non-essential when grid is expensive or battery is reserved
+                    pass
 
         return routing
     
@@ -154,12 +152,12 @@ class SolarAIController:
         excess_solar = solar_output - total_demand
         
         if excess_solar > 0:
-            # Charging battery
-            charge_increase = (excess_solar / self.battery_bank.capacity) * 100
+            # Charge battery with excess solar, accounting for efficiency
+            charge_increase = (excess_solar * self.battery_bank.efficiency / self.battery_bank.capacity) * 100
             self.battery_charge_level = min(100.0, self.battery_charge_level + charge_increase)
         else:
-            # Discharging battery
-            discharge = abs(excess_solar) / self.battery_bank.capacity * 100
+            # Discharge battery to cover the deficit before grid backup
+            discharge = abs(excess_solar) / self.battery_bank.capacity * 100 / self.battery_bank.efficiency
             self.battery_charge_level = max(0.0, self.battery_charge_level - discharge)
 
     def reroute_decision(self) -> Dict:
@@ -207,8 +205,8 @@ class SolarAIController:
         # Update battery level
         self._update_battery_level(solar_output, total_demand)
         
-        # Simulate grid demand
-        self.grid_demand_price = 0.5 + random.uniform(-0.2, 0.3)
+# Simulate grid demand pricing for backup use only
+        self.grid_demand_price = 1.2 + random.uniform(-0.1, 0.2)
         
         # Calculate metrics
         battery_health = self._calculate_battery_health()
@@ -223,7 +221,7 @@ class SolarAIController:
             "battery_charge": round(self.battery_charge_level, 1),
             "battery_health": round(battery_health, 1),
             "total_demand": round(total_demand, 2),
-            "grid_usage": round(max(0, total_demand - solar_output), 2),
+            "grid_usage": round(grid_usage, 2),
             "unused_solar": round(unused_solar, 2),
             "grid_price": round(self.grid_demand_price, 2),
             "routing": {k: {sk: round(sv, 2) for sk, sv in v.items()} for k, v in routing.items()}
