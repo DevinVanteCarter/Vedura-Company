@@ -47,6 +47,7 @@ html, body {
   object-fit: cover;
   opacity: 0;
   transition: opacity 1s ease;
+  pointer-events: none;
 }
 
 #video.active { opacity: 1; }
@@ -69,6 +70,7 @@ html, body {
   text-align: center;
   padding: 40px;
   transition: opacity 0.5s ease;
+  pointer-events: auto;
 }
 
 #idle-screen.hidden {
@@ -121,6 +123,9 @@ html, body {
   background: none;
   color: var(--cream);
   transition: transform 0.2s ease;
+  pointer-events: auto;
+  touch-action: manipulation;
+  z-index: 11;
 }
 
 .scan-btn:hover { transform: scale(1.05); }
@@ -190,6 +195,9 @@ html, body {
   padding: 8px 16px;
   border-bottom: 1px solid rgba(82,183,136,0.2);
   transition: color 0.2s, border-color 0.2s;
+  pointer-events: auto;
+  touch-action: manipulation;
+  z-index: 11;
 }
 
 .upload-alt:hover {
