@@ -328,6 +328,31 @@
     margin-bottom: 6px;
   }
 
+  .scanner-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .scanner-brand-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--moss);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .scanner-brand-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
   .scanner-actions {
     display: flex;
     justify-content: center;
@@ -840,6 +865,15 @@
     <p class="section-sub">Upload a photo. Our computer vision engine detects yellowing, burn, pests, and light stress in seconds.</p>
 
     <div class="scanner-wrap">
+      <div class="scanner-brand">
+        <div class="scanner-brand-logo">Vedura</div>
+        <div class="scanner-brand-sub">Camera scan</div>
+      </div>
+
+      <div class="scanner-actions">
+        <button class="camera-scan-btn" id="start-camera-scan-btn">Use camera scan</button>
+      </div>
+
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="plant-file" accept="image/*" />
         <div class="upload-icon">+</div>
@@ -847,10 +881,6 @@
           <strong>Drop a plant photo here</strong>
           or click to upload · JPG, PNG supported
         </p>
-      </div>
-
-      <div class="scanner-actions">
-        <button class="camera-scan-btn" id="start-camera-scan-btn">Use camera scan</button>
       </div>
 
       <img id="image-preview" alt="Plant preview" />
