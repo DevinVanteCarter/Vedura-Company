@@ -1095,7 +1095,7 @@
 
 <script>
 const REMOTE_API = 'https://zen-vision-production.up.railway.app';
-const LOCAL_API = 'http://127.0.0.1:8000';
+const LOCAL_API_HOSTS = ['http://127.0.0.1:8000', 'http://localhost:8000'];
 let API = REMOTE_API;
 
 async function testApiHost(host) {
@@ -1124,22 +1124,26 @@ async function setApiStatus(message, isError = false) {
 async function resolveApiHost() {
   setApiStatus('API host: testing…');
   const preferLocal = location.protocol !== 'https:';
-  if (preferLocal && await testApiHost(LOCAL_API)) {
-    API = LOCAL_API;
-    setApiStatus(`API host: local (${LOCAL_API})`);
-    return;
+  if (preferLocal) {
+    for (const localHost of LOCAL_API_HOSTS) {
+      if (await testApiHost(localHost)) {
+        API = localHost;
+        setApiStatus(`API host: local (${localHost})`);
+        return;
+      }
+    }
   }
   if (await testApiHost(REMOTE_API)) {
     API = REMOTE_API;
     setApiStatus(`API host: remote (${REMOTE_API})`);
     return;
   }
-  API = preferLocal ? LOCAL_API : REMOTE_API;
-  setApiStatus(`API host: fallback to ${API} — check the backend`, true);
+  API = preferLocal ? LOCAL_API_HOSTS[0] : REMOTE_API;
+  setApiStatus(`API host: fallback to ${API} — verify Zen Vision API is running`, true);
 }
 
 async function apiFetch(path, options = {}) {
-  const hosts = [API, API === LOCAL_API ? REMOTE_API : LOCAL_API];
+  const hosts = [API, ...LOCAL_API_HOSTS.filter(host => host !== API), REMOTE_API].filter((value, index, self) => self.indexOf(value) === index);
   let lastError = null;
   for (const host of hosts) {
     try {
