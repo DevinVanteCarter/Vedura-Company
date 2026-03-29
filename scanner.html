@@ -703,7 +703,20 @@ html, body {
 </div>
 
 <script>
-const API = 'https://zen-vision-production.up.railway.app';
+const REMOTE_API = 'https://zen-vision-production.up.railway.app';
+const LOCAL_API = 'http://127.0.0.1:8000';
+let API = REMOTE_API;
+
+async function resolveApiHost() {
+  try {
+    const res = await fetch(`${LOCAL_API}/health`, { method: 'GET', cache: 'no-cache' });
+    if (res.ok) {
+      API = LOCAL_API;
+      return;
+    }
+  } catch (_) {}
+  API = REMOTE_API;
+}
 
 let stream = null;
 let mode = 'idle';
