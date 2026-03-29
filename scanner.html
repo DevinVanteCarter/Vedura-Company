@@ -746,17 +746,11 @@ async function testApiHost(host) {
 }
 
 async function resolveApiHost() {
-  for (const localHost of LOCAL_API_HOSTS) {
-    if (await testApiHost(localHost)) {
-      API = localHost;
-      return;
-    }
-  }
-  if (await testApiHost(REMOTE_API)) {
+  if (location.protocol === 'https:') {
     API = REMOTE_API;
-    return;
+  } else {
+    API = LOCAL_API_HOSTS[0];
   }
-  API = LOCAL_API_HOSTS[0];
 }
 
 async function apiFetch(path, options = {}) {

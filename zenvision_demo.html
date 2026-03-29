@@ -927,25 +927,16 @@ async function setApiStatus(message, isError = false) {
 }
 
 async function resolveApiHost() {
-  if (location.protocol === 'file:') {
-    setApiStatus('Warning: page loaded from file:///; API access may be blocked by browser security.', true);
-  } else {
-    setApiStatus('API host: testing…');
-  }
-  for (const localHost of LOCAL_API_HOSTS) {
-    if (await testApiHost(localHost)) {
-      API = localHost;
-      setApiStatus(`API host: local (${localHost})`);
-      return;
-    }
-  }
-  if (await testApiHost(REMOTE_API)) {
+  if (location.protocol === 'https:') {
     API = REMOTE_API;
     setApiStatus(`API host: remote (${REMOTE_API})`);
-    return;
+  } else {
+    API = LOCAL_API_HOSTS[0];
+    setApiStatus(`API host: local (${API})`);
+    if (location.protocol === 'file:') {
+      setApiStatus('Loaded from file:// — run a local static server to avoid browser restrictions.', true);
+    }
   }
-  API = LOCAL_API_HOSTS[0];
-  setApiStatus(`API host: fallback to ${API} — local and remote unreachable`, true);
 }
 
 async function apiFetch(path, options = {}) {
@@ -1076,7 +1067,13 @@ async function loadSolar() {
       recList.appendChild(div);
     });
   } catch(err) {
-    setApiStatus('Unable to load solar data — API unreachable', true);
+    if (location.protocol === 'file:') {
+      setApiStatus('Unable to load solar data from a file:// page. Serve zenvision_demo.html with a local web server instead.', true);
+    } else if (location.protocol === 'https:') {
+      setApiStatus('HTTPS page cannot reach local HTTP API. Open page over http:// or use a local static server.', true);
+    } else {
+      setApiStatus('Unable to load solar data — API unreachable', true);
+    }
     document.getElementById('rec-list').innerHTML = 
       '<div class="rec-item"><div class="rec-dot"></div><span>Unable to reach the Zen Vision API — check your network or deployment endpoint.</span></div>';
   }
