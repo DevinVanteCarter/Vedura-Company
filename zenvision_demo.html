@@ -880,15 +880,52 @@ const REMOTE_API = 'https://zen-vision-production.up.railway.app';
 const LOCAL_API = 'http://127.0.0.1:8000';
 let API = REMOTE_API;
 
-async function resolveApiHost() {
+async function testApiHost(host) {
   try {
-    const res = await fetch(`${LOCAL_API}/health`, { method: 'GET', cache: 'no-cache' });
-    if (res.ok) {
-      API = LOCAL_API;
-      return;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1800);
+    const res = await fetch(`${host}/health`, {
+      method: 'GET',
+      cache: 'no-cache',
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    return res.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function resolveApiHost() {
+  const preferLocal = location.protocol !== 'https:';
+  if (preferLocal && await testApiHost(LOCAL_API)) {
+    API = LOCAL_API;
+    return;
+  }
+  if (await testApiHost(REMOTE_API)) {
+    API = REMOTE_API;
+    return;
+  }
+  if (preferLocal) {
+    API = LOCAL_API;
+  } else {
+    API = REMOTE_API;
+  }
+}
+
+async function apiFetch(path, options = {}) {
+  const hosts = [API, API === LOCAL_API ? REMOTE_API : LOCAL_API];
+  let lastError = null;
+  for (const host of hosts) {
+    try {
+      const res = await fetch(`${host}${path}`, options);
+      if (res.ok) return res;
+      lastError = new Error(`API request failed: ${res.status}`);
+    } catch (err) {
+      lastError = err;
     }
-  } catch (_) {}
-  API = REMOTE_API;
+  }
+  throw lastError;
 }
 
 // Scroll animations
