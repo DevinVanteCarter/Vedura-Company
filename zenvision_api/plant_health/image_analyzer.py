@@ -15,98 +15,140 @@ def _load_image(path: str):
     return img
 
 
+def _extract_plant_mask(img: np.ndarray) -> np.ndarray:
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    bgr = img.astype(np.float32)
+    exg = 2 * bgr[:, :, 1] - bgr[:, :, 0] - bgr[:, :, 2]
+
+    green_mask = (
+        (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 95) &
+        (hsv[:, :, 1] > 50) & (hsv[:, :, 2] > 40)
+    )
+    yellow_mask = (
+        (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 55) &
+        (hsv[:, :, 1] > 40) & (hsv[:, :, 2] > 45)
+    )
+    exg_mask = exg > 15
+    mask = (green_mask | yellow_mask | exg_mask).astype(np.uint8) * 255
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if contours:
+        largest = max(contours, key=cv2.contourArea)
+        mask = np.zeros_like(mask)
+        if cv2.contourArea(largest) > (img.shape[0] * img.shape[1] * 0.002):
+            cv2.drawContours(mask, [largest], -1, 255, thickness=cv2.FILLED)
+    return mask.astype(bool)
+
+
 def analyze_image(path: str, save_annotated: bool = True) -> Dict:
     img = _load_image(path)
     h, w = img.shape[:2]
-
-    # Convert to different color spaces
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Basic stats
-    mean_bgr = cv2.mean(img)[:3]
-    mean_hsv = cv2.mean(hsv)[:3]
-    mean_lab = cv2.mean(lab)[:3]
+    plant_mask = _extract_plant_mask(img)
+    plant_pixels = np.count_nonzero(plant_mask)
+    image_area = w * h
+    vegetation_coverage = round(float(plant_pixels) / max(1, image_area), 4)
 
-    findings = {}
+    findings = {
+        'plant_pixel_count': int(plant_pixels),
+        'vegetation_coverage': vegetation_coverage,
+    }
 
-    # Heuristic: yellowing detection -> lower green channel relative to red/blue
-    b, g, r = mean_bgr
-    green_ratio = g / max((r + b) / 2.0, 1e-6)
-    findings['green_ratio'] = round(float(green_ratio), 3)
-    if green_ratio < 0.85:
-        findings['yellowing_suspected'] = True
-        findings['yellowing_confidence'] = round(min(0.95, (0.85 - green_ratio) * 2.0), 2)
+    mask_uint8 = plant_mask.astype(np.uint8) * 255
+    if plant_pixels:
+        mean_b, mean_g, mean_r, _ = cv2.mean(img, mask=mask_uint8)
+        green_ratio = mean_g / max((mean_r + mean_b) / 2.0, 1e-6)
+        findings['green_ratio'] = round(float(green_ratio), 3)
+
+        hue = hsv[:, :, 0]
+        sat = hsv[:, :, 1]
+        val = hsv[:, :, 2]
+
+        yellow_pixels = np.count_nonzero(
+            (hue >= 15) & (hue <= 55) & (sat > 40) & (val > 50) & plant_mask
+        )
+        yellow_ratio = yellow_pixels / plant_pixels
+        findings['yellowing_suspected'] = yellow_ratio > 0.08 or green_ratio < 0.82
+        findings['yellowing_confidence'] = round(
+            min(0.98, max(yellow_ratio * 1.6, (0.82 - green_ratio) * 1.4, 0.0)), 2
+        ) if findings['yellowing_suspected'] else 0.0
+
+        edges = cv2.Canny(gray, 50, 150)
+        edges_mask = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+        brown_mask = (hue < 30) & (sat > 35) & (val < 190) & plant_mask
+        brown_edges = np.count_nonzero(edges_mask & brown_mask)
+        findings['brown_edge_pixels'] = int(brown_edges)
+        findings['burn_suspected'] = brown_edges > max(18, plant_pixels * 0.0025)
+        findings['burn_confidence'] = round(
+            min(0.95, brown_edges / max(1, plant_pixels * 0.011)), 2
+        ) if findings['burn_suspected'] else 0.0
+
+        blur = cv2.GaussianBlur(gray, (7, 7), 0)
+        plant_mean = float(np.mean(gray[plant_mask]))
+        _, th = cv2.threshold(blur, max(0, int(plant_mean - 25)), 255, cv2.THRESH_BINARY_INV)
+        th = cv2.bitwise_and(th, th, mask=mask_uint8)
+        contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        spot_count = 0
+        spot_area = 0
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 20 and area < (plant_pixels * 0.08):
+                spot_count += 1
+                spot_area += area
+
+        findings['spot_count'] = int(spot_count)
+        findings['spot_total_area'] = int(spot_area)
+        findings['spots_suspected'] = spot_count >= 2 or (spot_area > plant_pixels * 0.001)
+        findings['spots_confidence'] = round(
+            min(0.98, spot_area / max(1, plant_pixels * 0.02)), 2
+        ) if findings['spots_suspected'] else 0.0
+
+        bright_pixels = np.count_nonzero((val > 240) & plant_mask)
+        dark_pixels = np.count_nonzero((val < 35) & plant_mask)
+        findings['bright_pixel_ratio'] = round(float(bright_pixels) / plant_pixels, 4)
+        findings['dark_pixel_ratio'] = round(float(dark_pixels) / plant_pixels, 4)
+
+        findings['light_stress_overexposed'] = findings['bright_pixel_ratio'] > 0.06
+        findings['light_over_confidence'] = round(
+            min(0.95, findings['bright_pixel_ratio'] * 6), 2
+        ) if findings['light_stress_overexposed'] else 0.0
+
+        findings['light_stress_underexposed'] = findings['dark_pixel_ratio'] > 0.1
+        findings['light_under_confidence'] = round(
+            min(0.95, findings['dark_pixel_ratio'] * 4), 2
+        ) if findings['light_stress_underexposed'] else 0.0
     else:
-        findings['yellowing_suspected'] = False
-        findings['yellowing_confidence'] = 0.0
+        findings.update({
+            'green_ratio': 0.0,
+            'yellowing_suspected': False,
+            'yellowing_confidence': 0.0,
+            'brown_edge_pixels': 0,
+            'burn_suspected': False,
+            'burn_confidence': 0.0,
+            'spot_count': 0,
+            'spot_total_area': 0,
+            'spots_suspected': False,
+            'spots_confidence': 0.0,
+            'bright_pixel_ratio': 0.0,
+            'dark_pixel_ratio': 0.0,
+            'light_stress_overexposed': False,
+            'light_over_confidence': 0.0,
+            'light_stress_underexposed': False,
+            'light_under_confidence': 0.0,
+        })
 
-    # Heuristic: brown / burnt edges via edge detection combined with brown color threshold
-    edges = cv2.Canny(gray, 50, 150)
-    edges_mask = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-    # Brown in HSV (low saturation, low value with red-ish hue)
-    h_channel = hsv[:, :, 0]
-    s_channel = hsv[:, :, 1]
-    v_channel = hsv[:, :, 2]
-    brown_mask = (h_channel < 30) & (s_channel > 30) & (v_channel < 200)
-    brown_edges = np.count_nonzero(edges_mask & brown_mask)
-    findings['brown_edge_pixels'] = int(brown_edges)
-    if brown_edges > (w * h * 0.0005):
-        findings['burn_suspected'] = True
-        findings['burn_confidence'] = round(min(0.95, brown_edges / (w * h * 0.01)), 2)
-    else:
-        findings['burn_suspected'] = False
-        findings['burn_confidence'] = 0.0
-
-    # Heuristic: dark spots (possible mold or pest clusters)
-    blur = cv2.GaussianBlur(gray, (7, 7), 0)
-    _, th = cv2.threshold(blur, max(0, int(np.mean(blur) - 30)), 255, cv2.THRESH_BINARY_INV)
-    # Remove small noise
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    th = cv2.morphologyEx(th, cv2.MORPH_OPEN, kernel, iterations=1)
-    contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    spot_count = 0
-    spot_area = 0
-    for c in contours:
-        area = cv2.contourArea(c)
-        if area > 20 and area < (w * h * 0.05):
-            spot_count += 1
-            spot_area += area
-    findings['spot_count'] = int(spot_count)
-    findings['spot_total_area'] = int(spot_area)
-    if spot_count >= 3 or (spot_area > (w * h * 0.001)):
-        findings['spots_suspected'] = True
-        findings['spots_confidence'] = round(min(0.98, spot_area / (w * h * 0.02)), 2)
-    else:
-        findings['spots_suspected'] = False
-        findings['spots_confidence'] = 0.0
-
-    # Heuristic: light stress (over-exposure or under-exposure detection)
-    bright_pixels = np.count_nonzero(v_channel > 240)
-    dark_pixels = np.count_nonzero(v_channel < 30)
-    findings['bright_pixel_ratio'] = round(float(bright_pixels) / (w * h), 4)
-    findings['dark_pixel_ratio'] = round(float(dark_pixels) / (w * h), 4)
-    if findings['bright_pixel_ratio'] > 0.05:
-        findings['light_stress_overexposed'] = True
-        findings['light_over_confidence'] = round(min(0.95, findings['bright_pixel_ratio'] * 5), 2)
-    else:
-        findings['light_stress_overexposed'] = False
-        findings['light_over_confidence'] = 0.0
-
-    if findings['dark_pixel_ratio'] > 0.1:
-        findings['light_stress_underexposed'] = True
-        findings['light_under_confidence'] = round(min(0.95, findings['dark_pixel_ratio'] * 3), 2)
-    else:
-        findings['light_stress_underexposed'] = False
-        findings['light_under_confidence'] = 0.0
-
-    # Annotate image with findings
     annotated = img.copy()
     y0 = 20
-    for key, val in list(findings.items())[:8]:
+    for key, val in list(findings.items())[:10]:
         cv2.putText(annotated, f"{key}: {val}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (230, 230, 230), 1)
-        y0 += 16
+        y0 += 18
 
     annotated_path = path + ".annotated.jpg"
     if save_annotated:

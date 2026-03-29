@@ -33,6 +33,8 @@ Then open: http://localhost:8000/docs
 ### Knowledge Guide
 - `GET /knowledge` — List all off-grid knowledge topics
 - `GET /knowledge/{topic_id}` — Get a specific topic
+- `GET /knowledge/plants` — List Ohio plant knowledge topics
+- `GET /knowledge/plants/{topic_id}` — Get a specific Ohio plant topic
 
 ## Project structure
 

@@ -1,0 +1,52 @@
+{
+  "ohio-seasonal-guide": {
+    "title": "Ohio seasonal planting guide",
+    "content": "Ohio gardeners live in USDA zones 5-6. Start cool-season crops like lettuce, kale, peas, and spinach in early spring. Plant tomatoes, peppers, beans, and squash after the last frost, usually late May. In fall, grow brassicas, root vegetables, and cover crops to rebuild soil.",
+    "tags": ["ohio", "seasons", "planting"]
+  },
+  "soil-health-ohio": {
+    "title": "Ohio soil health",
+    "content": "Most Ohio soils benefit from organic matter and slightly acidic to neutral pH (6.0-7.0). Use compost, leaf mulch, and cover crops to improve clay and silt soils. Test soil before adding lime or fertilizer and focus on structure first.",
+    "tags": ["soil", "ohio", "fertility"]
+  },
+  "common-ohio-crops": {
+    "title": "Common Ohio crops",
+    "content": "Tomatoes, peppers, sweet corn, green beans, cucumbers, squash, kale, Swiss chard, and herbs are top Ohio choices. Native flowers like bee balm, coneflower, and milkweed support pollinators and improve garden resilience.",
+    "tags": ["ohio", "crops", "vegetables"]
+  },
+  "ohio-pests-and-diseases": {
+    "title": "Ohio garden pests and diseases",
+    "content": "Watch for Japanese beetles, tomato hornworms, squash vine borers, cucumber beetles, and aphids. Common diseases include tomato blight, powdery mildew, and bacterial spot. Use crop rotation, row covers, and organic sprays to manage outbreaks.",
+    "tags": ["pests", "diseases", "ohio"]
+  },
+  "companion-planting": {
+    "title": "Companion planting for Ohio gardens",
+    "content": "Beans grow well with corn and squash. Marigolds, basil, and nasturtiums help deter pests. Plant herbs like dill and parsley near vegetables to attract beneficial insects.",
+    "tags": ["companion", "gardening", "ohio"]
+  },
+  "watering-and-mulch": {
+    "title": "Watering and mulch best practices",
+    "content": "Water deeply and infrequently, ideally in the morning. Mulch with straw, wood chips, or leaves to retain moisture, suppress weeds, and regulate soil temperature.",
+    "tags": ["watering", "mulch", "maintenance"]
+  },
+  "cover-crops": {
+    "title": "Cover crops for Ohio",
+    "content": "Plant clover, rye, or vetch in fall to protect soil and fix nitrogen. Cover crops build organic matter and reduce erosion during winter months.",
+    "tags": ["cover crops", "soil", "ohio"]
+  },
+  "native-plant-benefits": {
+    "title": "Native plants for Ohio homesteads",
+    "content": "Ohio natives like wild bergamot, black-eyed Susan, and milkweed support pollinators and require less water once established. They also improve biodiversity and create habitat for beneficial insects.",
+    "tags": ["native", "pollinators", "ohio"]
+  },
+  "greenhouse-and-season-extension": {
+    "title": "Season extension strategies",
+    "content": "Use row covers, cold frames, and simple hoop houses to extend the growing season in Ohio. These structures protect seedlings in early spring and help harvest crops later into fall.",
+    "tags": ["season extension", "ohio", "structures"]
+  },
+  "organic-fertilizers": {
+    "title": "Organic fertilizer options",
+    "content": "Use compost, aged manure, bone meal, and kelp meal to feed Ohio gardens. Avoid over-fertilizing; follow soil test recommendations and let plants show nutrient response.",
+    "tags": ["fertilizer", "organic", "ohio"]
+  }
+}

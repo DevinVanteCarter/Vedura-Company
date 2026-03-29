@@ -13,10 +13,11 @@ from typing import Optional, List
 import tempfile
 import os
 import shutil
+import json
 
-from plant_health.image_analyzer import analyze_image
-from plant_health.video_analyzer import analyze_video
-from plant_health.solar_ai import SolarAIController
+from .plant_health.image_analyzer import analyze_image
+from .plant_health.video_analyzer import analyze_video
+from .plant_health.solar_ai import SolarAIController
 
 app = FastAPI(
     title="Zen Vision API",
@@ -34,6 +35,17 @@ app.add_middleware(
 # Single shared solar controller per session (stateful simulation)
 _solar_controller = SolarAIController()
 
+
+def _load_plant_knowledge():
+    base_dir = os.path.dirname(__file__)
+    path = os.path.join(base_dir, 'plant_health', 'plant_knowledge.json')
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+PLANT_KNOWLEDGE = _load_plant_knowledge()
 
 # ─────────────────────────────────────────────
 # HEALTH CHECK
@@ -258,6 +270,21 @@ def get_knowledge(topic_id: str):
     return {"status": "ok", "topic": topic}
 
 
+@app.get("/knowledge/plants", tags=["Knowledge Guide"])
+def list_plant_knowledge():
+    """List detailed Ohio plant knowledge topics."""
+    return {"status": "ok", "topics": PLANT_KNOWLEDGE}
+
+
+@app.get("/knowledge/plants/{topic_id}", tags=["Knowledge Guide"])
+def get_plant_knowledge(topic_id: str):
+    """Get a specific Ohio plant knowledge topic."""
+    topic = PLANT_KNOWLEDGE.get(topic_id)
+    if not topic:
+        raise HTTPException(status_code=404, detail=f"Plant topic '{topic_id}' not found.")
+    return {"status": "ok", "topic": topic}
+
+
 # ─────────────────────────────────────────────
 # UTILITY
 # ─────────────────────────────────────────────
@@ -265,16 +292,19 @@ def get_knowledge(topic_id: str):
 def _calculate_health_score(results: dict) -> int:
     """Calculate a 0-100 plant health score from analysis results."""
     score = 100
-    if results.get("yellowing_suspected"):
-        score -= int(results.get("yellowing_confidence", 0) * 30)
-    if results.get("burn_suspected"):
-        score -= int(results.get("burn_confidence", 0) * 25)
-    if results.get("spots_suspected"):
-        score -= int(results.get("spots_confidence", 0) * 20)
-    if results.get("light_stress_overexposed"):
-        score -= 10
-    if results.get("light_stress_underexposed"):
-        score -= 10
+    score -= int(results.get("yellowing_confidence", 0) * 34)
+    score -= int(results.get("burn_confidence", 0) * 28)
+    score -= int(results.get("spots_confidence", 0) * 22)
+    score -= int(results.get("light_over_confidence", 0) * 12)
+    score -= int(results.get("light_under_confidence", 0) * 12)
+
+    vegetation_coverage = results.get("vegetation_coverage", 1.0)
+    if vegetation_coverage < 0.12:
+        score -= int((0.12 - vegetation_coverage) * 100 * 0.6)
+
+    if results.get("plant_pixel_count", 0) < 900:
+        score -= 8
+
     return max(0, min(100, score))
 
 

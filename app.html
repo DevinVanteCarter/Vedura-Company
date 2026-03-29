@@ -547,6 +547,28 @@
     line-height: 1.5;
   }
 
+  .details-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .detail-item {
+    padding: 12px 14px;
+    border: 1px solid rgba(82,183,136,0.15);
+    background: rgba(82,183,136,0.08);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .detail-item strong {
+    color: var(--cream);
+  }
+
   .alert-item.good {
     border-left-color: var(--moss);
     background: rgba(82,183,136,0.08);
@@ -981,6 +1003,7 @@
           </div>
         </div>
         <ul class="alerts-list" id="alerts-list"></ul>
+        <ul class="details-list" id="details-list"></ul>
       </div>
     </div>
   </section>
@@ -1173,26 +1196,79 @@ async function analyzePlant(file) {
     document.getElementById('score-title').textContent = 
       score > 70 ? 'Plant is healthy' : score > 40 ? 'Needs attention' : 'Urgent care needed';
     document.getElementById('score-desc').textContent = 
-      `Health score: ${score}/100 · Analysis complete`;
+      score > 85 ? `Strong plant health, keep the routine going.` :
+      score > 60 ? `Light stress detected — monitor watering and light.` :
+      score > 40 ? `Moderate issues found — inspect leaves closely.` :
+      `Serious plant stress detected — take action now.`;
 
+    const alerts = Array.isArray(data.alerts) ? data.alerts : [];
     const alertsList = document.getElementById('alerts-list');
+    const detailsList = document.getElementById('details-list');
     alertsList.innerHTML = '';
+    detailsList.innerHTML = '';
 
-    if(data.alerts.length === 0) {
+    const details = [];
+    const raw = data.raw || {};
+
+    if (raw.green_ratio !== undefined) {
+      details.push({ label: 'Green ratio', value: raw.green_ratio.toFixed(2) });
+    }
+    if (raw.yellowing_confidence) {
+      details.push({ label: 'Yellowing confidence', value: `${Math.round(raw.yellowing_confidence * 100)}%` });
+    }
+    if (raw.burn_confidence) {
+      details.push({ label: 'Burn / brown edge confidence', value: `${Math.round(raw.burn_confidence * 100)}%` });
+    }
+    if (raw.spot_count !== undefined) {
+      details.push({ label: 'Spot count', value: raw.spot_count });
+    }
+    if (raw.spot_total_area !== undefined) {
+      details.push({ label: 'Spot area', value: `${raw.spot_total_area} px` });
+    }
+    if (raw.vegetation_coverage !== undefined) {
+      details.push({ label: 'Plant coverage', value: `${(raw.vegetation_coverage * 100).toFixed(1)}%` });
+    }
+    if (raw.plant_pixel_count !== undefined) {
+      details.push({ label: 'Plant region pixels', value: raw.plant_pixel_count });
+    }
+    if (raw.bright_pixel_ratio !== undefined) {
+      details.push({ label: 'Bright pixel ratio', value: `${(raw.bright_pixel_ratio * 100).toFixed(1)}%` });
+    }
+    if (raw.dark_pixel_ratio !== undefined) {
+      details.push({ label: 'Dark pixel ratio', value: `${(raw.dark_pixel_ratio * 100).toFixed(1)}%` });
+    }
+    if (raw.light_over_confidence) {
+      details.push({ label: 'Overexposure confidence', value: `${Math.round(raw.light_over_confidence * 100)}%` });
+    }
+    if (raw.light_under_confidence) {
+      details.push({ label: 'Underexposure confidence', value: `${Math.round(raw.light_under_confidence * 100)}%` });
+    }
+
+    if (alerts.length === 0) {
       alertsList.innerHTML = '<li class="alert-item good">No issues detected — your plant looks healthy!</li>';
     } else {
-      data.alerts.forEach(alert => {
+      alerts.forEach(alert => {
         const li = document.createElement('li');
         li.className = 'alert-item';
         li.textContent = alert;
         alertsList.appendChild(li);
       });
     }
+
+    details.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'detail-item';
+      li.innerHTML = `<strong>${item.label}</strong>: ${item.value}`;
+      detailsList.appendChild(li);
+    });
+
+    fileInput.value = '';
   } catch(err) {
     document.getElementById('plant-loading').classList.remove('visible');
     document.getElementById('plant-results').classList.add('visible');
     document.getElementById('score-title').textContent = 'Could not connect to API';
     document.getElementById('score-desc').textContent = 'Make sure the Zen Vision API is available at the configured endpoint.';
+    fileInput.value = '';
   }
 }
 
