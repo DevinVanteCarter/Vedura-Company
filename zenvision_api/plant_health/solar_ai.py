@@ -201,11 +201,12 @@ class SolarAIController:
         routing = self._calculate_optimal_routing()
         # routing now contains per-load source dicts
         total_demand = sum(sum(s.values()) for s in routing.values())
+        grid_usage = sum(load.get('grid', 0.0) for load in routing.values())
         
         # Update battery level
         self._update_battery_level(solar_output, total_demand)
         
-# Simulate grid demand pricing for backup use only
+        # Simulate grid demand pricing for backup use only
         self.grid_demand_price = 1.2 + random.uniform(-0.1, 0.2)
         
         # Calculate metrics
