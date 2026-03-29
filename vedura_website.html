@@ -26,7 +26,27 @@ body{
   font-family:'Jost',sans-serif;
   font-weight:300;
   overflow-x:hidden;
-  cursor:none;
+  cursor:auto;
+}
+
+/* Make animated content visible if JS does not run */
+.fade-el,
+.stat-item,
+.section-marker,
+.section-title,
+.section-body,
+.feature-card,
+.why-moat,
+.why-right,
+.mission-quote,
+.mission-line,
+.mission-sub,
+.mission-tag,
+.cta-title,
+.cta-sub,
+.cta-actions {
+  opacity:1 !important;
+  transform:none !important;
 }
 
 /* Custom cursor */
@@ -199,7 +219,7 @@ nav{
   font-size:12px;
   letter-spacing:1.5px;
   text-transform:uppercase;
-  cursor:none;
+  cursor:pointer;
   transition:all 0.25s;
   text-decoration:none;
   display:inline-block;
@@ -214,7 +234,7 @@ nav{
   font-size:12px;
   letter-spacing:1.5px;
   text-transform:uppercase;
-  cursor:none;
+  cursor:pointer;
   transition:all 0.25s;
   text-decoration:none;
   display:inline-block;
@@ -624,12 +644,12 @@ footer{
 <div class="cursor-ring" id="cursor-ring"></div>
 
 <nav>
-  <a href="#" class="nav-logo">Vedura <span>/ Zen Vision</span></a>
+  <a href="./" class="nav-logo">Vedura <span>/ Zen Vision</span></a>
   <ul class="nav-links">
     <li><a href="#product">Product</a></li>
     <li><a href="#mission">Mission</a></li>
     <li><a href="#why">Why Vedura</a></li>
-    <li><a href="https://zen-vision-sigma.vercel.app" target="_blank" class="nav-cta">Try it free</a></li>
+    <li><a href="app.html" class="nav-cta">Try it free</a></li>
   </ul>
 </nav>
 
@@ -652,7 +672,7 @@ footer{
   <p class="hero-sub">Zen Vision is an AI platform for off-grid living — plant health intelligence, solar power management, and a local AI advisor that runs entirely on your own hardware. Private. Free. Yours.</p>
 
   <div class="hero-actions">
-    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="btn-primary">Try Zen Vision free →</a>
+    <a href="app.html" class="btn-primary">Try Zen Vision free →</a>
     <a href="#mission" class="btn-outline">Our mission</a>
   </div>
 
@@ -802,7 +822,7 @@ footer{
   <h2 class="cta-title fade-el">The exit ramp<br><em>exists.</em></h2>
   <p class="cta-sub fade-el">Try Zen Vision free — scan a plant, check your solar, ask your AI advisor anything. No account needed. No cloud. No cost.</p>
   <div class="cta-actions fade-el">
-    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="btn-primary">Open Zen Vision →</a>
+    <a href="app.html" class="btn-primary">Open Zen Vision →</a>
     <a href="mailto:hello@vedura.co" class="btn-outline">Get in touch</a>
   </div>
 </section>
@@ -817,8 +837,8 @@ footer{
   <div class="footer-links">
     <h4>Product</h4>
     <ul>
-      <li><a href="https://zen-vision-sigma.vercel.app" target="_blank">Zen Vision app</a></li>
-      <li><a href="https://zen-vision-production.up.railway.app/docs" target="_blank">API documentation</a></li>
+      <li><a href="app.html">Zen Vision app</a></li>
+      <li><a href="https://zen-vision-production.up.railway.app/docs" target="_blank" rel="noopener noreferrer">API documentation</a></li>
       <li><a href="#product">Plant health AI</a></li>
       <li><a href="#product">Solar power AI</a></li>
       <li><a href="#product">Local AI advisor</a></li>
@@ -830,9 +850,9 @@ footer{
       <div class="status-dot-live"></div>
       <span class="status-text">All systems operational</span>
     </div>
-    <a href="https://zen-vision-production.up.railway.app" target="_blank" class="live-url">API · railway.app ↗</a>
-    <a href="https://zen-vision-sigma.vercel.app" target="_blank" class="live-url">App · vercel.app ↗</a>
-    <a href="https://github.com/AspenLaurent/zen-vision" target="_blank" class="live-url">GitHub · open source ↗</a>
+    <a href="https://zen-vision-production.up.railway.app" target="_blank" rel="noopener noreferrer" class="live-url">API · railway.app ↗</a>
+    <a href="app.html" class="live-url">App · demo ↗</a>
+    <a href="https://github.com/AspenLaurent/zen-vision" target="_blank" rel="noopener noreferrer" class="live-url">GitHub · open source ↗</a>
   </div>
 </footer>
 

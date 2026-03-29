@@ -795,7 +795,7 @@
   <section id="solar" class="fade-in">
     <p class="section-tag">02 — Solar intelligence</p>
     <h2 class="section-title">Your energy,<br><em>optimized.</em></h2>
-    <p class="section-sub">Real-time solar output, battery status, and AI-powered load routing — your homestead power grid made intelligent.</p>
+    <p class="section-sub">Real-time solar output, battery status, and AI-powered off-grid routing — your homestead energy system stays independent and efficient.</p>
 
     <div class="solar-grid" id="solar-grid">
       <div class="solar-card">
@@ -837,7 +837,7 @@
   <section id="advisor" class="fade-in">
     <p class="section-tag">03 — Homestead advisor</p>
     <h2 class="section-title">Ask your<br><em>AI advisor anything.</em></h2>
-    <p class="section-sub">Powered by Mistral running locally on your hardware. Private, free, and always available — even off-grid.</p>
+    <p class="section-sub">Powered by Groq AI and local homestead intelligence. Private, practical, and designed for off-grid living.</p>
 
     <div class="advisor-wrap">
       <div class="advisor-messages" id="advisor-messages">
@@ -876,7 +876,7 @@
 </footer>
 
 <script>
-const API = 'http://localhost:8000';
+const API = 'https://zen-vision-production.up.railway.app';
 
 // Scroll animations
 const observer = new IntersectionObserver(entries => {
@@ -952,7 +952,7 @@ async function analyzePlant(file) {
     document.getElementById('plant-loading').classList.remove('visible');
     document.getElementById('plant-results').classList.add('visible');
     document.getElementById('score-title').textContent = 'Could not connect to API';
-    document.getElementById('score-desc').textContent = 'Make sure Zen Vision API is running on port 8000';
+    document.getElementById('score-desc').textContent = 'Make sure the Zen Vision API is available at the configured endpoint.';
   }
 }
 
@@ -987,7 +987,7 @@ async function loadSolar() {
     });
   } catch(err) {
     document.getElementById('rec-list').innerHTML = 
-      '<div class="rec-item"><div class="rec-dot"></div><span>Make sure Zen Vision API is running on port 8000</span></div>';
+      '<div class="rec-item"><div class="rec-dot"></div><span>Unable to reach the Zen Vision API — check your network or deployment endpoint.</span></div>';
   }
 }
 
