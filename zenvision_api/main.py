@@ -361,13 +361,28 @@ def _calculate_health_score(results: dict) -> int:
     over_pen   = results.get("light_over_confidence", 0) * 4.0
     under_pen  = results.get("light_under_confidence", 0) * 4.0
 
+    # Strong green ratio caps how much burn/spots can penalize
+    # A truly green plant can't be severely diseased — discount ambiguous signals
+    if green_ratio > 1.0:
+        burn_pen  = min(burn_pen,  8.0)
+        spots_pen = min(spots_pen, 8.0)
+    if green_ratio >= 1.2:
+        burn_pen  = min(burn_pen,  5.0)
+        spots_pen = min(spots_pen, 5.0)
+
     coverage = results.get("vegetation_coverage", 1.0)
     coverage_pen = max(0.0, (0.12 - coverage) * 100 * 0.5) if coverage < 0.12 else 0.0
     if results.get("plant_pixel_count", 999) < 900:
         coverage_pen = min(coverage_pen + 5.0, 8.0)
 
     raw = 65.0 + green_pts - yellow_pen - burn_pen - spots_pen - over_pen - under_pen - coverage_pen
-    return max(0, min(100, round(raw)))
+    score = max(0, min(100, round(raw)))
+
+    # Floor: a genuinely green plant cannot score below 70
+    if green_ratio > 1.0:
+        score = max(score, 70)
+
+    return score
 
 
 if __name__ == "__main__":
