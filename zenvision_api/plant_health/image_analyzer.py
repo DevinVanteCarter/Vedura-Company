@@ -8,6 +8,23 @@ import numpy as np
 from typing import Dict, Tuple
 
 
+def _to_native(v):
+    """Recursively convert numpy scalars/arrays to native Python types."""
+    if isinstance(v, np.bool_):
+        return bool(v)
+    if isinstance(v, np.integer):
+        return int(v)
+    if isinstance(v, np.floating):
+        return float(v)
+    if isinstance(v, np.ndarray):
+        return v.tolist()
+    if isinstance(v, dict):
+        return {k: _to_native(val) for k, val in v.items()}
+    if isinstance(v, (list, tuple)):
+        return type(v)(_to_native(i) for i in v)
+    return v
+
+
 def _load_image(path: str):
     img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
     if img is None:
@@ -156,4 +173,4 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
 
     findings['annotated_image'] = annotated_path
     findings['image_size'] = (w, h)
-    return findings
+    return _to_native(findings)
