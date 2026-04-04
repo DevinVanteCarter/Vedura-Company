@@ -76,7 +76,7 @@ async def analyze_plant_image(file: UploadFile = File(...)):
     Upload a plant image and get an instant AI health report.
     Detects: yellowing, burn, pests/spots, light stress.
     """
-    if not file.content_type.startswith("image/"):
+    if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image.")
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
@@ -109,9 +109,13 @@ async def analyze_plant_image(file: UploadFile = File(...)):
             "raw": results
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
 
 
 @app.post("/plant/analyze/video", tags=["Plant Health"])
