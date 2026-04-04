@@ -332,32 +332,34 @@ def _calculate_health_score(results: dict) -> int:
     """
     Weighted health score (0-100).
 
-    Weights:
-      green_ratio   -> 0-35 pts  (primary vitality signal)
-      yellowing     -> up to -25 pts
-      burn          -> up to -15 pts
-      spots         -> up to -15 pts
-      light over    -> up to -5 pts
-      light under   -> up to -5 pts
-      coverage      -> up to -8 pts if plant barely visible
-    Base of 65 + green_pts - penalties.
+    green_ratio is the primary signal — a green plant with no issues should
+    score 80+. Penalties only kick in at meaningful confidence levels.
+
+      green_ratio >= 0.82  ->  15-35 pts additive
+      green_ratio >= 1.25  ->  full 35 pts (vibrant)
+      base 65 + green_pts  ->  80-100 before any penalties
+      yellowing            ->  up to -25 pts
+      burn / spots         ->  up to -12 pts each
+      light stress         ->  up to -4 pts each
+      coverage             ->  up to -8 pts if plant barely visible
     """
-    # green ratio component (0-35 pts): ratio ~1.25+ = vibrant green
     green_ratio = results.get("green_ratio", 1.0)
     if green_ratio >= 1.25:
         green_pts = 35.0
     elif green_ratio >= 1.0:
         green_pts = 20.0 + (green_ratio - 1.0) / 0.25 * 15.0
     elif green_ratio >= 0.82:
-        green_pts = 8.0 + (green_ratio - 0.82) / 0.18 * 12.0
+        green_pts = 15.0 + (green_ratio - 0.82) / 0.18 * 5.0
+    elif green_ratio >= 0.6:
+        green_pts = (green_ratio - 0.6) / 0.22 * 15.0
     else:
-        green_pts = max(0.0, green_ratio / 0.82 * 8.0)
+        green_pts = 0.0
 
     yellow_pen = results.get("yellowing_confidence", 0) * 25.0
-    burn_pen   = results.get("burn_confidence",      0) * 15.0
-    spots_pen  = results.get("spots_confidence",     0) * 15.0
-    over_pen   = results.get("light_over_confidence", 0) * 5.0
-    under_pen  = results.get("light_under_confidence", 0) * 5.0
+    burn_pen   = results.get("burn_confidence",      0) * 12.0
+    spots_pen  = results.get("spots_confidence",     0) * 12.0
+    over_pen   = results.get("light_over_confidence", 0) * 4.0
+    under_pen  = results.get("light_under_confidence", 0) * 4.0
 
     coverage = results.get("vegetation_coverage", 1.0)
     coverage_pen = max(0.0, (0.12 - coverage) * 100 * 0.5) if coverage < 0.12 else 0.0

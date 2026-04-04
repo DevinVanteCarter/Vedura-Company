@@ -98,12 +98,13 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
 
         edges = cv2.Canny(gray, 50, 150)
         edges_mask = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-        brown_mask = (hue < 30) & (sat > 35) & (val < 190) & plant_mask
+        # Brown/burn: hue 8-22 (orange-brown) with moderate sat, excludes pink/red/magenta
+        brown_mask = (hue >= 8) & (hue <= 22) & (sat > 45) & (val > 40) & (val < 185) & plant_mask
         brown_edges = np.count_nonzero(edges_mask & brown_mask)
         findings['brown_edge_pixels'] = int(brown_edges)
-        findings['burn_suspected'] = brown_edges > max(18, plant_pixels * 0.0025)
+        findings['burn_suspected'] = brown_edges > max(30, plant_pixels * 0.004)
         findings['burn_confidence'] = round(
-            min(0.95, brown_edges / max(1, plant_pixels * 0.011)), 2
+            min(0.90, brown_edges / max(1, plant_pixels * 0.015)), 2
         ) if findings['burn_suspected'] else 0.0
 
         blur = cv2.GaussianBlur(gray, (7, 7), 0)
@@ -116,16 +117,25 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
         spot_area = 0
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area > 20 and area < (plant_pixels * 0.08):
+            # Minimum 500px filters stamens, texture, and fine detail
+            if area >= 500 and area < (plant_pixels * 0.08):
                 spot_count += 1
                 spot_area += area
 
         findings['spot_count'] = int(spot_count)
         findings['spot_total_area'] = int(spot_area)
-        findings['spots_suspected'] = spot_count >= 2 or (spot_area > plant_pixels * 0.001)
-        findings['spots_confidence'] = round(
-            min(0.98, spot_area / max(1, plant_pixels * 0.02)), 2
-        ) if findings['spots_suspected'] else 0.0
+        # Require at least 3 meaningful spots, not just 2 tiny ones
+        findings['spots_suspected'] = spot_count >= 3 or (spot_area > plant_pixels * 0.015)
+        # Sanity check: many spots with small avg area = texture, not pests — lower confidence
+        avg_spot_area = (spot_area / spot_count) if spot_count > 0 else 0
+        if findings['spots_suspected']:
+            base_conf = min(0.90, spot_area / max(1, plant_pixels * 0.06))
+            # Penalize if avg spot is small (< 800px) — likely texture not disease
+            if avg_spot_area < 800 and spot_count > 5:
+                base_conf *= 0.4
+            findings['spots_confidence'] = round(base_conf, 2)
+        else:
+            findings['spots_confidence'] = 0.0
 
         bright_pixels = np.count_nonzero((val > 240) & plant_mask)
         dark_pixels = np.count_nonzero((val < 35) & plant_mask)
