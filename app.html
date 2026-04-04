@@ -1109,15 +1109,15 @@ async function resolveApiHost() {
 
 async function apiFetch(path, options = {}) {
   const mergedOptions = { cache: 'no-cache', mode: 'cors', ...options };
-  try {
-    const res = await fetch(`${API}${path}`, mergedOptions);
-    if (res.ok) return res;
-    throw new Error(`API request failed: ${res.status}`);
-  } catch (err) {
-    setApiStatus('API unreachable', true);
-    console.error('API fetch failed for:', path, err);
-    throw err;
-  }
+  const res = await fetch(`${API}${path}`, mergedOptions);
+  if (res.ok) return res;
+  let detail;
+  try { detail = (await res.json()).detail; } catch (_) {}
+  const err = new Error(detail || `API error: ${res.status}`);
+  err.detail = detail;
+  setApiStatus(`API error: ${res.status}`, true);
+  console.error('API fetch failed for:', path, err);
+  throw err;
 }
 
 // Scroll animations
@@ -1292,8 +1292,12 @@ async function analyzePlant(file) {
   } catch(err) {
     document.getElementById('plant-loading').classList.remove('visible');
     document.getElementById('plant-results').classList.add('visible');
-    document.getElementById('score-title').textContent = 'Could not connect to API';
-    document.getElementById('score-desc').textContent = 'Make sure the Zen Vision API is available at the configured endpoint.';
+    const isNetworkError = err instanceof TypeError;
+    document.getElementById('score-title').textContent = isNetworkError ? 'Could not connect to API' : 'Analysis failed';
+    let desc = isNetworkError
+      ? 'Make sure the Zen Vision API is available at the configured endpoint.'
+      : (err.detail || err.message || 'An error occurred. Please try again.');
+    document.getElementById('score-desc').textContent = desc;
     fileInput.value = '';
   }
 }
