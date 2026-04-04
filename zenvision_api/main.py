@@ -329,22 +329,43 @@ def advisor(req: AdvisorRequest):
 # ─────────────────────────────────────────────
 
 def _calculate_health_score(results: dict) -> int:
-    """Calculate a 0-100 plant health score from analysis results."""
-    score = 100
-    score -= int(results.get("yellowing_confidence", 0) * 34)
-    score -= int(results.get("burn_confidence", 0) * 28)
-    score -= int(results.get("spots_confidence", 0) * 22)
-    score -= int(results.get("light_over_confidence", 0) * 12)
-    score -= int(results.get("light_under_confidence", 0) * 12)
+    """
+    Weighted health score (0-100).
 
-    vegetation_coverage = results.get("vegetation_coverage", 1.0)
-    if vegetation_coverage < 0.12:
-        score -= int((0.12 - vegetation_coverage) * 100 * 0.6)
+    Weights:
+      green_ratio   -> 0-35 pts  (primary vitality signal)
+      yellowing     -> up to -25 pts
+      burn          -> up to -15 pts
+      spots         -> up to -15 pts
+      light over    -> up to -5 pts
+      light under   -> up to -5 pts
+      coverage      -> up to -8 pts if plant barely visible
+    Base of 65 + green_pts - penalties.
+    """
+    # green ratio component (0-35 pts): ratio ~1.25+ = vibrant green
+    green_ratio = results.get("green_ratio", 1.0)
+    if green_ratio >= 1.25:
+        green_pts = 35.0
+    elif green_ratio >= 1.0:
+        green_pts = 20.0 + (green_ratio - 1.0) / 0.25 * 15.0
+    elif green_ratio >= 0.82:
+        green_pts = 8.0 + (green_ratio - 0.82) / 0.18 * 12.0
+    else:
+        green_pts = max(0.0, green_ratio / 0.82 * 8.0)
 
-    if results.get("plant_pixel_count", 0) < 900:
-        score -= 8
+    yellow_pen = results.get("yellowing_confidence", 0) * 25.0
+    burn_pen   = results.get("burn_confidence",      0) * 15.0
+    spots_pen  = results.get("spots_confidence",     0) * 15.0
+    over_pen   = results.get("light_over_confidence", 0) * 5.0
+    under_pen  = results.get("light_under_confidence", 0) * 5.0
 
-    return max(0, min(100, score))
+    coverage = results.get("vegetation_coverage", 1.0)
+    coverage_pen = max(0.0, (0.12 - coverage) * 100 * 0.5) if coverage < 0.12 else 0.0
+    if results.get("plant_pixel_count", 999) < 900:
+        coverage_pen = min(coverage_pen + 5.0, 8.0)
+
+    raw = 65.0 + green_pts - yellow_pen - burn_pen - spots_pen - over_pen - under_pen - coverage_pen
+    return max(0, min(100, round(raw)))
 
 
 if __name__ == "__main__":
