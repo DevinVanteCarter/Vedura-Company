@@ -14,6 +14,7 @@ import tempfile
 import os
 import shutil
 import json
+import anthropic
 
 from plant_health.image_analyzer import analyze_image
 from plant_health.video_analyzer import analyze_video
@@ -261,15 +262,6 @@ def list_knowledge():
         ]
     }
 
-@app.get("/knowledge/{topic_id}", tags=["Knowledge Guide"])
-def get_knowledge(topic_id: str):
-    """Get a specific knowledge guide topic."""
-    topic = KNOWLEDGE_BASE.get(topic_id)
-    if not topic:
-        raise HTTPException(status_code=404, detail=f"Topic '{topic_id}' not found.")
-    return {"status": "ok", "topic": topic}
-
-
 @app.get("/knowledge/plants", tags=["Knowledge Guide"])
 def list_plant_knowledge():
     """List detailed Ohio plant knowledge topics."""
@@ -283,6 +275,49 @@ def get_plant_knowledge(topic_id: str):
     if not topic:
         raise HTTPException(status_code=404, detail=f"Plant topic '{topic_id}' not found.")
     return {"status": "ok", "topic": topic}
+
+
+@app.get("/knowledge/{topic_id}", tags=["Knowledge Guide"])
+def get_knowledge(topic_id: str):
+    """Get a specific knowledge guide topic."""
+    topic = KNOWLEDGE_BASE.get(topic_id)
+    if not topic:
+        raise HTTPException(status_code=404, detail=f"Topic '{topic_id}' not found.")
+    return {"status": "ok", "topic": topic}
+
+
+# ─────────────────────────────────────────────
+# ADVISOR (AI CHAT)
+# ─────────────────────────────────────────────
+
+class AdvisorRequest(BaseModel):
+    message: str
+
+@app.post("/api/advisor", tags=["Advisor"])
+def advisor(req: AdvisorRequest):
+    """
+    AI-powered off-grid advisor. Ask anything about plants, solar, or sustainable living.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Advisor unavailable: ANTHROPIC_API_KEY not set.")
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            system=(
+                "You are Vedura AI, a knowledgeable and warm off-grid living advisor for the Zen Vision platform. "
+                "You help users with plant health, solar power management, sustainable living, and off-grid skills. "
+                "Keep responses concise (2-4 sentences) and practical. Use plain text only — no markdown."
+            ),
+            messages=[{"role": "user", "content": req.message}]
+        )
+        reply = message.content[0].text
+        return {"reply": reply}
+    except anthropic.APIError as e:
+        raise HTTPException(status_code=502, detail=f"Advisor error: {str(e)}")
 
 
 # ─────────────────────────────────────────────

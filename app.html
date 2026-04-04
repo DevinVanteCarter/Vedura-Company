@@ -1108,15 +1108,22 @@ async function resolveApiHost() {
 }
 
 async function apiFetch(path, options = {}) {
-  const mergedOptions = { cache: 'no-cache', mode: 'cors', ...options };
-  try {
-    const res = await fetch(`${API}${path}`, mergedOptions);
-    if (res.ok) return res;
-    throw new Error(`API request failed: ${res.status}`);
-  } catch (err) {
-    setApiStatus('API unreachable', true);
-    console.error('API fetch failed for:', path, err);
-    throw err;
+  const defaultOptions = { cache: 'no-cache', mode: 'cors' };
+  const mergedOptions = { ...defaultOptions, ...options };
+  const hosts = [API, ...LOCAL_API_HOSTS.filter(host => host !== API), REMOTE_API].filter((value, index, self) => self.indexOf(value) === index);
+  let lastError = null;
+  for (const host of hosts) {
+    try {
+      const res = await fetch(`${host}${path}`, mergedOptions);
+      if (res.ok) return res;
+      lastError = new Error(`API request failed: ${res.status}`);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  setApiStatus('API host: unreachable — tried local and remote', true);
+  console.error('API fetch failed for:', path, lastError);
+  throw lastError;
 }
 
 // Scroll animations

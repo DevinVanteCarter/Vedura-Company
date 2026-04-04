@@ -1,0 +1,1 @@
+The Zen Vision API is down. Can you check the health endpoint and see what's going on?
