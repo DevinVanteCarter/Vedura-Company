@@ -1094,47 +1094,7 @@
 </footer>
 
 <script>
-const REMOTE_API = 'https://zen-vision-production.up.railway.app';
-const LOCAL_API_HOSTS = [];
-let API = REMOTE_API;
-
-async function testApiHost(host) {
-  console.log('testing API host', host);
-  let controller = new AbortController();
-  let timeout = setTimeout(() => controller.abort(), 1800);
-  try {
-    const res = await fetch(`${host}/health`, {
-      method: 'GET',
-      cache: 'no-cache',
-      mode: 'cors',
-      credentials: 'omit',
-      signal: controller.signal
-    });
-    return res.ok || res.type === 'opaque';
-  } catch (err) {
-    console.warn('host test failed cors', host, err);
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  controller = new AbortController();
-  timeout = setTimeout(() => controller.abort(), 1800);
-  try {
-    const res = await fetch(`${host}/health`, {
-      method: 'GET',
-      cache: 'no-cache',
-      mode: 'no-cors',
-      credentials: 'omit',
-      signal: controller.signal
-    });
-    return res.type === 'opaque';
-  } catch (err) {
-    console.warn('host test failed no-cors', host, err);
-    return false;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+const API = 'https://zen-vision-production.up.railway.app';
 
 async function setApiStatus(message, isError = false) {
   const statusEl = document.getElementById('api-status');
@@ -1144,35 +1104,19 @@ async function setApiStatus(message, isError = false) {
 }
 
 async function resolveApiHost() {
-  if (location.protocol === 'https:') {
-    API = REMOTE_API;
-    setApiStatus(`API host: remote (${REMOTE_API})`);
-  } else {
-    API = LOCAL_API_HOSTS[0];
-    setApiStatus(`API host: local (${API})`);
-    if (location.protocol === 'file:') {
-      setApiStatus('Loaded from file:// — run a local static server to avoid browser restrictions.', true);
-    }
-  }
+  setApiStatus(`API: ${API}`);
 }
 
 async function apiFetch(path, options = {}) {
-  const defaultOptions = { cache: 'no-cache', mode: 'cors' };
-  const mergedOptions = { ...defaultOptions, ...options };
-  const hosts = [API, ...LOCAL_API_HOSTS.filter(host => host !== API), REMOTE_API].filter((value, index, self) => self.indexOf(value) === index);
-  let lastError = null;
-  for (const host of hosts) {
-    try {
-      const res = await fetch(`${host}${path}`, mergedOptions);
-      if (res.ok) return res;
-      lastError = new Error(`API request failed: ${res.status}`);
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  setApiStatus('API host: unreachable — tried local and remote', true);
-  console.error('API fetch failed for:', path, lastError);
-  throw lastError;
+  const mergedOptions = { cache: 'no-cache', mode: 'cors', ...options };
+  try {
+    const res = await fetch(`${API}${path}`, mergedOptions);
+    if (res.ok) return res;
+    throw new Error(`API request failed: ${res.status}`);
+  } catch (err) {
+    setApiStatus('API unreachable', true);
+    console.error('API fetch failed for:', path, err);
+    throw err;
 }
 
 // Scroll animations
