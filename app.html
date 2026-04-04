@@ -1331,7 +1331,7 @@ async function loadSolar() {
     if (location.protocol === 'file:') {
       document.getElementById('api-status').textContent = 'Unable to load solar data from a file:// page. Serve app.html with a local web server instead.';
     } else if (location.protocol === 'https:') {
-      document.getElementById('api-status').textContent = 'HTTPS page cannot reach local HTTP API. Open page over http:// or use a local static server.';
+      document.getElementById('api-status').textContent = '';
     } else {
       document.getElementById('api-status').textContent = 'Unable to load solar data — API unreachable';
     }
