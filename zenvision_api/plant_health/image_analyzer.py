@@ -44,6 +44,16 @@ _BURN_BLIGHT_INDICES = {0, 2, 8, 9, 16, 18, 20, 21, 26, 28, 29, 30, 34}
 # Spots / mold / mite diseases
 _SPOTS_MOLD_INDICES = {1, 5, 7, 11, 12, 13, 25, 31, 32, 33}
 
+# Minimum confidence to trust a disease detection
+_CONFIDENCE_THRESHOLD = 0.70
+
+# Crops the model was trained on
+SUPPORTED_SPECIES = [
+    "Apple", "Blueberry", "Cherry", "Corn (Maize)", "Grape",
+    "Orange", "Peach", "Bell Pepper", "Potato", "Raspberry",
+    "Soybean", "Squash", "Strawberry", "Tomato",
+]
+
 # Organic-first treatment per class index
 _TREATMENTS: Dict[int, str] = {
     0:  "Remove infected leaves; apply neem oil spray (2 tbsp/gal) every 7 days; improve air circulation; avoid overhead watering.",
@@ -178,50 +188,69 @@ def _run_ml(path: str) -> Optional[Dict]:
         top_conf = float(probs[top_idx])
         top_name = _class_names[top_idx]
 
-        is_healthy = top_idx in _HEALTHY_INDICES
+        # ── Confidence threshold: below 0.70 means the model is guessing ──
+        # Unsupported species (lotus, fern, etc.) spread confidence across
+        # unrelated PlantVillage classes. Don't flag disease in that case.
+        low_confidence_species = top_conf < _CONFIDENCE_THRESHOLD
 
-        # Aggregate confidence by disease category
-        yellowing_conf = float(sum(probs[i] for i in _YELLOWING_INDICES))
-        burn_conf      = float(sum(probs[i] for i in _BURN_BLIGHT_INDICES))
-        spots_conf     = float(sum(probs[i] for i in _SPOTS_MOLD_INDICES))
-        healthy_conf   = float(sum(probs[i] for i in _HEALTHY_INDICES))
-
-        # green_ratio proxy: healthy plants are green; disease reduces it
-        if is_healthy:
-            green_ratio = round(1.2 + healthy_conf * 0.2, 3)   # 1.2 – 1.4
-        elif top_idx in _YELLOWING_INDICES:
-            green_ratio = round(max(0.4, 1.0 - top_conf * 0.7), 3)
-        elif top_idx in _BURN_BLIGHT_INDICES:
-            green_ratio = round(max(0.6, 1.1 - top_conf * 0.5), 3)
-        else:
-            green_ratio = round(max(0.7, 1.15 - top_conf * 0.4), 3)
-
-        # Map to compatibility fields (main.py reads these for alerts + score)
-        yellowing_suspected = yellowing_conf > 0.25
-        burn_suspected      = burn_conf > 0.25
-        spots_suspected     = spots_conf > 0.25
-
-        # Severity label
-        if is_healthy:
+        if low_confidence_species:
+            is_healthy = True
+            disease_name = "Healthy"
             severity = "none"
-        elif top_conf < 0.5:
-            severity = "mild"
-        elif top_conf < 0.80:
-            severity = "moderate"
+            treatment = _HEALTHY_TREATMENT
+            species_note = "Plant species not in training data — manual inspection recommended."
+            green_ratio = 1.25
+            yellowing_conf = burn_conf = spots_conf = 0.0
+            healthy_conf = 1.0
         else:
-            severity = "severe"
+            is_healthy = top_idx in _HEALTHY_INDICES
+            disease_name = "Healthy" if is_healthy else top_name
+            species_note = ""
 
-        treatment = _TREATMENTS.get(top_idx, _HEALTHY_TREATMENT)
+            yellowing_conf = float(sum(probs[i] for i in _YELLOWING_INDICES))
+            burn_conf      = float(sum(probs[i] for i in _BURN_BLIGHT_INDICES))
+            spots_conf     = float(sum(probs[i] for i in _SPOTS_MOLD_INDICES))
+            healthy_conf   = float(sum(probs[i] for i in _HEALTHY_INDICES))
+
+            # green_ratio proxy
+            if is_healthy:
+                green_ratio = round(1.2 + healthy_conf * 0.2, 3)
+            elif top_idx in _YELLOWING_INDICES:
+                green_ratio = round(max(0.4, 1.0 - top_conf * 0.7), 3)
+            elif top_idx in _BURN_BLIGHT_INDICES:
+                green_ratio = round(max(0.6, 1.1 - top_conf * 0.5), 3)
+            else:
+                green_ratio = round(max(0.7, 1.15 - top_conf * 0.4), 3)
+
+            if is_healthy:
+                severity = "none"
+            elif top_conf < 0.5:
+                severity = "mild"
+            elif top_conf < 0.80:
+                severity = "moderate"
+            else:
+                severity = "severe"
+
+            treatment = _TREATMENTS.get(top_idx, _HEALTHY_TREATMENT)
+
+        # Map to compatibility fields (main.py reads these)
+        yellowing_suspected = not low_confidence_species and yellowing_conf > 0.25
+        burn_suspected      = not low_confidence_species and burn_conf > 0.25
+        spots_suspected     = not low_confidence_species and spots_conf > 0.25
+
         h, w = orig_img.shape[:2]
 
         return {
             # ── new ML fields ──────────────────────────────────
-            "model_used":      "onnx_plantvillage_mobilenetv2",
-            "disease_name":    top_name if not is_healthy else "Healthy",
-            "severity":        severity,
-            "treatment":       treatment,
-            "top_predictions": top3,
-            "is_healthy":      is_healthy,
+            "model_used":             "onnx_plantvillage_mobilenetv2",
+            "disease_name":           disease_name,
+            "severity":               severity,
+            "treatment":              treatment,
+            "top_predictions":        top3,
+            "is_healthy":             is_healthy,
+            "low_confidence_species": low_confidence_species,
+            "species_note":           species_note,
+            "supported_species":      SUPPORTED_SPECIES,
             # ── compatibility fields (main.py + health score) ──
             "green_ratio":              green_ratio,
             "yellowing_suspected":      yellowing_suspected,
@@ -230,10 +259,10 @@ def _run_ml(path: str) -> Optional[Dict]:
             "burn_confidence":          round(min(0.95, burn_conf), 2),
             "spots_suspected":          spots_suspected,
             "spots_confidence":         round(min(0.95, spots_conf), 2),
-            "light_stress_overexposed": False,
-            "light_over_confidence":    0.0,
+            "light_stress_overexposed":  False,
+            "light_over_confidence":     0.0,
             "light_stress_underexposed": False,
-            "light_under_confidence":   0.0,
+            "light_under_confidence":    0.0,
             "vegetation_coverage":      1.0,
             "plant_pixel_count":        50000,
             "flower_detected":          False,

@@ -97,7 +97,10 @@ async def analyze_plant_image(file: UploadFile = File(...)):
         top_conf = top_preds[0]["confidence"] if top_preds else 0.0
 
         if results.get("model_used") == "onnx_plantvillage_mobilenetv2":
-            if not results.get("is_healthy") and disease and disease != "Healthy":
+            species_note = results.get("species_note", "")
+            if species_note:
+                alerts.append(species_note)
+            elif not results.get("is_healthy") and disease and disease != "Healthy":
                 sev_label = f" ({severity})" if severity and severity != "none" else ""
                 alerts.append(f"{disease}{sev_label} — {int(top_conf * 100)}% confidence.")
                 treatment = results.get("treatment", "")
