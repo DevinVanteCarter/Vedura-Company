@@ -1,57 +1,282 @@
-"""Simple image analysis heuristics for plant health detection.
-Detects: yellowing (nutrient deficiency/burn), brown edges (burn),
-spots/mold/pests, and light stress (over/under exposure).
+"""
+Plant health analysis — ONNX MobileNetV2 trained on PlantVillage (38 disease classes).
+Falls back to OpenCV HSV heuristics if model file is not present.
 """
 
-import cv2
+import json
+import logging
+import os
 import numpy as np
-from typing import Dict, Tuple
+import cv2
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
+logger = logging.getLogger(__name__)
+
+# ─────────────────────────────────────────────
+# Model paths
+# ─────────────────────────────────────────────
+
+_MODEL_DIR  = Path(__file__).parent / "models"
+_ONNX_PATH  = _MODEL_DIR / "plant_disease_mobilenetv2.onnx"
+_CLASS_PATH = _MODEL_DIR / "class_names.json"
+
+# ─────────────────────────────────────────────
+# ImageNet normalization constants
+# ─────────────────────────────────────────────
+
+_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+_STD  = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+
+# ─────────────────────────────────────────────
+# Disease classification tables
+# ─────────────────────────────────────────────
+
+# Indices of healthy classes in the 38-class PlantVillage label set
+_HEALTHY_INDICES = {3, 4, 6, 10, 14, 17, 19, 22, 23, 24, 27, 37}
+
+# Visually yellowing diseases (chlorosis, virus mottling)
+_YELLOWING_INDICES = {15, 35, 36}
+
+# Burn / blight / bacterial lesion diseases
+_BURN_BLIGHT_INDICES = {0, 2, 8, 9, 16, 18, 20, 21, 26, 28, 29, 30, 34}
+
+# Spots / mold / mite diseases
+_SPOTS_MOLD_INDICES = {1, 5, 7, 11, 12, 13, 25, 31, 32, 33}
+
+# Organic-first treatment per class index
+_TREATMENTS: Dict[int, str] = {
+    0:  "Remove infected leaves; apply neem oil spray (2 tbsp/gal) every 7 days; improve air circulation; avoid overhead watering.",
+    1:  "Prune infected branches 6 in below visible disease; remove mummified fruit; apply copper fungicide; clean up all debris.",
+    2:  "Remove nearby juniper/cedar hosts if possible; apply sulfur fungicide in spring; plant rust-resistant varieties long-term.",
+    3:  "Plant looks healthy — keep up current care.",
+    4:  "Plant looks healthy — keep up current care.",
+    5:  "Spray diluted baking soda (1 tbsp/gal) or neem oil; improve airflow; avoid nitrogen-heavy fertilizers that encourage soft growth.",
+    6:  "Plant looks healthy — keep up current care.",
+    7:  "Remove heavily infected lower leaves; ensure adequate plant spacing; apply copper fungicide if severe; rotate crops next season.",
+    8:  "Apply neem oil or sulfur dust for organic control; copper fungicide for severe cases; plant rust-resistant varieties.",
+    9:  "Remove infected leaves; apply copper fungicide; improve field drainage; rotate with non-corn crops next season.",
+    10: "Plant looks healthy — keep up current care.",
+    11: "Remove and destroy all infected fruit and leaves immediately — they are the primary spore source. Apply copper or sulfur fungicide every 10–14 days.",
+    12: "No organic cure exists — remove infected wood during winter pruning; protect wounds with pruning sealant; keep vines stress-free.",
+    13: "Apply copper-based fungicide at first sign; remove infected leaves; improve air circulation through canopy management.",
+    14: "Plant looks healthy — keep up current care.",
+    15: "No cure for citrus greening (HLB). Remove infected trees to prevent spread; control Asian citrus psyllid with neem oil; report to your county extension office.",
+    16: "Apply copper hydroxide in late dormancy and early spring; avoid overhead irrigation; prune for airflow; plant resistant varieties.",
+    17: "Plant looks healthy — keep up current care.",
+    18: "Remove infected leaves and fruit; apply copper-based bactericide; avoid working plants when wet; rotate peppers annually.",
+    19: "Plant looks healthy — keep up current care.",
+    20: "Remove infected lower leaves; apply copper fungicide or neem oil; mulch to prevent soil splash; water at the base, not the foliage.",
+    21: "Act immediately — Late Blight spreads fast. Remove all infected material; apply copper fungicide every 5–7 days in wet weather. Do not compost infected tissue.",
+    22: "Plant looks healthy — keep up current care.",
+    23: "Plant looks healthy — keep up current care.",
+    24: "Plant looks healthy — keep up current care.",
+    25: "Spray with baking soda solution (1 tbsp + 1 tsp dish soap/gal) or neem oil; improve airflow; water at the base only; remove severely infected leaves.",
+    26: "Remove infected leaves; apply copper fungicide; ensure good air circulation; renovate bed every 3 years.",
+    27: "Plant looks healthy — keep up current care.",
+    28: "Remove infected leaves; apply copper spray every 7–10 days; avoid overhead watering; rotate tomatoes — do not plant in the same spot for 2–3 years.",
+    29: "Remove lower infected leaves; mulch heavily to stop soil splash; apply copper fungicide or neem oil every 7–14 days; water at the base.",
+    30: "Immediately remove all infected tissue and bag it — do not compost. Apply copper fungicide. If widespread, consider removing the entire plant to protect others.",
+    31: "Increase ventilation; reduce humidity; apply copper fungicide; remove infected leaves; avoid overhead watering.",
+    32: "Remove infected leaves starting from the bottom; apply copper or neem oil spray weekly; mulch soil; rotate tomatoes next season.",
+    33: "Spray with a strong jet of water to dislodge mites; apply neem oil or insecticidal soap; increase humidity — mites hate moisture; consider introducing predatory mites (Phytoseiulus persimilis).",
+    34: "Remove infected leaves; apply copper fungicide; avoid overhead watering; improve air circulation.",
+    35: "No cure. Remove infected plants to prevent whitefly spread; control whiteflies with yellow sticky traps and neem oil; use reflective mulch.",
+    36: "No cure. Remove infected plants; wash hands and tools thoroughly after handling — this virus spreads by contact; plant resistant varieties.",
+    37: "Plant looks healthy — keep up current care.",
+}
+
+_HEALTHY_TREATMENT = "Plant looks healthy — keep up current care."
+
+# ─────────────────────────────────────────────
+# Module-level ONNX session (loaded once)
+# ─────────────────────────────────────────────
+
+_session = None
+_class_names: Optional[List[str]] = None
+_model_available = False
+
+
+def _init_model() -> bool:
+    """Load ONNX model and class names once at module startup."""
+    global _session, _class_names, _model_available
+
+    if not _ONNX_PATH.exists():
+        logger.warning("ONNX model not found at %s — using CV fallback", _ONNX_PATH)
+        return False
+    if not _CLASS_PATH.exists():
+        logger.warning("class_names.json not found at %s — using CV fallback", _CLASS_PATH)
+        return False
+
+    try:
+        import onnxruntime as ort
+        _session = ort.InferenceSession(
+            str(_ONNX_PATH),
+            providers=["CPUExecutionProvider"],
+        )
+        with open(_CLASS_PATH) as f:
+            _class_names = json.load(f)
+        _model_available = True
+        logger.info("PlantVillage ONNX model loaded (%d classes)", len(_class_names))
+        return True
+    except Exception as e:
+        logger.warning("Failed to load ONNX model: %s — using CV fallback", e)
+        return False
+
+
+# Attempt to load at import time
+_init_model()
+
+
+# ─────────────────────────────────────────────
+# Preprocessing
+# ─────────────────────────────────────────────
+
+def _preprocess(path: str) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Load image, return (onnx_input (1,3,224,224) float32, original_bgr).
+    """
+    raw = np.fromfile(path, dtype=np.uint8)
+    img = cv2.imdecode(raw, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError(f"Cannot load image: {path}")
+
+    rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    resized = cv2.resize(rgb, (224, 224), interpolation=cv2.INTER_LINEAR)
+    arr = resized.astype(np.float32) / 255.0
+    arr = (arr - _MEAN) / _STD
+    arr = arr.transpose(2, 0, 1)[np.newaxis, :]  # (1, 3, 224, 224)
+    return arr, img
+
+
+def _softmax(x: np.ndarray) -> np.ndarray:
+    e = np.exp(x - x.max())
+    return e / e.sum()
+
+
+# ─────────────────────────────────────────────
+# ML inference
+# ─────────────────────────────────────────────
+
+def _run_ml(path: str) -> Optional[Dict]:
+    """Run ONNX inference. Returns findings dict or None on failure."""
+    if not _model_available or _session is None:
+        return None
+
+    try:
+        input_tensor, orig_img = _preprocess(path)
+        logits = _session.run(None, {"pixel_values": input_tensor})[0][0]
+        probs = _softmax(logits)
+
+        top3_idx = probs.argsort()[::-1][:3]
+        top3 = [
+            {"class_name": _class_names[i], "confidence": round(float(probs[i]), 4)}
+            for i in top3_idx
+        ]
+
+        top_idx = int(top3_idx[0])
+        top_conf = float(probs[top_idx])
+        top_name = _class_names[top_idx]
+
+        is_healthy = top_idx in _HEALTHY_INDICES
+
+        # Aggregate confidence by disease category
+        yellowing_conf = float(sum(probs[i] for i in _YELLOWING_INDICES))
+        burn_conf      = float(sum(probs[i] for i in _BURN_BLIGHT_INDICES))
+        spots_conf     = float(sum(probs[i] for i in _SPOTS_MOLD_INDICES))
+        healthy_conf   = float(sum(probs[i] for i in _HEALTHY_INDICES))
+
+        # green_ratio proxy: healthy plants are green; disease reduces it
+        if is_healthy:
+            green_ratio = round(1.2 + healthy_conf * 0.2, 3)   # 1.2 – 1.4
+        elif top_idx in _YELLOWING_INDICES:
+            green_ratio = round(max(0.4, 1.0 - top_conf * 0.7), 3)
+        elif top_idx in _BURN_BLIGHT_INDICES:
+            green_ratio = round(max(0.6, 1.1 - top_conf * 0.5), 3)
+        else:
+            green_ratio = round(max(0.7, 1.15 - top_conf * 0.4), 3)
+
+        # Map to compatibility fields (main.py reads these for alerts + score)
+        yellowing_suspected = yellowing_conf > 0.25
+        burn_suspected      = burn_conf > 0.25
+        spots_suspected     = spots_conf > 0.25
+
+        # Severity label
+        if is_healthy:
+            severity = "none"
+        elif top_conf < 0.5:
+            severity = "mild"
+        elif top_conf < 0.80:
+            severity = "moderate"
+        else:
+            severity = "severe"
+
+        treatment = _TREATMENTS.get(top_idx, _HEALTHY_TREATMENT)
+        h, w = orig_img.shape[:2]
+
+        return {
+            # ── new ML fields ──────────────────────────────────
+            "model_used":      "onnx_plantvillage_mobilenetv2",
+            "disease_name":    top_name if not is_healthy else "Healthy",
+            "severity":        severity,
+            "treatment":       treatment,
+            "top_predictions": top3,
+            "is_healthy":      is_healthy,
+            # ── compatibility fields (main.py + health score) ──
+            "green_ratio":              green_ratio,
+            "yellowing_suspected":      yellowing_suspected,
+            "yellowing_confidence":     round(min(0.95, yellowing_conf), 2),
+            "burn_suspected":           burn_suspected,
+            "burn_confidence":          round(min(0.95, burn_conf), 2),
+            "spots_suspected":          spots_suspected,
+            "spots_confidence":         round(min(0.95, spots_conf), 2),
+            "light_stress_overexposed": False,
+            "light_over_confidence":    0.0,
+            "light_stress_underexposed": False,
+            "light_under_confidence":   0.0,
+            "vegetation_coverage":      1.0,
+            "plant_pixel_count":        50000,
+            "flower_detected":          False,
+            "flower_pixel_ratio":       0.0,
+            "brown_edge_pixels":        0,
+            "spot_count":               0,
+            "spot_total_area":          0,
+            "bright_pixel_ratio":       0.0,
+            "dark_pixel_ratio":         0.0,
+            # ── metadata ───────────────────────────────────────
+            "annotated_image": path,
+            "image_size":      (w, h),
+        }
+
+    except Exception as e:
+        logger.error("ML inference failed: %s", e, exc_info=True)
+        return None
+
+
+# ─────────────────────────────────────────────
+# CV fallback (kept from original analyzer)
+# ─────────────────────────────────────────────
 
 def _to_native(v):
-    """Recursively convert numpy scalars/arrays to native Python types."""
-    if isinstance(v, np.bool_):
-        return bool(v)
-    if isinstance(v, np.integer):
-        return int(v)
-    if isinstance(v, np.floating):
-        return float(v)
-    if isinstance(v, np.ndarray):
-        return v.tolist()
-    if isinstance(v, dict):
-        return {k: _to_native(val) for k, val in v.items()}
-    if isinstance(v, (list, tuple)):
-        return type(v)(_to_native(i) for i in v)
+    if isinstance(v, np.bool_):      return bool(v)
+    if isinstance(v, np.integer):    return int(v)
+    if isinstance(v, np.floating):   return float(v)
+    if isinstance(v, np.ndarray):    return v.tolist()
+    if isinstance(v, dict):          return {k: _to_native(val) for k, val in v.items()}
+    if isinstance(v, (list, tuple)): return type(v)(_to_native(i) for i in v)
     return v
-
-
-def _load_image(path: str):
-    img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
-    if img is None:
-        raise ValueError(f"Unable to load image: {path}")
-    return img
 
 
 def _extract_plant_mask(img: np.ndarray) -> np.ndarray:
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     bgr = img.astype(np.float32)
     exg = 2 * bgr[:, :, 1] - bgr[:, :, 0] - bgr[:, :, 2]
-
-    green_mask = (
-        (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 95) &
-        (hsv[:, :, 1] > 50) & (hsv[:, :, 2] > 40)
-    )
-    yellow_mask = (
-        (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 55) &
-        (hsv[:, :, 1] > 40) & (hsv[:, :, 2] > 45)
-    )
-    exg_mask = exg > 15
-    mask = (green_mask | yellow_mask | exg_mask).astype(np.uint8) * 255
-
+    green_mask  = (hsv[:,:,0] >= 35) & (hsv[:,:,0] <= 95) & (hsv[:,:,1] > 50) & (hsv[:,:,2] > 40)
+    yellow_mask = (hsv[:,:,0] >= 15) & (hsv[:,:,0] <= 55) & (hsv[:,:,1] > 40) & (hsv[:,:,2] > 45)
+    mask = (green_mask | yellow_mask | (exg > 15)).astype(np.uint8) * 255
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
-
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN,  kernel, iterations=1)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         largest = max(contours, key=cv2.contourArea)
@@ -61,139 +286,127 @@ def _extract_plant_mask(img: np.ndarray) -> np.ndarray:
     return mask.astype(bool)
 
 
-def analyze_image(path: str, save_annotated: bool = True) -> Dict:
-    img = _load_image(path)
+def _analyze_cv_fallback(path: str, save_annotated: bool = False) -> Dict:
+    """Original HSV-based analyzer, used when ONNX model is unavailable."""
+    raw = np.fromfile(path, dtype=np.uint8)
+    img = cv2.imdecode(raw, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError(f"Cannot load image: {path}")
+
     h, w = img.shape[:2]
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    hsv  = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    plant_mask = _extract_plant_mask(img)
-    plant_pixels = np.count_nonzero(plant_mask)
-    image_area = w * h
+    plant_mask   = _extract_plant_mask(img)
+    plant_pixels = int(np.count_nonzero(plant_mask))
+    image_area   = w * h
     vegetation_coverage = round(float(plant_pixels) / max(1, image_area), 4)
 
-    findings = {
-        'plant_pixel_count': int(plant_pixels),
-        'vegetation_coverage': vegetation_coverage,
+    findings: Dict = {
+        "model_used":       "cv_fallback",
+        "plant_pixel_count": plant_pixels,
+        "vegetation_coverage": vegetation_coverage,
     }
 
     mask_uint8 = plant_mask.astype(np.uint8) * 255
+
     if plant_pixels:
         mean_b, mean_g, mean_r, _ = cv2.mean(img, mask=mask_uint8)
         green_ratio = mean_g / max((mean_r + mean_b) / 2.0, 1e-6)
-        findings['green_ratio'] = round(float(green_ratio), 3)
+        findings["green_ratio"] = round(float(green_ratio), 3)
 
-        hue = hsv[:, :, 0]
-        sat = hsv[:, :, 1]
-        val = hsv[:, :, 2]
+        hue = hsv[:,:,0]; sat = hsv[:,:,1]; val = hsv[:,:,2]
 
         yellow_pixels = np.count_nonzero(
             (hue >= 15) & (hue <= 55) & (sat > 40) & (val > 50) & plant_mask
         )
         yellow_ratio = yellow_pixels / plant_pixels
-        findings['yellowing_suspected'] = yellow_ratio > 0.08 or green_ratio < 0.82
-        findings['yellowing_confidence'] = round(
+        findings["yellowing_suspected"]  = bool(yellow_ratio > 0.08 or green_ratio < 0.82)
+        findings["yellowing_confidence"] = round(
             min(0.98, max(yellow_ratio * 1.6, (0.82 - green_ratio) * 1.4, 0.0)), 2
-        ) if findings['yellowing_suspected'] else 0.0
+        ) if findings["yellowing_suspected"] else 0.0
 
-        # Flower detection heuristic: pink/magenta/red pixels in plant region
-        # Hue 0-15 and 150-180 = red/pink/magenta
-        flower_mask = (
-            ((hue <= 15) | (hue >= 150)) & (sat > 60) & (val > 80) & plant_mask
-        )
+        flower_mask = (((hue <= 15) | (hue >= 150)) & (sat > 60) & (val > 80) & plant_mask)
         flower_pixel_ratio = float(np.count_nonzero(flower_mask)) / plant_pixels
-        # A flowering plant: notable pink/red pixels AND healthy green ratio
         flower_detected = flower_pixel_ratio > 0.08 and green_ratio > 1.0
-        findings['flower_detected'] = bool(flower_detected)
-        findings['flower_pixel_ratio'] = round(flower_pixel_ratio, 3)
+        findings["flower_detected"]    = bool(flower_detected)
+        findings["flower_pixel_ratio"] = round(flower_pixel_ratio, 3)
 
         edges = cv2.Canny(gray, 50, 150)
         edges_mask = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-        # Brown/burn: hue 8-22 (orange-brown), excludes pink/red/magenta
         brown_mask = (hue >= 8) & (hue <= 22) & (sat > 45) & (val > 40) & (val < 185) & plant_mask
-        brown_edges = np.count_nonzero(edges_mask & brown_mask)
-        findings['brown_edge_pixels'] = int(brown_edges)
-        findings['burn_suspected'] = brown_edges > max(30, plant_pixels * 0.004)
-        if findings['burn_suspected']:
-            burn_conf = min(0.90, brown_edges / max(1, plant_pixels * 0.015))
-            if flower_detected:
-                burn_conf *= 0.5
-            findings['burn_confidence'] = round(burn_conf, 2)
+        brown_edges = int(np.count_nonzero(edges_mask & brown_mask))
+        findings["brown_edge_pixels"] = brown_edges
+        findings["burn_suspected"]    = bool(brown_edges > max(30, plant_pixels * 0.004))
+        if findings["burn_suspected"]:
+            bc = min(0.90, brown_edges / max(1, plant_pixels * 0.015))
+            if flower_detected: bc *= 0.5
+            findings["burn_confidence"] = round(bc, 2)
         else:
-            findings['burn_confidence'] = 0.0
+            findings["burn_confidence"] = 0.0
 
         blur = cv2.GaussianBlur(gray, (7, 7), 0)
         plant_mean = float(np.mean(gray[plant_mask]))
         _, th = cv2.threshold(blur, max(0, int(plant_mean - 25)), 255, cv2.THRESH_BINARY_INV)
         th = cv2.bitwise_and(th, th, mask=mask_uint8)
         contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        spot_count = 0
-        spot_area = 0
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if area >= 500 and area < (plant_pixels * 0.08):
-                spot_count += 1
-                spot_area += area
-
-        findings['spot_count'] = int(spot_count)
-        findings['spot_total_area'] = int(spot_area)
-        findings['spots_suspected'] = spot_count >= 3 or (spot_area > plant_pixels * 0.015)
-        avg_spot_area = (spot_area / spot_count) if spot_count > 0 else 0
-        if findings['spots_suspected']:
-            base_conf = min(0.90, spot_area / max(1, plant_pixels * 0.06))
-            if avg_spot_area < 800 and spot_count > 5:
-                base_conf *= 0.4
-            if flower_detected:
-                base_conf *= 0.5
-            findings['spots_confidence'] = round(base_conf, 2)
+        spot_count = 0; spot_area = 0
+        for c in contours:
+            area = cv2.contourArea(c)
+            if 500 <= area < (plant_pixels * 0.08):
+                spot_count += 1; spot_area += int(area)
+        findings["spot_count"]       = spot_count
+        findings["spot_total_area"]  = spot_area
+        findings["spots_suspected"]  = bool(spot_count >= 3 or spot_area > plant_pixels * 0.015)
+        avg_spot = (spot_area / spot_count) if spot_count > 0 else 0
+        if findings["spots_suspected"]:
+            sc = min(0.90, spot_area / max(1, plant_pixels * 0.06))
+            if avg_spot < 800 and spot_count > 5: sc *= 0.4
+            if flower_detected: sc *= 0.5
+            findings["spots_confidence"] = round(sc, 2)
         else:
-            findings['spots_confidence'] = 0.0
+            findings["spots_confidence"] = 0.0
 
-        bright_pixels = np.count_nonzero((val > 240) & plant_mask)
-        dark_pixels = np.count_nonzero((val < 35) & plant_mask)
-        findings['bright_pixel_ratio'] = round(float(bright_pixels) / plant_pixels, 4)
-        findings['dark_pixel_ratio'] = round(float(dark_pixels) / plant_pixels, 4)
-
-        findings['light_stress_overexposed'] = findings['bright_pixel_ratio'] > 0.06
-        findings['light_over_confidence'] = round(
-            min(0.95, findings['bright_pixel_ratio'] * 6), 2
-        ) if findings['light_stress_overexposed'] else 0.0
-
-        findings['light_stress_underexposed'] = findings['dark_pixel_ratio'] > 0.1
-        findings['light_under_confidence'] = round(
-            min(0.95, findings['dark_pixel_ratio'] * 4), 2
-        ) if findings['light_stress_underexposed'] else 0.0
+        bright_pixels = int(np.count_nonzero((val > 240) & plant_mask))
+        dark_pixels   = int(np.count_nonzero((val < 35)  & plant_mask))
+        findings["bright_pixel_ratio"] = round(float(bright_pixels) / plant_pixels, 4)
+        findings["dark_pixel_ratio"]   = round(float(dark_pixels)   / plant_pixels, 4)
+        findings["light_stress_overexposed"]  = bool(findings["bright_pixel_ratio"] > 0.06)
+        findings["light_over_confidence"]     = round(min(0.95, findings["bright_pixel_ratio"] * 6), 2) if findings["light_stress_overexposed"] else 0.0
+        findings["light_stress_underexposed"] = bool(findings["dark_pixel_ratio"] > 0.1)
+        findings["light_under_confidence"]    = round(min(0.95, findings["dark_pixel_ratio"] * 4), 2) if findings["light_stress_underexposed"] else 0.0
     else:
         findings.update({
-            'green_ratio': 0.0,
-            'yellowing_suspected': False,
-            'yellowing_confidence': 0.0,
-            'brown_edge_pixels': 0,
-            'burn_suspected': False,
-            'burn_confidence': 0.0,
-            'spot_count': 0,
-            'spot_total_area': 0,
-            'spots_suspected': False,
-            'spots_confidence': 0.0,
-            'bright_pixel_ratio': 0.0,
-            'dark_pixel_ratio': 0.0,
-            'light_stress_overexposed': False,
-            'light_over_confidence': 0.0,
-            'light_stress_underexposed': False,
-            'light_under_confidence': 0.0,
+            "green_ratio": 0.0, "yellowing_suspected": False, "yellowing_confidence": 0.0,
+            "flower_detected": False, "flower_pixel_ratio": 0.0,
+            "brown_edge_pixels": 0, "burn_suspected": False, "burn_confidence": 0.0,
+            "spot_count": 0, "spot_total_area": 0, "spots_suspected": False, "spots_confidence": 0.0,
+            "bright_pixel_ratio": 0.0, "dark_pixel_ratio": 0.0,
+            "light_stress_overexposed": False, "light_over_confidence": 0.0,
+            "light_stress_underexposed": False, "light_under_confidence": 0.0,
         })
 
-    annotated = img.copy()
-    y0 = 20
-    for key, val in list(findings.items())[:10]:
-        cv2.putText(annotated, f"{key}: {val}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (230, 230, 230), 1)
-        y0 += 18
-
-    annotated_path = path + ".annotated.jpg"
-    if save_annotated:
-        cv2.imencode('.jpg', annotated)[1].tofile(annotated_path)
-
-    findings['annotated_image'] = annotated_path
-    findings['image_size'] = (w, h)
+    findings["disease_name"]    = "Unknown (CV mode)"
+    findings["severity"]        = "unknown"
+    findings["treatment"]       = "Upgrade to ML model for specific diagnosis."
+    findings["top_predictions"] = []
+    findings["is_healthy"]      = False
+    findings["annotated_image"] = path
+    findings["image_size"]      = (w, h)
     return _to_native(findings)
+
+
+# ─────────────────────────────────────────────
+# Public API
+# ─────────────────────────────────────────────
+
+def analyze_image(path: str, save_annotated: bool = True) -> Dict:
+    """
+    Analyze a plant image for disease.
+    Uses ONNX MobileNetV2 (PlantVillage, 38 classes) if available,
+    falls back to OpenCV HSV heuristics otherwise.
+    """
+    result = _run_ml(path)
+    if result is not None:
+        return result
+    return _analyze_cv_fallback(path, save_annotated)

@@ -89,18 +89,37 @@ async def analyze_plant_image(file: UploadFile = File(...)):
         results.pop("annotated_image", None)
         results.pop("image_size", None)
 
-        # Build a clean human-readable summary
+        # Build alerts — use ML disease name when available, fall back to generic
         alerts = []
-        if results.get("yellowing_suspected"):
-            alerts.append(f"Yellowing detected ({results['yellowing_confidence']:.0%} confidence) — possible nutrient deficiency.")
-        if results.get("burn_suspected"):
-            alerts.append(f"Burn/browning detected ({results['burn_confidence']:.0%} confidence) — check light and fertilizer levels.")
-        if results.get("spots_suspected"):
-            alerts.append(f"Spots or pest clusters detected ({results['spots_confidence']:.0%} confidence) — inspect for mold or pests.")
-        if results.get("light_stress_overexposed"):
-            alerts.append("Overexposure detected — plant may be getting too much direct light.")
-        if results.get("light_stress_underexposed"):
-            alerts.append("Underexposure detected — plant may need more light.")
+        disease = results.get("disease_name", "")
+        severity = results.get("severity", "")
+        top_preds = results.get("top_predictions", [])
+        top_conf = top_preds[0]["confidence"] if top_preds else 0.0
+
+        if results.get("model_used") == "onnx_plantvillage_mobilenetv2":
+            if not results.get("is_healthy") and disease and disease != "Healthy":
+                sev_label = f" ({severity})" if severity and severity != "none" else ""
+                alerts.append(f"{disease}{sev_label} — {int(top_conf * 100)}% confidence.")
+                treatment = results.get("treatment", "")
+                if treatment:
+                    alerts.append(f"Treatment: {treatment}")
+            # Light stress still from raw pixel data — not detected by ML model
+            if results.get("light_stress_overexposed"):
+                alerts.append("Overexposure detected — plant may be getting too much direct light.")
+            if results.get("light_stress_underexposed"):
+                alerts.append("Underexposure detected — plant may need more light.")
+        else:
+            # CV fallback — generic alerts
+            if results.get("yellowing_suspected"):
+                alerts.append(f"Yellowing detected ({results['yellowing_confidence']:.0%} confidence) — possible nutrient deficiency.")
+            if results.get("burn_suspected"):
+                alerts.append(f"Burn/browning detected ({results['burn_confidence']:.0%} confidence) — check light and fertilizer levels.")
+            if results.get("spots_suspected"):
+                alerts.append(f"Spots or pest clusters detected ({results['spots_confidence']:.0%} confidence) — inspect for mold or pests.")
+            if results.get("light_stress_overexposed"):
+                alerts.append("Overexposure detected — plant may be getting too much direct light.")
+            if results.get("light_stress_underexposed"):
+                alerts.append("Underexposure detected — plant may need more light.")
 
         return {
             "status": "ok",

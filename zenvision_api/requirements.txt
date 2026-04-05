@@ -5,4 +5,5 @@ opencv-python-headless>=4.9.0
 numpy>=1.26.0
 scikit-image>=0.22.0
 anthropic>=0.25.0
-# force rebuild Sat Apr  4 14:58:20 EDT 2026
+onnxruntime>=1.17.0
+# force rebuild Sun Apr  5 2026
