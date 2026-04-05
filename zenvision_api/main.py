@@ -65,6 +65,13 @@ def root():
 def health():
     return {"status": "healthy"}
 
+@app.get("/debug/env", tags=["System"])
+def debug_env():
+    return {
+        "plantnet_key_set": bool(os.environ.get("PLANTNET_API_KEY")),
+        "plantid_key_set": bool(os.environ.get("PLANT_ID_API_KEY")),
+    }
+
 
 # ─────────────────────────────────────────────
 # PLANT HEALTH ENDPOINTS
