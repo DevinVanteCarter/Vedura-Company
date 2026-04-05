@@ -47,6 +47,49 @@ _SPOTS_MOLD_INDICES = {1, 5, 7, 11, 12, 13, 25, 31, 32, 33}
 # Minimum confidence to trust a disease detection
 _CONFIDENCE_THRESHOLD = 0.70
 
+# Per-class metadata: (species, disease_or_None)
+# disease=None means the class is a healthy variant
+_CLASS_META = {
+    0:  ("Apple",       "Scab"),
+    1:  ("Apple",       "Black Rot"),
+    2:  ("Apple",       "Cedar Apple Rust"),
+    3:  ("Apple",       None),
+    4:  ("Blueberry",   None),
+    5:  ("Cherry",      "Powdery Mildew"),
+    6:  ("Cherry",      None),
+    7:  ("Corn",        "Cercospora and Gray Leaf Spot"),
+    8:  ("Corn",        "Common Rust"),
+    9:  ("Corn",        "Northern Leaf Blight"),
+    10: ("Corn",        None),
+    11: ("Grape",       "Black Rot"),
+    12: ("Grape",       "Esca (Black Measles)"),
+    13: ("Grape",       "Isariopsis Leaf Spot"),
+    14: ("Grape",       None),
+    15: ("Orange",      "Citrus Greening"),
+    16: ("Peach",       "Bacterial Spot"),
+    17: ("Peach",       None),
+    18: ("Bell Pepper", "Bacterial Spot"),
+    19: ("Bell Pepper", None),
+    20: ("Potato",      "Early Blight"),
+    21: ("Potato",      "Late Blight"),
+    22: ("Potato",      None),
+    23: ("Raspberry",   None),
+    24: ("Soybean",     None),
+    25: ("Squash",      "Powdery Mildew"),
+    26: ("Strawberry",  "Leaf Scorch"),
+    27: ("Strawberry",  None),
+    28: ("Tomato",      "Bacterial Spot"),
+    29: ("Tomato",      "Early Blight"),
+    30: ("Tomato",      "Late Blight"),
+    31: ("Tomato",      "Leaf Mold"),
+    32: ("Tomato",      "Septoria Leaf Spot"),
+    33: ("Tomato",      "Spider Mites"),
+    34: ("Tomato",      "Target Spot"),
+    35: ("Tomato",      "Yellow Leaf Curl Virus"),
+    36: ("Tomato",      "Mosaic Virus"),
+    37: ("Tomato",      None),
+}
+
 # Crops the model was trained on
 SUPPORTED_SPECIES = [
     "Apple", "Blueberry", "Cherry", "Corn (Maize)", "Grape",
@@ -188,14 +231,23 @@ def _run_ml(path: str) -> Optional[Dict]:
         top_conf = float(probs[top_idx])
         top_name = _class_names[top_idx]
 
+        # ── Extract species and clean disease name from top prediction ──
+        top_meta = _CLASS_META.get(top_idx, (None, None))
+        identified_species = top_meta[0] or "Unknown"
+        clean_disease = top_meta[1]  # None if healthy class
+
+        # ── Consistency cross-check: if top 3 predictions span 3 different
+        # crops, the model is confused about what plant it's looking at ──
+        top3_species = {_CLASS_META[int(i)][0] for i in top3_idx if int(i) in _CLASS_META}
+        inconsistent_species = len(top3_species) >= 3
+
         # ── Confidence threshold: below 0.70 means the model is guessing ──
-        # Unsupported species (lotus, fern, etc.) spread confidence across
-        # unrelated PlantVillage classes. Don't flag disease in that case.
-        low_confidence_species = top_conf < _CONFIDENCE_THRESHOLD
+        low_confidence_species = top_conf < _CONFIDENCE_THRESHOLD or inconsistent_species
 
         if low_confidence_species:
             is_healthy = True
             disease_name = "Healthy"
+            identified_species = "Unknown"
             severity = "none"
             treatment = _HEALTHY_TREATMENT
             species_note = "Plant species not in training data — manual inspection recommended."
@@ -204,7 +256,7 @@ def _run_ml(path: str) -> Optional[Dict]:
             healthy_conf = 1.0
         else:
             is_healthy = top_idx in _HEALTHY_INDICES
-            disease_name = "Healthy" if is_healthy else top_name
+            disease_name = "Healthy" if is_healthy else (clean_disease or top_name)
             species_note = ""
 
             yellowing_conf = float(sum(probs[i] for i in _YELLOWING_INDICES))
@@ -243,6 +295,7 @@ def _run_ml(path: str) -> Optional[Dict]:
         return {
             # ── new ML fields ──────────────────────────────────
             "model_used":             "onnx_plantvillage_mobilenetv2",
+            "identified_species":     identified_species,
             "disease_name":           disease_name,
             "severity":               severity,
             "treatment":              treatment,

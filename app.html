@@ -1214,14 +1214,29 @@ async function analyzePlant(file) {
     document.getElementById('plant-results').classList.add('visible');
 
     const score = data.health_score;
+    const raw = data.raw || {};
     const circle = document.getElementById('score-circle');
     circle.textContent = score;
     circle.style.borderColor = score > 70 ? 'var(--moss)' : score > 40 ? 'var(--earth)' : '#E24B4A';
     circle.style.color = score > 70 ? 'var(--moss)' : score > 40 ? 'var(--earth)' : '#E24B4A';
 
-    document.getElementById('score-title').textContent = 
-      score > 70 ? 'Plant is healthy' : score > 40 ? 'Needs attention' : 'Urgent care needed';
-    document.getElementById('score-desc').textContent = 
+    // Build title: "Tomato · Early Blight detected · 87% confidence"
+    const species = raw.identified_species && raw.identified_species !== 'Unknown' ? raw.identified_species : null;
+    const diseaseName = raw.disease_name && raw.disease_name !== 'Healthy' ? raw.disease_name : null;
+    const topConf = raw.top_predictions && raw.top_predictions[0] ? raw.top_predictions[0].confidence : null;
+
+    let scoreTitle;
+    if (species && diseaseName) {
+      const pct = topConf ? ` · ${Math.round(topConf * 100)}% confidence` : '';
+      scoreTitle = `${species} · ${diseaseName} detected${pct}`;
+    } else if (species) {
+      scoreTitle = score > 70 ? `${species} · Healthy` : `${species} · Needs attention`;
+    } else {
+      scoreTitle = score > 70 ? 'Plant is healthy' : score > 40 ? 'Needs attention' : 'Urgent care needed';
+    }
+    document.getElementById('score-title').textContent = scoreTitle;
+
+    document.getElementById('score-desc').textContent =
       score > 85 ? `Strong plant health, keep the routine going.` :
       score > 60 ? `Light stress detected — monitor watering and light.` :
       score > 40 ? `Moderate issues found — inspect leaves closely.` :
