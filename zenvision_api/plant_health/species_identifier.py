@@ -1,19 +1,19 @@
 """
-Plant.id API v3 — species identification stage.
+PlantNet API v2 — species identification stage.
 Called before the disease model to identify what plant we're looking at.
+Requires PLANTNET_API_KEY env var (free tier: 500 req/day at my.plantnet.org).
 """
 
 import os
-import base64
 import requests
 
-_PLANT_ID_URL = "https://api.plant.id/v3/identification"
-_TIMEOUT = 10  # seconds
+_PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"
+_TIMEOUT = 15  # seconds
 
 
 def identify_species(image_path: str) -> dict | None:
     """
-    Call Plant.id v3 to identify the plant species in an image.
+    Call PlantNet v2 to identify the plant species in an image.
 
     Returns a dict with:
         common_name     str   e.g. "Sacred Lotus"
@@ -22,61 +22,52 @@ def identify_species(image_path: str) -> dict | None:
         is_plant        bool
 
     Returns None if:
-        - PLANT_ID_API_KEY is not set
-        - is_plant is False
+        - PLANTNET_API_KEY is not set
+        - no results returned
         - any network/API error
     """
-    api_key = os.environ.get("PLANT_ID_API_KEY", "")
+    api_key = os.environ.get("PLANTNET_API_KEY", "")
     if not api_key:
         return None
 
     try:
         with open(image_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode("utf-8")
-
-        payload = {
-            "images": [f"data:image/jpeg;base64,{b64}"],
-            "classification_level": "species",
-        }
-
-        headers = {
-            "Api-Key": api_key,
-        }
+            image_data = f.read()
 
         resp = requests.post(
-            _PLANT_ID_URL,
-            params={"details": "common_names,url"},
-            headers=headers,
-            json=payload,
+            _PLANTNET_URL,
+            params={
+                "api-key": api_key,
+                "include-related-images": "false",
+            },
+            files={"images": ("image.jpg", image_data, "image/jpeg")},
+            data={"organs": "auto"},
             timeout=_TIMEOUT,
         )
+
+        # 404 means no results found (not a plant or unrecognized)
+        if resp.status_code == 404:
+            return {"is_plant": False, "common_name": None, "scientific_name": None, "confidence": 0.0}
+
         resp.raise_for_status()
         data = resp.json()
 
-        result = data.get("result", {})
-
-        is_plant_block = result.get("is_plant", {})
-        is_plant = is_plant_block.get("binary", False)
-        if not is_plant:
+        results = data.get("results", [])
+        if not results:
             return {"is_plant": False, "common_name": None, "scientific_name": None, "confidence": 0.0}
 
-        suggestions = result.get("classification", {}).get("suggestions", [])
-        if not suggestions:
-            return {"is_plant": True, "common_name": None, "scientific_name": None, "confidence": 0.0}
-
-        top = suggestions[0]
-        scientific_name = top.get("name", "Unknown")
-        confidence = float(top.get("probability", 0.0))
-
-        details = top.get("details") or {}
-        common_names = details.get("common_names") or []
+        top = results[0]
+        confidence = round(float(top.get("score", 0.0)), 4)
+        species = top.get("species", {})
+        scientific_name = species.get("scientificNameWithoutAuthor", "Unknown")
+        common_names = species.get("commonNames") or []
         common_name = common_names[0] if common_names else scientific_name
 
         return {
             "is_plant": True,
             "common_name": common_name,
             "scientific_name": scientific_name,
-            "confidence": round(confidence, 4),
+            "confidence": confidence,
         }
 
     except Exception:
