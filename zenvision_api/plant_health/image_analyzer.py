@@ -1,6 +1,11 @@
 """
 Plant health analysis — ONNX MobileNetV2 trained on PlantVillage (38 disease classes).
 Falls back to OpenCV HSV heuristics if model file is not present.
+
+Pipeline:
+  1. Plant.id API v3 — species identification (if PLANT_ID_API_KEY is set)
+  2. ONNX PlantVillage model — disease detection for supported crops
+  3. CV fallback — HSV heuristics when ONNX model is unavailable
 """
 
 import json
@@ -10,6 +15,8 @@ import numpy as np
 import cv2
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from plant_health.species_identifier import identify_species
 
 logger = logging.getLogger(__name__)
 
@@ -482,13 +489,114 @@ def _analyze_cv_fallback(path: str, save_annotated: bool = False) -> Dict:
 # Public API
 # ─────────────────────────────────────────────
 
+def _species_in_supported(common_name: Optional[str], scientific_name: Optional[str]) -> Optional[str]:
+    """
+    Return the matching SUPPORTED_SPECIES string if Plant.id identified a
+    PlantVillage crop, else None.  Matching is case-insensitive substring.
+    """
+    # Aliases not in SUPPORTED_SPECIES but common in Plant.id results
+    _ALIASES = {
+        "maize": "Corn",
+        "corn":  "Corn",
+        "zea mays": "Corn",
+        "solanum lycopersicum": "Tomato",
+        "capsicum annuum": "Bell Pepper",
+        "pepper": "Bell Pepper",
+        "solanum tuberosum": "Potato",
+        "malus": "Apple",
+        "prunus persica": "Peach",
+        "vitis": "Grape",
+        "fragaria": "Strawberry",
+        "glycine max": "Soybean",
+        "rubus": "Raspberry",
+        "cucurbita": "Squash",
+    }
+    names_to_check = [
+        (common_name or "").lower(),
+        (scientific_name or "").lower(),
+    ]
+    for name in names_to_check:
+        if not name:
+            continue
+        for alias, crop in _ALIASES.items():
+            if alias in name:
+                return crop
+        for crop in SUPPORTED_SPECIES:
+            if crop.lower() in name:
+                return crop
+    return None
+
+
 def analyze_image(path: str, save_annotated: bool = True) -> Dict:
     """
     Analyze a plant image for disease.
-    Uses ONNX MobileNetV2 (PlantVillage, 38 classes) if available,
-    falls back to OpenCV HSV heuristics otherwise.
+
+    Stage 1 — Plant.id species ID (if PLANT_ID_API_KEY set).
+    Stage 2 — ONNX PlantVillage disease model (if model file present).
+    Stage 3 — CV HSV fallback.
+
+    Plant.id enriches the response with identified_species, scientific_name,
+    and common_name.  If Plant.id confirms the plant is NOT a PlantVillage
+    crop, low_confidence_species is forced True and disease detection is
+    suppressed.
     """
+    # ── Stage 1: Species identification ───────────────────────────────────
+    species_result = identify_species(path)
+
+    # ── Stage 2/3: Disease analysis ────────────────────────────────────────
     result = _run_ml(path)
-    if result is not None:
-        return result
-    return _analyze_cv_fallback(path, save_annotated)
+    if result is None:
+        result = _analyze_cv_fallback(path, save_annotated)
+
+    # ── Merge Plant.id species info into result ────────────────────────────
+    if species_result is not None and species_result.get("is_plant") is not False:
+        plantid_common     = species_result.get("common_name")
+        plantid_scientific = species_result.get("scientific_name")
+        plantid_conf       = species_result.get("confidence", 0.0)
+
+        result["plantid_common_name"]     = plantid_common
+        result["plantid_scientific_name"] = plantid_scientific
+        result["plantid_confidence"]      = plantid_conf
+
+        matched_crop = _species_in_supported(plantid_common, plantid_scientific)
+
+        if matched_crop:
+            # Plant.id confirmed a supported crop — trust disease model as-is,
+            # but override identified_species with the clean crop name.
+            result["identified_species"] = matched_crop
+        else:
+            # Plant.id identified a plant NOT in PlantVillage training set.
+            # Suppress disease detection — the disease model is unreliable here.
+            friendly_name = plantid_common or plantid_scientific or "Unknown plant"
+            result["identified_species"]     = friendly_name
+            result["low_confidence_species"] = True
+            result["is_healthy"]             = True
+            result["disease_name"]           = "Healthy"
+            result["severity"]               = "none"
+            result["treatment"]              = _HEALTHY_TREATMENT
+            result["species_note"]           = (
+                f"Identified as {friendly_name} — not a PlantVillage crop. "
+                "Disease model does not apply; check visually for issues."
+            )
+            result["green_ratio"]            = max(result.get("green_ratio", 1.0), 1.2)
+            result["yellowing_confidence"]   = 0.0
+            result["burn_confidence"]        = 0.0
+            result["spots_confidence"]       = 0.0
+            result["yellowing_suspected"]    = False
+            result["burn_suspected"]         = False
+            result["spots_suspected"]        = False
+
+    elif species_result is not None and species_result.get("is_plant") is False:
+        # Plant.id says this is not a plant at all.
+        result["identified_species"]     = "Not a plant"
+        result["low_confidence_species"] = True
+        result["is_healthy"]             = True
+        result["disease_name"]           = "N/A"
+        result["severity"]               = "none"
+        result["treatment"]              = "No plant detected in this image."
+        result["species_note"]           = "Plant.id did not detect a plant in this image."
+        result["plantid_common_name"]     = None
+        result["plantid_scientific_name"] = None
+        result["plantid_confidence"]      = 0.0
+
+    return result

@@ -6,4 +6,5 @@ numpy>=1.26.0
 scikit-image>=0.22.0
 anthropic>=0.25.0
 onnxruntime>=1.17.0
-# force rebuild Sun Apr  5 2026
+requests>=2.31.0
+# force rebuild Sat Apr  5 2026
