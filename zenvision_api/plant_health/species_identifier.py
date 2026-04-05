@@ -7,7 +7,7 @@ import os
 import base64
 import requests
 
-_PLANT_ID_URL = "https://plant.id/api/v3/identification"
+_PLANT_ID_URL = "https://api.plant.id/v3/identification"
 _TIMEOUT = 10  # seconds
 
 
@@ -41,10 +41,15 @@ def identify_species(image_path: str) -> dict | None:
 
         headers = {
             "Api-Key": api_key,
-            "Content-Type": "application/json",
         }
 
-        resp = requests.post(_PLANT_ID_URL, json=payload, headers=headers, timeout=_TIMEOUT)
+        resp = requests.post(
+            _PLANT_ID_URL,
+            params={"details": "common_names,url"},
+            headers=headers,
+            json=payload,
+            timeout=_TIMEOUT,
+        )
         resp.raise_for_status()
         data = resp.json()
 
