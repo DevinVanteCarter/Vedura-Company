@@ -218,8 +218,14 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 # ML inference
 # ─────────────────────────────────────────────
 
-def _run_ml(path: str) -> Optional[Dict]:
-    """Run ONNX inference. Returns findings dict or None on failure."""
+def _run_ml(path: str, species_hint: Optional[str] = None) -> Optional[Dict]:
+    """
+    Run ONNX inference. Returns findings dict or None on failure.
+
+    species_hint: if PlantNet already confirmed a supported crop (e.g. "Tomato"),
+    re-rank by filtering probabilities to only that species' classes. This lets
+    the disease model focus without competing against unrelated crops.
+    """
     if not _model_available or _session is None:
         return None
 
@@ -228,14 +234,35 @@ def _run_ml(path: str) -> Optional[Dict]:
         logits = _session.run(None, {"pixel_values": input_tensor})[0][0]
         probs = _softmax(logits)
 
-        top3_idx = probs.argsort()[::-1][:3]
+        # ── Species-filtered re-ranking when PlantNet confirmed the crop ──
+        if species_hint:
+            species_indices = [
+                i for i, (sp, _) in _CLASS_META.items()
+                if sp and sp.lower() == species_hint.lower()
+            ]
+            if species_indices:
+                # Renormalise within species classes only
+                species_probs = np.zeros_like(probs)
+                for i in species_indices:
+                    species_probs[i] = probs[i]
+                total = species_probs.sum()
+                if total > 0:
+                    species_probs = species_probs / total
+                # Use renormalised probs for ranking; keep raw probs for aggregate signals
+                rank_probs = species_probs
+            else:
+                rank_probs = probs
+        else:
+            rank_probs = probs
+
+        top3_idx = rank_probs.argsort()[::-1][:3]
         top3 = [
-            {"class_name": _class_names[i], "confidence": round(float(probs[i]), 4)}
+            {"class_name": _class_names[i], "confidence": round(float(rank_probs[i]), 4)}
             for i in top3_idx
         ]
 
         top_idx = int(top3_idx[0])
-        top_conf = float(probs[top_idx])
+        top_conf = float(rank_probs[top_idx])
         top_name = _class_names[top_idx]
 
         # ── Extract species and clean disease name from top prediction ──
@@ -243,13 +270,16 @@ def _run_ml(path: str) -> Optional[Dict]:
         identified_species = top_meta[0] or "Unknown"
         clean_disease = top_meta[1]  # None if healthy class
 
-        # ── Consistency cross-check: if top 3 predictions span 3 different
-        # crops, the model is confused about what plant it's looking at ──
-        top3_species = {_CLASS_META[int(i)][0] for i in top3_idx if int(i) in _CLASS_META}
-        inconsistent_species = len(top3_species) >= 3
+        # ── Consistency cross-check (only applies without species hint) ──
+        if species_hint:
+            inconsistent_species = False
+        else:
+            top3_species = {_CLASS_META[int(i)][0] for i in top3_idx if int(i) in _CLASS_META}
+            inconsistent_species = len(top3_species) >= 3
 
-        # ── Confidence threshold: below 0.70 means the model is guessing ──
-        low_confidence_species = top_conf < _CONFIDENCE_THRESHOLD or inconsistent_species
+        # ── Confidence threshold: lower bar when species is already confirmed ──
+        threshold = 0.35 if species_hint else _CONFIDENCE_THRESHOLD
+        low_confidence_species = top_conf < threshold or inconsistent_species
 
         if low_confidence_species:
             is_healthy = True
@@ -543,8 +573,19 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
     # ── Stage 1: Species identification ───────────────────────────────────
     species_result = identify_species(path)
 
+    # Pre-check: if PlantNet confirmed a supported crop, pass it as a hint
+    # so the disease model filters to that species' classes only.
+    species_hint = None
+    if species_result and species_result.get("is_plant") is not False:
+        matched = _species_in_supported(
+            species_result.get("common_name"),
+            species_result.get("scientific_name"),
+        )
+        if matched:
+            species_hint = matched
+
     # ── Stage 2/3: Disease analysis ────────────────────────────────────────
-    result = _run_ml(path)
+    result = _run_ml(path, species_hint=species_hint)
     if result is None:
         result = _analyze_cv_fallback(path, save_annotated)
 
