@@ -13,8 +13,8 @@
 
 /* ── Variables ── */
 :root{
-  --bg:#080600;
-  --deep:#0D0A00;
+  --bg:#000000;
+  --deep:#050505;
   --gold:#FFD166;
   --green:#52B788;
   --cream:#F0EDD8;
@@ -30,7 +30,10 @@
 
 html{scroll-behavior:smooth}
 body{
-  background:var(--bg);
+  background:#000000;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(255,209,102,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(82,183,136,0.02) 0%, transparent 50%);
   color:var(--cream);
   font-family:var(--font-body);
   font-weight:300;
@@ -140,7 +143,7 @@ nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 40px;
-  background:rgba(8,6,0,0.88);
+  background:rgba(0,0,0,0.88);
   backdrop-filter:blur(14px);
   border-bottom:1px solid var(--gold-border);
 }
@@ -240,7 +243,7 @@ main{padding-top:72px}
 /* ── Panel ── */
 .panel{
   border:1px solid var(--gold-border);
-  background:rgba(13,10,0,0.7);
+  background:rgba(0,0,0,0.7);
   position:relative;overflow:hidden;
 }
 .panel::before{
@@ -260,7 +263,7 @@ main{padding-top:72px}
   display:flex;flex-direction:column;gap:24px;
 }
 .scanner-right{
-  background:rgba(13,10,0,0.6);padding:40px;
+  background:rgba(0,0,0,0.6);padding:40px;
   display:flex;flex-direction:column;
 }
 
@@ -458,12 +461,12 @@ main{padding-top:72px}
 .camera-modal{
   position:fixed;inset:0;z-index:120;
   display:none;align-items:center;justify-content:center;
-  background:rgba(8,6,0,0.94);padding:24px;
+  background:rgba(0,0,0,0.94);padding:24px;
 }
 .camera-modal.active{display:flex}
 .camera-panel{
   width:min(720px,100%);border:1px solid var(--gold-border);
-  background:rgba(13,10,0,.97);padding:20px;
+  background:rgba(0,0,0,.97);padding:20px;
   display:flex;flex-direction:column;gap:16px;
 }
 .camera-panel video{width:100%;height:auto;background:#000}
@@ -527,7 +530,7 @@ main{padding-top:72px}
 
 .recommendations{
   border:1px solid var(--gold-border);padding:28px;
-  background:rgba(13,10,0,.6);position:relative;
+  background:rgba(0,0,0,.6);position:relative;
 }
 .recommendations::before{
   content:'SYSTEM DIRECTIVES';
@@ -560,7 +563,7 @@ main{padding-top:72px}
 /* ════════════════════════════════════
    AI ADVISOR
 ════════════════════════════════════ */
-.advisor-wrap{border:1px solid var(--gold-border);background:rgba(13,10,0,.6)}
+.advisor-wrap{border:1px solid var(--gold-border);background:rgba(0,0,0,.6)}
 .advisor-header{
   padding:16px 24px;border-bottom:1px solid var(--gold-border);
   display:flex;align-items:center;gap:10px;
@@ -690,7 +693,7 @@ footer{
             <button class="scan-btn" id="start-camera-scan-btn" title="Scan with camera">
               <svg class="hex-bg" viewBox="0 0 96 96" fill="none">
                 <polygon points="48,6 84,27 84,69 48,90 12,69 12,27"
-                  fill="rgba(13,10,0,0.9)" stroke="rgba(255,209,102,0.5)" stroke-width="1.2"/>
+                  fill="rgba(0,0,0,0.9)" stroke="rgba(255,209,102,0.5)" stroke-width="1.2"/>
                 <polygon points="48,14 76,31 76,65 48,82 20,65 20,31"
                   fill="none" stroke="rgba(255,209,102,0.15)" stroke-width=".7"/>
               </svg>
