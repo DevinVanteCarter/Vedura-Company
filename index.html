@@ -160,6 +160,9 @@ nav{
   color:var(--green);
   text-decoration:none;
   position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:0;
 }
 .nav-logo .glitch-text{
   position:relative;
@@ -207,6 +210,30 @@ nav{
 .nav-status::before{
   content:'● ';
   animation:blink 2s step-end infinite;
+}
+.nav-location{
+  font-family:var(--font-mono);
+  font-size:.52rem;
+  letter-spacing:.14em;
+  color:var(--amber);
+  opacity:.75;
+  margin-top:3px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+}
+.nav-location-ping{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--amber);
+  box-shadow:0 0 6px rgba(255,209,102,0.8);
+  flex-shrink:0;
+  animation:loc-pulse 2.4s ease-in-out infinite;
+}
+@keyframes loc-pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.3;transform:scale(.7)}
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
@@ -817,6 +844,7 @@ footer{
   .nav-logo .glitch-text::after{display:none}
   .hero-title{font-size:clamp(3rem,14vw,5rem)}
   .nav-enter{display:none}
+  .nav-location{display:none}
 }
 </style>
 </head>
@@ -839,6 +867,10 @@ footer{
     <a href="/" class="nav-logo">
       <div class="glitch-text" data-text="VEDURA">VEDURA</div>
       <div class="nav-status">SYSTEMS ONLINE</div>
+      <div class="nav-location">
+        <span class="nav-location-ping"></span>
+        39.2686° N · 84.2631° W · LOVELAND OH
+      </div>
     </a>
     <ul class="nav-links">
       <li><a href="app.html#plants">PLANTS</a></li>
