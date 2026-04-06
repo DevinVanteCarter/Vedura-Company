@@ -530,7 +530,7 @@ main{padding-top:72px}
   background:rgba(13,10,0,.6);position:relative;
 }
 .recommendations::before{
-  content:'AI RECOMMENDATIONS';
+  content:'SYSTEM DIRECTIVES';
   font-family:var(--font-mono);font-size:.55rem;letter-spacing:.25em;
   color:var(--gold);opacity:.5;display:block;margin-bottom:20px;
 }
@@ -678,7 +678,7 @@ footer{
   <div class="section active" id="section-plants">
     <div class="section-tag">01 / PLANT INTELLIGENCE</div>
     <h2 class="section-title">Know what your<br><em>plants are telling you.</em></h2>
-    <p class="section-sub">Drop a photo or scan with your camera. Our neural network identifies the species, detects disease, and gives you organic-first treatment recommendations.</p>
+    <p class="section-sub">Present any plant. Zen Vision identifies the species, detects disease with clinical precision, and delivers organic-first treatment protocols — in seconds.</p>
 
     <div class="panel">
       <div class="scanner-layout">
@@ -699,7 +699,7 @@ footer{
                   <circle cx="12" cy="12" r="3"/><path d="M2 12h3m14 0h3M12 2v3m0 14v3"/>
                   <path d="M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M19.1 4.9l-2.1 2.1M7.1 16.9l-2.1 2.1"/>
                 </svg>
-                <span class="scan-btn-label">SCAN</span>
+                <span class="scan-btn-label">INITIATE</span>
               </div>
             </button>
           </div>
@@ -711,15 +711,15 @@ footer{
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
             </div>
-            <span class="upload-text-main">DROP PLANT PHOTO</span>
-            <span class="upload-text-sub">or click to upload · JPG, PNG, HEIC</span>
+            <span class="upload-text-main">Place your plant in frame.</span>
+            <span class="upload-text-sub">Zen Vision will do the rest. · JPG, PNG, HEIC</span>
           </div>
 
           <img id="image-preview" alt="Plant preview" />
 
           <div class="loading" id="plant-loading">
             <div class="loading-bar"></div>
-            <p class="loading-text">ANALYZING PLANT HEALTH...</p>
+            <p class="loading-text">READING PLANT SIGNATURE...</p>
           </div>
 
         </div><!-- /scanner-left -->
@@ -743,8 +743,8 @@ footer{
                 <div class="score-text" id="score-circle">—</div>
               </div>
               <div class="score-info">
-                <h3 id="score-title">Plant Health Report</h3>
-                <p id="score-desc">Upload a plant image to get started.</p>
+                <h3 id="score-title">Diagnostic Complete</h3>
+                <p id="score-desc">Submit a scan to begin analysis.</p>
               </div>
             </div>
 
@@ -767,7 +767,7 @@ footer{
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1">
               <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/>
             </svg>
-            <p style="font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;color:var(--gold)">AWAITING SCAN</p>
+            <p style="font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;color:var(--gold)">SYSTEM READY</p>
           </div>
 
         </div><!-- /scanner-right -->
@@ -779,7 +779,7 @@ footer{
       <div class="camera-panel">
         <video id="camera-video" autoplay playsinline muted></video>
         <div class="camera-controls">
-          <button class="btn-gold" id="camera-capture-btn">CAPTURE & ANALYZE</button>
+          <button class="btn-gold" id="camera-capture-btn">INITIATE SCAN</button>
           <button class="btn-ghost-gold" id="close-camera-btn">CLOSE</button>
         </div>
       </div>
@@ -792,7 +792,7 @@ footer{
   <div class="section" id="section-solar">
     <div class="section-tag">02 / SOLAR INTELLIGENCE</div>
     <h2 class="section-title">Your energy,<br><em>optimized.</em></h2>
-    <p class="section-sub">Real-time solar output, battery state, and AI routing for your off-grid homestead. Your power system — always independent.</p>
+    <p class="section-sub">Live solar output, battery state, and intelligent power routing — analyzed in real time. Your homestead operates independently of the grid, by design.</p>
 
     <div class="panel" style="padding:0;margin-bottom:28px">
       <div class="solar-grid" id="solar-grid">
@@ -823,7 +823,7 @@ footer{
 
     <div class="recommendations" id="rec-list-wrap">
       <div id="rec-list">
-        <div class="rec-item"><div class="rec-dot"></div><span>Loading solar data...</span></div>
+        <div class="rec-item"><div class="rec-dot"></div><span>Syncing grid data...</span></div>
       </div>
       <p class="api-status" id="api-status"></p>
     </div>
@@ -836,8 +836,8 @@ footer{
   <!-- ════ AI ADVISOR ════ -->
   <div class="section" id="section-advisor">
     <div class="section-tag">03 / HOMESTEAD ADVISOR</div>
-    <h2 class="section-title">Ask your<br><em>AI advisor anything.</em></h2>
-    <p class="section-sub">Powered by Claude AI. Ask about your plants, solar system, water, food, or anything off-grid. Your conversations stay private.</p>
+    <h2 class="section-title">Precision intelligence,<br><em>on demand.</em></h2>
+    <p class="section-sub">Powered by Claude AI. Ask anything about your land, crops, or energy systems. Responses are specific, actionable, and grounded in homestead reality. Every session is private — zero data retention.</p>
 
     <div class="advisor-wrap">
       <div class="advisor-header">
@@ -847,7 +847,7 @@ footer{
       <div class="advisor-messages" id="advisor-messages">
         <div class="msg msg-ai">
           <p class="msg-sender">Vedura AI</p>
-          Welcome to Zen Vision. I'm your solarpunk homestead advisor — ask me about your plants, solar system, water setup, food growing, or anything off-grid. Your conversations stay private.
+          Vedura AI is online. I have full context on plant diagnostics, solar energy management, water systems, and off-grid operations. Ask precisely — I'll respond in kind. This session is private and leaves no record.
         </div>
       </div>
       <div class="advisor-input-wrap">
@@ -855,7 +855,7 @@ footer{
           type="text"
           class="advisor-input"
           id="advisor-input"
-          placeholder="Ask about your plants, solar, water, food..."
+          placeholder="What would you like to know about your homestead?"
           onkeydown="if(event.key==='Enter')sendMessage()"
         />
         <button class="advisor-send" id="advisor-send" onclick="sendMessage()">SEND</button>
@@ -893,9 +893,9 @@ async function apiFetch(path, opts={}){
   if(res.ok) return res;
   let detail;
   try{ detail = (await res.json()).detail; } catch(_){}
-  const err = new Error(detail || `API error: ${res.status}`);
+  const err = new Error(detail || `Signal lost: ${res.status}`);
   err.detail = detail;
-  setApiStatus(`API error: ${res.status}`, true);
+  setApiStatus(`Signal lost: ${res.status}`, true);
   throw err;
 }
 
@@ -1100,10 +1100,10 @@ async function analyzePlant(file){
     }
     document.getElementById('score-title').textContent = scoreTitle;
     document.getElementById('score-desc').textContent =
-      score>85 ? 'Strong plant health — keep the routine going.' :
-      score>60 ? 'Light stress detected — monitor watering and light.' :
-      score>40 ? 'Moderate issues found — inspect leaves closely.' :
-                 'Serious plant stress detected — take action now.';
+      score>85 ? 'Specimen is thriving. Maintain current protocol.' :
+      score>60 ? 'Mild stress signature detected. Monitor hydration and light exposure.' :
+      score>40 ? 'Moderate decline confirmed. Close inspection required.' :
+                 'Critical stress detected. Immediate intervention advised.';
 
     // Species banner
     const banner = document.getElementById('species-banner');
@@ -1128,7 +1128,7 @@ async function analyzePlant(file){
     const alertsList = document.getElementById('alerts-list');
     alertsList.innerHTML = '';
     if(alerts.length===0){
-      alertsList.innerHTML='<li class="alert-item good">No issues detected — your plant looks healthy!</li>';
+      alertsList.innerHTML='<li class="alert-item good">No anomalies detected. Specimen is within healthy parameters.</li>';
     } else {
       alerts.forEach(a=>{
         const li=document.createElement('li');
@@ -1173,10 +1173,10 @@ async function analyzePlant(file){
     document.getElementById('plant-loading').classList.remove('visible');
     document.getElementById('plant-results').classList.add('visible');
     const isNet = err instanceof TypeError;
-    document.getElementById('score-title').textContent = isNet ? 'Could not connect to API' : 'Analysis failed';
+    document.getElementById('score-title').textContent = isNet ? 'Signal Lost' : 'Retry Required';
     document.getElementById('score-desc').textContent = isNet
-      ? 'Make sure the Zen Vision API is reachable.'
-      : (err.detail || err.message || 'An error occurred. Please try again.');
+      ? 'Connection interrupted. Verify endpoint availability and retry.'
+      : (err.detail || err.message || 'Signal interrupted. Retry required.');
     fileInput.value='';
   }
 }
@@ -1211,9 +1211,9 @@ async function loadSolar(){
     });
   } catch(err){
     document.getElementById('rec-list').innerHTML=
-      '<div class="rec-item"><div class="rec-dot"></div><span>Unable to reach the Zen Vision API — check your network or deployment endpoint.</span></div>';
+      '<div class="rec-item"><div class="rec-dot"></div><span>Grid signal lost — verify network connection and retry.</span></div>';
     if(location.protocol==='file:')
-      setApiStatus('Serve app.html from a web server to load solar data.',true);
+      setApiStatus('Connection interrupted. Serve from a web server to sync grid data.',true);
   }
 }
 
@@ -1235,7 +1235,7 @@ async function sendMessage(){
 
   const thinkDiv = document.createElement('div');
   thinkDiv.className='msg msg-ai';
-  thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p><span style="opacity:.45;font-style:italic">Thinking...</span>';
+  thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p><span style="opacity:.45;font-style:italic">Processing query...</span>';
   msgs.appendChild(thinkDiv);
   msgs.scrollTop=msgs.scrollHeight;
 
@@ -1248,7 +1248,7 @@ async function sendMessage(){
     const data = await res.json();
     thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p>${data.reply}`;
   } catch(e){
-    thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p>Unable to reach the advisor endpoint.';
+    thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p>Signal lost. Retry required.';
   }
 
   sendBtn.disabled=false;
