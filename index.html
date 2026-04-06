@@ -512,6 +512,196 @@ nav{
 .card-link:hover{opacity:1}
 .card-link::after{content:'→'}
 
+/* ── Market Section ── */
+.market-section{
+  padding:120px 48px;
+  position:relative;
+}
+.market-section::before{
+  content:'';
+  position:absolute;
+  right:0;top:50%;
+  width:500px;height:500px;
+  transform:translate(30%,-50%);
+  background:radial-gradient(circle,rgba(255,209,102,0.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.market-eyebrow{
+  font-family:var(--font-mono);
+  font-size:.6rem;
+  letter-spacing:.3em;
+  color:rgba(255,209,102,0.5);
+  margin-bottom:48px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.market-eyebrow::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,rgba(255,209,102,0.2),transparent);
+}
+.market-title{
+  font-family:var(--font-display);
+  font-size:clamp(2.4rem,5vw,4.2rem);
+  font-weight:300;
+  line-height:1.1;
+  color:var(--cream);
+  margin-bottom:72px;
+  max-width:600px;
+}
+.market-title em{
+  font-style:italic;
+  color:var(--amber);
+}
+
+/* Stat rows */
+.market-row-label{
+  font-family:var(--font-mono);
+  font-size:.55rem;
+  letter-spacing:.28em;
+  color:rgba(240,237,216,0.3);
+  text-transform:uppercase;
+  margin-bottom:20px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(255,209,102,0.06);
+}
+.market-stat-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:rgba(255,209,102,0.06);
+  margin-bottom:56px;
+}
+.market-stat-card{
+  background:var(--bg);
+  padding:28px 24px 24px;
+  position:relative;
+  transition:background .25s;
+}
+.market-stat-card:hover{
+  background:#000e07;
+}
+.market-stat-card.highlight{
+  background:rgba(255,209,102,0.04);
+}
+.market-stat-card.highlight:hover{
+  background:rgba(255,209,102,0.07);
+}
+.market-stat-card::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,209,102,0.15),transparent);
+}
+.market-num{
+  font-family:var(--font-display);
+  font-size:2.2rem;
+  font-weight:300;
+  line-height:1;
+  color:var(--cream);
+  margin-bottom:8px;
+  letter-spacing:-.01em;
+}
+.market-num.gold{
+  color:var(--amber);
+}
+.market-num.gold-glow{
+  color:var(--amber);
+  text-shadow:0 0 30px rgba(255,209,102,0.35);
+}
+.market-label{
+  font-family:var(--font-mono);
+  font-size:.58rem;
+  letter-spacing:.14em;
+  color:rgba(240,237,216,0.45);
+  line-height:1.5;
+}
+.market-badge{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:.5rem;
+  letter-spacing:.18em;
+  color:var(--amber);
+  border:1px solid rgba(255,209,102,0.25);
+  padding:2px 8px;
+  margin-top:10px;
+}
+
+/* Competitive table */
+.comp-table{
+  border:1px solid rgba(255,209,102,0.08);
+  overflow:hidden;
+}
+.comp-row{
+  display:grid;
+  grid-template-columns:1.4fr 2fr 1fr 1fr;
+  gap:0;
+  border-bottom:1px solid rgba(255,209,102,0.06);
+  transition:background .2s;
+}
+.comp-row:last-child{border-bottom:none}
+.comp-row.comp-header{
+  background:rgba(255,209,102,0.04);
+}
+.comp-row.vedura-row{
+  background:rgba(78,230,128,0.04);
+  position:relative;
+}
+.comp-row.vedura-row::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:var(--green);
+  box-shadow:0 0 12px rgba(78,230,128,0.5);
+}
+.comp-cell{
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:.62rem;
+  letter-spacing:.1em;
+  color:rgba(240,237,216,0.5);
+  border-right:1px solid rgba(255,209,102,0.06);
+  display:flex;
+  align-items:center;
+}
+.comp-cell:last-child{border-right:none;justify-content:center}
+.comp-cell.comp-name{
+  color:var(--cream);
+  font-weight:700;
+}
+.comp-cell.vedura-name{
+  color:var(--green);
+}
+.comp-header .comp-cell{
+  color:rgba(255,209,102,0.4);
+  font-size:.52rem;
+  letter-spacing:.2em;
+  padding:10px 20px;
+}
+.comp-check{
+  color:var(--green);
+  font-size:1rem;
+  text-shadow:0 0 8px rgba(78,230,128,0.6);
+}
+.comp-x{
+  color:rgba(240,237,216,0.18);
+  font-size:.9rem;
+}
+
+@media(max-width:900px){
+  .market-section{padding:64px 24px}
+  .market-stat-row{grid-template-columns:repeat(2,1fr)}
+  .market-title{margin-bottom:48px}
+}
+@media(max-width:560px){
+  .market-stat-row{grid-template-columns:1fr}
+  .comp-row{grid-template-columns:1fr 1fr;gap:0}
+  .comp-cell:nth-child(3){display:none}
+}
+
 /* ── Manifesto ── */
 .manifesto-section{
   padding:120px 48px;
@@ -785,6 +975,94 @@ footer{
     </div>
   </section>
 
+  <!-- Market Opportunity -->
+  <section class="market-section">
+
+    <div class="market-eyebrow reveal">◈ MARKET INTELLIGENCE</div>
+    <h2 class="market-title reveal">A $270B industry<br>with <em>no dominant player.</em></h2>
+
+    <!-- Row 1: Market Size -->
+    <div class="market-row-label reveal">01 — MARKET SIZE</div>
+    <div class="market-stat-row reveal">
+      <div class="market-stat-card">
+        <div class="market-num" data-target="250000" data-suffix="">250K+</div>
+        <div class="market-label">off-grid US<br>households</div>
+      </div>
+      <div class="market-stat-card">
+        <div class="market-num">15%</div>
+        <div class="market-label">annual growth<br>rate</div>
+        <div class="market-badge">↑ ACCELERATING</div>
+      </div>
+      <div class="market-stat-card">
+        <div class="market-num" data-target="18000" data-suffix="">18K+</div>
+        <div class="market-label">in Ohio<br>alone</div>
+      </div>
+      <div class="market-stat-card highlight">
+        <div class="market-num gold-glow">ZERO</div>
+        <div class="market-label">dominant<br>app in this space</div>
+        <div class="market-badge">← THE GAP</div>
+      </div>
+    </div>
+
+    <!-- Row 2: The Opportunity -->
+    <div class="market-row-label reveal">02 — THE OPPORTUNITY</div>
+    <div class="market-stat-row reveal">
+      <div class="market-stat-card highlight">
+        <div class="market-num gold-glow">$36M</div>
+        <div class="market-label">ARR at 1%<br>market capture</div>
+      </div>
+      <div class="market-stat-card">
+        <div class="market-num">$12</div>
+        <div class="market-label">avg monthly<br>subscription</div>
+      </div>
+      <div class="market-stat-card">
+        <div class="market-num">$270B</div>
+        <div class="market-label">consumer app<br>spending by 2025</div>
+      </div>
+      <div class="market-stat-card highlight">
+        <div class="market-num gold-glow">FIRST</div>
+        <div class="market-label">mover<br>advantage</div>
+        <div class="market-badge">← WE'RE HERE</div>
+      </div>
+    </div>
+
+    <!-- Row 3: Competitive Gap -->
+    <div class="market-row-label reveal">03 — COMPETITIVE LANDSCAPE</div>
+    <div class="comp-table reveal">
+      <div class="comp-row comp-header">
+        <div class="comp-cell">PRODUCT</div>
+        <div class="comp-cell">FOCUS</div>
+        <div class="comp-cell">SCALE</div>
+        <div class="comp-cell">INDIVIDUAL</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell comp-name">Plantix</div>
+        <div class="comp-cell">Plant disease — farmers only</div>
+        <div class="comp-cell">100M users</div>
+        <div class="comp-cell"><span class="comp-x">✕</span></div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell comp-name">SmartHelio</div>
+        <div class="comp-cell">Solar AI — utility scale only</div>
+        <div class="comp-cell">Enterprise</div>
+        <div class="comp-cell"><span class="comp-x">✕</span></div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell comp-name">Tesla Powerwall</div>
+        <div class="comp-cell">Home battery — hardware only</div>
+        <div class="comp-cell">$12K+</div>
+        <div class="comp-cell"><span class="comp-x">✕</span></div>
+      </div>
+      <div class="comp-row vedura-row">
+        <div class="comp-cell vedura-name">Vedura ✦</div>
+        <div class="comp-cell" style="color:var(--green);opacity:.85">All five — built for the individual homesteader</div>
+        <div class="comp-cell" style="color:var(--amber)">$12/mo</div>
+        <div class="comp-cell"><span class="comp-check">✓</span></div>
+      </div>
+    </div>
+
+  </section>
+
   <!-- Manifesto -->
   <section class="manifesto-section">
     <!-- Leaf decorations -->
@@ -976,7 +1254,7 @@ footer{
     });
   }, {threshold: .5});
 
-  document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+  document.querySelectorAll('.stat-number[data-target], .market-num[data-target]').forEach(el => {
     if(parseInt(el.dataset.target, 10) > 0) statIO.observe(el);
   });
 
