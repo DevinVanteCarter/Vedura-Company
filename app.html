@@ -1567,13 +1567,9 @@ async function loadSolar(){
   try{
     setApiStatus(`API: ${API}`);
 
-    // Fetch sim + real data in parallel
-    const [simRes, realRes] = await Promise.all([
-      apiFetch('/solar/status'),
-      apiFetch(`/solar/real?lat=${_solarCoords.lat}&lon=${_solarCoords.lon}&capacity=5.0`)
-    ]);
-    const d    = await simRes.json();
-    const real = await realRes.json();
+    // Fetch sim data first — fast, never fails
+    const simRes = await apiFetch('/solar/status');
+    const d = await simRes.json();
 
     // ── Sim metrics ──
     document.getElementById('solar-output').innerHTML  = `${d.solar_output_kw}<span> kW</span>`;
@@ -1586,14 +1582,23 @@ async function loadSolar(){
     document.getElementById('demand-bar').style.width   = `${Math.min(100,d.total_demand_kw/17*100)}%`;
     document.getElementById('unused-bar').style.width   = `${Math.min(100,d.unused_solar_kw/21*100)}%`;
 
-    // ── Real data banner ──
-    if(real.status==='ok'){
+    // Show sim recs immediately so page isn't blank while real data loads
+    _renderRecs(d.recommendations || [], []);
+
+    // ── Real data — fetched separately, won't break page if slow/down ──
+    let real = null;
+    try{
+      const realRes = await apiFetch(`/solar/real?lat=${_solarCoords.lat}&lon=${_solarCoords.lon}&capacity=5.0`);
+      real = await realRes.json();
+    } catch(_){ /* NREL unavailable — sim data already showing, no harm */ }
+
+    // ── Real data banner + chart ──
+    if(real && real.status==='ok'){
       document.getElementById('rsb-monthly').textContent = real.current_month_kwh;
       document.getElementById('rsb-location').textContent= real.location || '';
       document.getElementById('rsb-annual').textContent  = `${real.annual_kwh} kWh/year`;
       document.getElementById('rsb-now').textContent     = `${real.solar_output_kw} kW now`;
 
-      // ── Monthly chart ──
       const chart = document.getElementById('monthly-chart');
       chart.innerHTML = '';
       const months = real.monthly_labels || ['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -1614,39 +1619,11 @@ async function loadSolar(){
         wrap.appendChild(bar);
         wrap.appendChild(lbl);
         chart.appendChild(wrap);
-        // animate in
         requestAnimationFrame(()=>{ bar.style.height = heightPct+'%'; });
       });
 
-      // ── Merge real recs with sim recs ──
-      const recList = document.getElementById('rec-list');
-      recList.innerHTML = '';
-      const recs = [
-        ...(real.recommendations || []),
-        ...(d.recommendations || [])
-      ];
-      const finalRecs = recs.length > 0
-        ? recs
-        : ['System running optimally — solar is covering current demand.'];
-      finalRecs.forEach(r=>{
-        const div=document.createElement('div');
-        div.className='rec-item';
-        div.innerHTML=`<div class="rec-dot"></div><span>${r}</span>`;
-        recList.appendChild(div);
-      });
-    } else {
-      // real data failed — fall back to sim recs only
-      const recList = document.getElementById('rec-list');
-      recList.innerHTML = '';
-      const recs = d.recommendations && d.recommendations.length>0
-        ? d.recommendations
-        : ['System running optimally — solar is covering current demand.'];
-      recs.forEach(r=>{
-        const div=document.createElement('div');
-        div.className='rec-item';
-        div.innerHTML=`<div class="rec-dot"></div><span>${r}</span>`;
-        recList.appendChild(div);
-      });
+      // Update recs with merged real + sim data
+      _renderRecs(real.recommendations || [], d.recommendations || []);
     }
   } catch(err){
     document.getElementById('rec-list').innerHTML=
@@ -1654,6 +1631,19 @@ async function loadSolar(){
     if(location.protocol==='file:')
       setApiStatus('Connection interrupted. Serve from a web server to sync grid data.',true);
   }
+}
+
+function _renderRecs(realRecs, simRecs){
+  const recList = document.getElementById('rec-list');
+  recList.innerHTML = '';
+  const recs = [...realRecs, ...simRecs];
+  const final = recs.length > 0 ? recs : ['System running optimally — solar is covering current demand.'];
+  final.forEach(r=>{
+    const div = document.createElement('div');
+    div.className = 'rec-item';
+    div.innerHTML = `<div class="rec-dot"></div><span>${r}</span>`;
+    recList.appendChild(div);
+  });
 }
 
 // Geolocation button
