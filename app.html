@@ -457,21 +457,134 @@ main{padding-top:72px}
 }
 .detail-item strong{color:var(--cream);display:block;margin-bottom:2px;font-weight:400}
 
-/* Camera modal */
-.camera-modal{
-  position:fixed;inset:0;z-index:120;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.94);padding:24px;
+/* ── Live Camera HUD ── */
+.camera-hud{
+  position:fixed;inset:0;z-index:200;
+  background:#000;display:none;flex-direction:column;
 }
-.camera-modal.active{display:flex}
-.camera-panel{
-  width:min(720px,100%);border:1px solid var(--gold-border);
-  background:rgba(0,0,0,.97);padding:20px;
-  display:flex;flex-direction:column;gap:16px;
+.camera-hud.active{display:flex}
+.camera-hud video{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;
 }
-.camera-panel video{width:100%;height:auto;background:#000}
-.camera-controls{display:flex;gap:12px;flex-wrap:wrap}
-.camera-controls button{flex:1}
+
+/* Reticle overlay */
+.hud-reticle{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-60%);
+  width:min(260px,65vw);height:min(260px,65vw);
+  pointer-events:none;
+}
+.hud-corner{
+  position:absolute;width:28px;height:28px;
+  border-color:var(--gold);border-style:solid;opacity:.9;
+}
+.hud-corner.tl{top:0;left:0;border-width:2px 0 0 2px}
+.hud-corner.tr{top:0;right:0;border-width:2px 2px 0 0}
+.hud-corner.bl{bottom:0;left:0;border-width:0 0 2px 2px}
+.hud-corner.br{bottom:0;right:0;border-width:0 2px 2px 0}
+.hud-crosshair{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:10px;height:10px;
+  border:1px solid rgba(255,209,102,0.5);
+  border-radius:50%;
+}
+.hud-crosshair::before,.hud-crosshair::after{
+  content:'';position:absolute;background:rgba(255,209,102,0.3);
+}
+.hud-crosshair::before{width:20px;height:1px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.hud-crosshair::after{width:1px;height:20px;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+/* Sweep scan line */
+.hud-scanline{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,209,102,0.12) 48%,rgba(255,209,102,0.18) 50%,rgba(255,209,102,0.12) 52%,transparent 100%);
+  transform:translateY(-110%);
+  pointer-events:none;
+  transition:none;
+}
+.hud-scanline.sweeping{
+  animation:hud-sweep 2.5s ease-in-out infinite;
+}
+@keyframes hud-sweep{
+  0%{transform:translateY(-110%)}
+  100%{transform:translateY(110%)}
+}
+
+/* Status bar top */
+.hud-top{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:env(safe-area-inset-top,16px) 20px 16px;
+  background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,transparent 100%);
+  z-index:10;
+}
+.hud-live-badge{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  color:var(--green);display:flex;align-items:center;gap:6px;
+}
+.hud-live-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:hud-blink 1.2s ease-in-out infinite;
+}
+@keyframes hud-blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hud-close-btn{
+  background:rgba(0,0,0,.6);border:1px solid rgba(255,209,102,0.3);
+  color:var(--gold);width:36px;height:36px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  font-family:var(--font-mono);
+}
+
+/* Result panel bottom */
+.hud-bottom{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(0deg,rgba(0,0,0,.95) 0%,rgba(0,0,0,.7) 80%,transparent 100%);
+  padding:28px 24px env(safe-area-inset-bottom,24px);
+  z-index:10;
+  min-height:140px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.hud-status{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.2em;
+  color:rgba(255,209,102,0.5);text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.hud-status-dot{
+  width:4px;height:4px;border-radius:50%;background:var(--gold);
+  animation:hud-blink 1.2s ease-in-out infinite;
+}
+.hud-result-line{
+  font-family:var(--font-mono);font-size:1.05rem;letter-spacing:.08em;
+  color:var(--gold);line-height:1.3;
+  transition:opacity .4s ease;
+}
+.hud-result-line.green{color:var(--green)}
+.hud-result-line.red{color:#E24B4A}
+.hud-result-sub{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.12em;
+  color:rgba(240,237,216,0.55);line-height:1.4;
+}
+.hud-score-ring-wrap{
+  position:absolute;bottom:28px;right:24px;
+  width:52px;height:52px;
+}
+.hud-score-ring-wrap svg{width:100%;height:100%}
+.hud-score-num{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--font-mono);font-size:.72rem;font-weight:700;
+  color:var(--gold);
+}
+
+/* Scan progress bar */
+.hud-progress{
+  position:absolute;top:0;left:0;height:2px;
+  background:var(--gold);width:0%;
+  transition:width 2.5s linear;
+  box-shadow:0 0 8px var(--gold);
+  z-index:11;
+}
 .btn-gold{
   background:var(--gold);color:var(--deep);border:none;
   padding:12px 24px;font-family:var(--font-mono);font-size:.65rem;
@@ -842,13 +955,44 @@ footer{
       </div><!-- /scanner-layout -->
     </div><!-- /panel -->
 
-    <!-- Camera modal -->
-    <div class="camera-modal" id="camera-modal">
-      <div class="camera-panel">
-        <video id="camera-video" autoplay playsinline muted></video>
-        <div class="camera-controls">
-          <button class="btn-gold" id="camera-capture-btn">INITIATE SCAN</button>
-          <button class="btn-ghost-gold" id="close-camera-btn">CLOSE</button>
+    <!-- Live Camera HUD -->
+    <div class="camera-hud" id="camera-hud">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <div class="hud-progress" id="hud-progress"></div>
+      <div class="hud-scanline" id="hud-scanline"></div>
+
+      <!-- Reticle -->
+      <div class="hud-reticle" id="hud-reticle">
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
+        <div class="hud-crosshair"></div>
+      </div>
+
+      <!-- Top bar -->
+      <div class="hud-top">
+        <div class="hud-live-badge"><div class="hud-live-dot"></div>LIVE SCAN</div>
+        <button class="hud-close-btn" id="hud-close-btn">✕</button>
+      </div>
+
+      <!-- Bottom result panel -->
+      <div class="hud-bottom">
+        <div class="hud-status"><div class="hud-status-dot"></div><span id="hud-status-text">INITIALIZING...</span></div>
+        <div class="hud-result-line" id="hud-result-line">—</div>
+        <div class="hud-result-sub" id="hud-result-sub"></div>
+        <!-- Score ring -->
+        <div class="hud-score-ring-wrap" id="hud-score-wrap" style="opacity:0">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(255,209,102,0.15)" stroke-width="2"/>
+            <circle id="hud-ring" cx="26" cy="26" r="20" fill="none"
+              stroke="#FFD166" stroke-width="2"
+              stroke-linecap="round"
+              stroke-dasharray="126" stroke-dashoffset="126"
+              transform="rotate(-90 26 26)"
+              style="transition:stroke-dashoffset .8s ease,stroke .4s ease"/>
+          </svg>
+          <div class="hud-score-num" id="hud-score-num">—</div>
         </div>
       </div>
     </div>
@@ -1109,12 +1253,13 @@ window.addEventListener('hashchange', handleHash);
 const fileInput       = document.getElementById('plant-file');
 const uploadZone      = document.getElementById('upload-zone');
 const preview         = document.getElementById('image-preview');
-const cameraModal     = document.getElementById('camera-modal');
+const cameraHud       = document.getElementById('camera-hud');
 const cameraVideo     = document.getElementById('camera-video');
 const startCameraBtn  = document.getElementById('start-camera-scan-btn');
-const captureBtn      = document.getElementById('camera-capture-btn');
-const closeCameraBtn  = document.getElementById('close-camera-btn');
-let cameraStream = null;
+let cameraStream      = null;
+let _scanLoop         = null;
+let _scanBusy         = false;
+let _lastResult       = null;
 
 uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag-over'));
@@ -1124,33 +1269,163 @@ uploadZone.addEventListener('drop', e=>{
 });
 fileInput.addEventListener('change', e=>{ const f=e.target.files[0]; if(f) analyzePlant(f); });
 startCameraBtn.addEventListener('click', openCamera);
-captureBtn.addEventListener('click', captureCamera);
-closeCameraBtn.addEventListener('click', closeCamera);
 
+// ── Live Camera HUD ──────────────────────────────────────────────────────
 async function openCamera(){
   try{
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}, audio:false
+      video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},
+      audio:false
     });
     cameraVideo.srcObject = cameraStream;
-    cameraModal.classList.add('active');
-  }catch(e){ alert('Camera unavailable. Upload a photo instead.'); }
+    cameraHud.classList.add('active');
+
+    // Lock screen orientation if possible
+    try{ screen.orientation && screen.orientation.lock && screen.orientation.lock('portrait'); }catch(_){}
+    // Prevent sleep
+    try{ _wakeLock = await navigator.wakeLock && navigator.wakeLock.request('screen'); }catch(_){}
+
+    // Start scan loop after video is ready
+    cameraVideo.onloadedmetadata = ()=>{
+      setHudStatus('ACQUIRING SIGNAL...');
+      setTimeout(startScanLoop, 800);
+    };
+  }catch(e){
+    alert('Camera unavailable. Upload a photo instead.');
+  }
 }
 
 function closeCamera(){
+  stopScanLoop();
   if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
   cameraVideo.srcObject=null;
-  cameraModal.classList.remove('active');
+  cameraHud.classList.remove('active');
+  _lastResult=null;_scanBusy=false;
+  try{ _wakeLock && _wakeLock.release(); }catch(_){}
+  try{ screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); }catch(_){}
 }
 
-function captureCamera(){
-  if(!cameraStream) return;
-  const c=document.createElement('canvas');
-  c.width=cameraVideo.videoWidth; c.height=cameraVideo.videoHeight;
-  c.getContext('2d').drawImage(cameraVideo,0,0);
-  c.toBlob(blob=>{ if(blob) analyzePlant(new File([blob],'capture.jpg',{type:'image/jpeg'})); },'image/jpeg',.92);
-  closeCamera();
+function setHudStatus(text){
+  document.getElementById('hud-status-text').textContent = text;
 }
+
+function setHudResult(line, sub, score, isHealthy){
+  const rl = document.getElementById('hud-result-line');
+  rl.style.opacity='0';
+  setTimeout(()=>{
+    rl.textContent = line;
+    rl.className = 'hud-result-line' + (isHealthy===true?' green':isHealthy===false?' red':'');
+    rl.style.opacity='1';
+    document.getElementById('hud-result-sub').textContent = sub||'';
+    if(score!=null){
+      const wrap=document.getElementById('hud-score-wrap');
+      wrap.style.opacity='1';
+      document.getElementById('hud-score-num').textContent=score;
+      const ring=document.getElementById('hud-ring');
+      const offset=126-(score/100)*126;
+      ring.style.strokeDashoffset=offset;
+      const c = score>70?'#FFD166':score>40?'#52B788':'#E24B4A';
+      ring.style.stroke=c;
+      document.getElementById('hud-score-num').style.color=c;
+    }
+  },180);
+}
+
+function captureFrame(){
+  if(!cameraStream||!cameraVideo.videoWidth) return null;
+  const MAX=640;
+  let w=cameraVideo.videoWidth, h=cameraVideo.videoHeight;
+  if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
+  const c=document.createElement('canvas');
+  c.width=w; c.height=h;
+  c.getContext('2d').drawImage(cameraVideo,0,0,w,h);
+  return c;
+}
+
+async function runScan(){
+  if(_scanBusy) return;
+  _scanBusy=true;
+
+  // Sweep animation
+  const sl=document.getElementById('hud-scanline');
+  sl.classList.remove('sweeping');
+  void sl.offsetWidth; // reflow
+  sl.classList.add('sweeping');
+
+  // Progress bar
+  const pb=document.getElementById('hud-progress');
+  pb.style.transition='none'; pb.style.width='0%';
+  void pb.offsetWidth;
+  pb.style.transition='width 2.5s linear'; pb.style.width='100%';
+
+  setHudStatus('READING PLANT SIGNATURE...');
+
+  const canvas = captureFrame();
+  if(!canvas){ _scanBusy=false; setHudStatus('ADJUST FRAME'); return; }
+
+  canvas.toBlob(async blob=>{
+    try{
+      const fd=new FormData();
+      fd.append('file', new File([blob],'scan.jpg',{type:'image/jpeg'}));
+      const res = await apiFetch('/plant/analyze/image',{method:'POST',body:fd});
+      const data = await res.json();
+      _lastResult = data;
+
+      const score = data.health_score;
+      const raw   = data.raw||{};
+      const species = raw.identified_species||raw.plantid_common_name||null;
+      const disease = raw.disease_name && raw.disease_name!=='Healthy' ? raw.disease_name : null;
+      const conf    = raw.top_predictions?.[0]?.confidence;
+      const plantConf = raw.plantid_confidence;
+
+      let line, sub, healthy;
+      if(species && disease && conf){
+        line = `${species.toUpperCase()} · ${disease.toUpperCase()}`;
+        sub  = `${Math.round(conf*100)}% confidence`;
+        healthy = false;
+      } else if(species){
+        const confStr = plantConf ? ` · ${Math.round(plantConf*100)}% ID` : '';
+        const sci = raw.plantid_scientific_name ? ` · ${raw.plantid_scientific_name}` : '';
+        line = `${species.toUpperCase()} · ${score>70?'HEALTHY':'NEEDS ATTENTION'}`;
+        sub  = `${sci}${confStr}`.trim().replace(/^ · /,'');
+        healthy = score>70;
+      } else {
+        line    = score>70 ? 'PLANT DETECTED · HEALTHY' : score>40 ? 'STRESS DETECTED' : 'CRITICAL CONDITION';
+        sub     = '';
+        healthy = score>70;
+      }
+
+      setHudResult(line, sub, score, healthy);
+      setHudStatus('DIAGNOSTIC COMPLETE');
+
+      // Reset status after 3.5s
+      setTimeout(()=>{ if(cameraStream) setHudStatus('SCANNING...'); }, 3500);
+
+    }catch(e){
+      // silent retry — keep last result on screen
+      if(_lastResult) setHudStatus('SIGNAL WEAK — RETRYING...');
+      else setHudResult('NO PLANT DETECTED — ADJUST FRAME', '', null, null);
+      setHudStatus(_lastResult ? 'SIGNAL WEAK — RETRYING...' : 'NO PLANT DETECTED');
+    } finally {
+      _scanBusy=false;
+      pb.style.transition='none'; pb.style.width='0%';
+    }
+  },'image/jpeg',.88);
+}
+
+function startScanLoop(){
+  setHudStatus('SCANNING...');
+  runScan();
+  _scanLoop = setInterval(runScan, 2500);
+}
+
+function stopScanLoop(){
+  if(_scanLoop){ clearInterval(_scanLoop); _scanLoop=null; }
+  document.getElementById('hud-scanline').classList.remove('sweeping');
+}
+
+document.getElementById('hud-close-btn').addEventListener('click', closeCamera);
+cameraHud.addEventListener('click', e=>{ if(e.target===cameraHud) closeCamera(); });
 
 async function analyzePlant(file){
   // Show preview
