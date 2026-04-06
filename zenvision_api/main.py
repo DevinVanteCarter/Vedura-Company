@@ -18,7 +18,7 @@ import anthropic
 
 from plant_health.image_analyzer import analyze_image
 from plant_health.video_analyzer import analyze_video
-from plant_health.solar_ai import SolarAIController
+from plant_health.solar_ai import SolarAIController, get_real_solar_data
 
 app = FastAPI(
     title="Zen Vision API",
@@ -258,6 +258,24 @@ def solar_recommend():
             "actions": decision["actions"],
             "routing": decision["routing"]
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/solar/real", tags=["Solar AI"])
+def solar_real(
+    lat: float = 39.27,
+    lon: float = -84.26,
+    capacity: float = 5.0
+):
+    """
+    Get real solar production data from NREL PVWatts v8.
+    Defaults to Loveland, Ohio. Pass lat/lon for any location.
+    Returns monthly production estimates, current output, and recommendations.
+    """
+    try:
+        data = get_real_solar_data(lat=lat, lon=lon, system_capacity_kw=capacity)
+        return {"status": "ok", **data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

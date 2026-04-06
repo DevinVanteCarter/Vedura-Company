@@ -560,6 +560,71 @@ main{padding-top:72px}
   letter-spacing:.1em;color:rgba(255,209,102,0.3);
 }
 
+/* Location bar */
+.solar-location-bar{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.solar-location-inner{
+  flex:1;display:flex;align-items:center;gap:8px;
+  border:1px solid var(--gold-border);background:rgba(0,0,0,.5);
+  padding:10px 14px;
+}
+.solar-location-inner svg{color:var(--muted);flex-shrink:0}
+.solar-location-inner input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;
+  color:var(--cream);
+}
+.solar-location-inner input::placeholder{color:var(--muted);opacity:.5}
+.solar-geo-btn{
+  background:transparent;border:1px solid var(--gold-border);
+  color:var(--gold);padding:10px 14px;cursor:pointer;
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;
+  display:flex;align-items:center;gap:6px;
+  transition:border-color .2s,box-shadow .2s;white-space:nowrap;
+}
+.solar-geo-btn:hover{border-color:var(--gold);box-shadow:0 0 12px var(--gold-dim)}
+
+/* Real production banner */
+.real-solar-banner{
+  border:1px solid var(--gold-border);background:rgba(255,209,102,0.04);
+  padding:20px 24px;margin-bottom:20px;
+}
+.rsb-main{font-family:var(--font-display);line-height:1.2;margin-bottom:6px}
+.rsb-val{font-size:2rem;font-weight:300;color:var(--gold)}
+.rsb-unit{font-size:.85rem;color:var(--muted)}
+.rsb-meta{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;
+  color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.rsb-sep{opacity:.3}
+
+/* Monthly chart */
+.monthly-chart-panel{padding:24px;margin-bottom:20px}
+.chart-title{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:20px;
+}
+.chart-units{color:var(--gold);opacity:.6}
+.monthly-chart{
+  display:grid;grid-template-columns:repeat(12,1fr);gap:6px;
+  align-items:flex-end;height:80px;
+}
+.month-bar-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  height:100%;justify-content:flex-end;
+}
+.month-bar{
+  width:100%;background:var(--gold);opacity:.45;
+  transition:height .9s ease;border-radius:1px 1px 0 0;
+  min-height:2px;
+}
+.month-bar.current{opacity:1;box-shadow:0 0 8px var(--gold-glow)}
+.month-label{
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.05em;
+  color:var(--muted);text-align:center;
+}
+
 /* ════════════════════════════════════
    AI ADVISOR
 ════════════════════════════════════ */
@@ -797,6 +862,42 @@ footer{
     <h2 class="section-title">Your energy,<br><em>optimized.</em></h2>
     <p class="section-sub">Live solar output, battery state, and intelligent power routing — analyzed in real time. Your homestead operates independently of the grid, by design.</p>
 
+    <!-- Location bar -->
+    <div class="solar-location-bar">
+      <div class="solar-location-inner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+        <input type="text" id="solar-location-input" placeholder="ZIP code or city" value="Loveland, OH" />
+      </div>
+      <button class="solar-geo-btn" id="solar-geo-btn" title="Use my location">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 4"/></svg>
+        LOCATE
+      </button>
+    </div>
+
+    <!-- Real production banner -->
+    <div class="real-solar-banner" id="real-solar-banner">
+      <div class="rsb-main">
+        <span class="rsb-val" id="rsb-monthly">—</span>
+        <span class="rsb-unit"> kWh estimated this month</span>
+      </div>
+      <div class="rsb-meta">
+        <span id="rsb-location">—</span>
+        <span class="rsb-sep">·</span>
+        <span id="rsb-annual">— kWh/year</span>
+        <span class="rsb-sep">·</span>
+        <span id="rsb-now">— kW now</span>
+      </div>
+    </div>
+
+    <!-- Monthly production chart -->
+    <div class="panel monthly-chart-panel" id="monthly-chart-panel">
+      <p class="chart-title">MONTHLY PRODUCTION FORECAST <span class="chart-units">(kWh)</span></p>
+      <div class="monthly-chart" id="monthly-chart">
+        <!-- bars injected by JS -->
+      </div>
+    </div>
+
+    <!-- Live sim metrics -->
     <div class="panel" style="padding:0;margin-bottom:28px">
       <div class="solar-grid" id="solar-grid">
         <div class="solar-card">
@@ -1185,12 +1286,21 @@ async function analyzePlant(file){
 }
 
 // ── Solar dashboard ───────────────────────────────────────────────────────
+let _solarCoords = { lat: 39.27, lon: -84.26 }; // default: Loveland, OH
+
 async function loadSolar(){
   try{
     setApiStatus(`API: ${API}`);
-    const res = await apiFetch('/solar/status');
-    const d   = await res.json();
 
+    // Fetch sim + real data in parallel
+    const [simRes, realRes] = await Promise.all([
+      apiFetch('/solar/status'),
+      apiFetch(`/solar/real?lat=${_solarCoords.lat}&lon=${_solarCoords.lon}&capacity=5.0`)
+    ]);
+    const d    = await simRes.json();
+    const real = await realRes.json();
+
+    // ── Sim metrics ──
     document.getElementById('solar-output').innerHTML  = `${d.solar_output_kw}<span> kW</span>`;
     document.getElementById('battery-charge').innerHTML= `${d.battery_charge_pct}<span> %</span>`;
     document.getElementById('total-demand').innerHTML  = `${d.total_demand_kw}<span> kW</span>`;
@@ -1201,17 +1311,68 @@ async function loadSolar(){
     document.getElementById('demand-bar').style.width   = `${Math.min(100,d.total_demand_kw/17*100)}%`;
     document.getElementById('unused-bar').style.width   = `${Math.min(100,d.unused_solar_kw/21*100)}%`;
 
-    const recList = document.getElementById('rec-list');
-    recList.innerHTML = '';
-    const recs = d.recommendations && d.recommendations.length>0
-      ? d.recommendations
-      : ['System running optimally — solar is covering current demand.'];
-    recs.forEach(r=>{
-      const div=document.createElement('div');
-      div.className='rec-item';
-      div.innerHTML=`<div class="rec-dot"></div><span>${r}</span>`;
-      recList.appendChild(div);
-    });
+    // ── Real data banner ──
+    if(real.status==='ok'){
+      document.getElementById('rsb-monthly').textContent = real.current_month_kwh;
+      document.getElementById('rsb-location').textContent= real.location || '';
+      document.getElementById('rsb-annual').textContent  = `${real.annual_kwh} kWh/year`;
+      document.getElementById('rsb-now').textContent     = `${real.solar_output_kw} kW now`;
+
+      // ── Monthly chart ──
+      const chart = document.getElementById('monthly-chart');
+      chart.innerHTML = '';
+      const months = real.monthly_labels || ['J','F','M','A','M','J','J','A','S','O','N','D'];
+      const vals   = real.monthly_kwh || [];
+      const maxVal = Math.max(...vals, 1);
+      const curIdx = real.month_index ?? (new Date().getMonth());
+      vals.forEach((v, i)=>{
+        const heightPct = Math.max(3, (v / maxVal) * 100);
+        const wrap = document.createElement('div');
+        wrap.className = 'month-bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'month-bar' + (i===curIdx ? ' current' : '');
+        bar.style.height = '0%';
+        bar.title = `${months[i]}: ${v} kWh`;
+        const lbl = document.createElement('div');
+        lbl.className = 'month-label';
+        lbl.textContent = months[i].slice(0,1);
+        wrap.appendChild(bar);
+        wrap.appendChild(lbl);
+        chart.appendChild(wrap);
+        // animate in
+        requestAnimationFrame(()=>{ bar.style.height = heightPct+'%'; });
+      });
+
+      // ── Merge real recs with sim recs ──
+      const recList = document.getElementById('rec-list');
+      recList.innerHTML = '';
+      const recs = [
+        ...(real.recommendations || []),
+        ...(d.recommendations || [])
+      ];
+      const finalRecs = recs.length > 0
+        ? recs
+        : ['System running optimally — solar is covering current demand.'];
+      finalRecs.forEach(r=>{
+        const div=document.createElement('div');
+        div.className='rec-item';
+        div.innerHTML=`<div class="rec-dot"></div><span>${r}</span>`;
+        recList.appendChild(div);
+      });
+    } else {
+      // real data failed — fall back to sim recs only
+      const recList = document.getElementById('rec-list');
+      recList.innerHTML = '';
+      const recs = d.recommendations && d.recommendations.length>0
+        ? d.recommendations
+        : ['System running optimally — solar is covering current demand.'];
+      recs.forEach(r=>{
+        const div=document.createElement('div');
+        div.className='rec-item';
+        div.innerHTML=`<div class="rec-dot"></div><span>${r}</span>`;
+        recList.appendChild(div);
+      });
+    }
   } catch(err){
     document.getElementById('rec-list').innerHTML=
       '<div class="rec-item"><div class="rec-dot"></div><span>Grid signal lost — verify network connection and retry.</span></div>';
@@ -1219,6 +1380,30 @@ async function loadSolar(){
       setApiStatus('Connection interrupted. Serve from a web server to sync grid data.',true);
   }
 }
+
+// Geolocation button
+document.addEventListener('DOMContentLoaded',()=>{
+  const geoBtn = document.getElementById('solar-geo-btn');
+  if(geoBtn){
+    geoBtn.addEventListener('click',()=>{
+      if(!navigator.geolocation){ return; }
+      geoBtn.textContent = '...';
+      navigator.geolocation.getCurrentPosition(pos=>{
+        _solarCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        document.getElementById('solar-location-input').value =
+          `${_solarCoords.lat.toFixed(3)}, ${_solarCoords.lon.toFixed(3)}`;
+        geoBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 4"/></svg> LOCATE`;
+        loadSolar();
+      }, ()=>{ geoBtn.textContent = 'LOCATE'; });
+    });
+  }
+  const locInput = document.getElementById('solar-location-input');
+  if(locInput){
+    locInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter') loadSolar();
+    });
+  }
+});
 
 // ── AI Advisor ────────────────────────────────────────────────────────────
 async function sendMessage(){

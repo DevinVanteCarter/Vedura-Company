@@ -1,13 +1,133 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Solar Grid AI Power Management System
 Intelligently reroutes power between solar, battery, and grid sources.
+Includes PVWatts v8 real solar data integration (NREL free API).
 """
 
+import math
 import random
+import requests
 from datetime import datetime
 from dataclasses import dataclass
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
+
+# ─────────────────────────────────────────────
+# PVWatts Real Solar Data
+# ─────────────────────────────────────────────
+
+_PVWATTS_URL = "https://developer.nrel.gov/api/pvwatts/v8.json"
+_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+def get_real_solar_data(
+    lat: float,
+    lon: float,
+    system_capacity_kw: float = 5.0,
+    azimuth: int = 180,
+    tilt: int = 20,
+) -> Dict:
+    """
+    Fetch real solar production data from NREL PVWatts v8.
+    Uses DEMO_KEY — free, 1000 req/day, no registration needed.
+
+    Returns a dict with:
+        location           str   state/country from PVWatts station info
+        monthly_kwh        list  12 monthly AC output estimates (kWh)
+        annual_kwh         float total annual production
+        current_month_kwh  float this calendar month's estimate
+        daily_avg_kwh      float daily average for current month
+        peak_sun_hours     float today's peak sun hours (monthly avg)
+        solar_output_kw    float estimated current output (time-of-day scaled)
+        solrad_monthly     list  12 monthly solar radiation values (kWh/m²/day)
+        capacity_factor    float system capacity factor (%)
+        recommendations    list  AI tips based on production data
+    """
+    params = {
+        "api_key":         "DEMO_KEY",
+        "lat":             lat,
+        "lon":             lon,
+        "system_capacity": system_capacity_kw,
+        "azimuth":         azimuth,
+        "tilt":            tilt,
+        "array_type":      1,
+        "module_type":     0,
+        "losses":          14,
+    }
+    resp = requests.get(_PVWATTS_URL, params=params, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if data.get("errors"):
+        raise ValueError(f"PVWatts error: {data['errors']}")
+
+    outputs  = data["outputs"]
+    station  = data["station_info"]
+    now      = datetime.now()
+    month_i  = now.month - 1  # 0-indexed
+
+    ac_monthly    = outputs["ac_monthly"]
+    solrad_monthly = outputs["solrad_monthly"]
+    ac_annual     = outputs["ac_annual"]
+    capacity_factor = outputs["capacity_factor"]
+
+    current_month_kwh = ac_monthly[month_i]
+    days_in_month = [31,28,31,30,31,30,31,31,30,31,30,31][month_i]
+    daily_avg_kwh = current_month_kwh / days_in_month
+    peak_sun_hours = solrad_monthly[month_i]
+
+    # Estimate current output using time-of-day bell curve
+    hour = now.hour + now.minute / 60.0
+    if 6 <= hour <= 19:
+        # Sine curve peaking at solar noon (~13:00)
+        angle = math.pi * (hour - 6) / 13.0
+        time_factor = max(0.0, math.sin(angle))
+    else:
+        time_factor = 0.0
+    # Scale: daily_avg_kwh / peak_sun_hours ≈ effective kW at peak sun
+    peak_kw = daily_avg_kwh / max(peak_sun_hours, 0.1)
+    solar_output_kw = round(peak_kw * time_factor, 2)
+
+    # Location label
+    city  = station.get("city", "").strip()
+    state = station.get("state", "").strip()
+    location = f"{city}, {state}".strip(", ") if city else state or f"{lat:.2f}, {lon:.2f}"
+
+    # Recommendations
+    recs = []
+    best_month_i  = ac_monthly.index(max(ac_monthly))
+    worst_month_i = ac_monthly.index(min(ac_monthly))
+    recs.append(
+        f"Peak production month: {_MONTHS[best_month_i]} "
+        f"({ac_monthly[best_month_i]:.0f} kWh estimated)."
+    )
+    recs.append(
+        f"Lowest production month: {_MONTHS[worst_month_i]} "
+        f"({ac_monthly[worst_month_i]:.0f} kWh) — plan battery reserves."
+    )
+    if capacity_factor < 14:
+        recs.append("Capacity factor is below average — consider cleaning panels or adjusting tilt.")
+    if peak_sun_hours < 3.5:
+        recs.append(f"Low sun hours this month ({peak_sun_hours:.1f} h/day) — reduce non-essential loads.")
+    elif peak_sun_hours > 5.5:
+        recs.append(f"High sun hours this month ({peak_sun_hours:.1f} h/day) — good time to charge battery bank fully.")
+    if time_factor < 0.1:
+        recs.append("Sun is below the horizon — system drawing from battery or grid.")
+
+    return {
+        "location":          location,
+        "monthly_kwh":       [round(v, 1) for v in ac_monthly],
+        "monthly_labels":    _MONTHS,
+        "annual_kwh":        round(ac_annual, 1),
+        "current_month_kwh": round(current_month_kwh, 1),
+        "daily_avg_kwh":     round(daily_avg_kwh, 2),
+        "peak_sun_hours":    round(peak_sun_hours, 2),
+        "solar_output_kw":   solar_output_kw,
+        "solrad_monthly":    [round(v, 2) for v in solrad_monthly],
+        "capacity_factor":   round(capacity_factor, 2),
+        "system_capacity_kw": system_capacity_kw,
+        "recommendations":   recs,
+        "month_index":       month_i,
+    }
 
 @dataclass
 class PowerSource:
