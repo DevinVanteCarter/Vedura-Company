@@ -28,7 +28,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://zen-vision-sigma.vercel.app", "https://vedura.co", "https://www.vedura.co", "http://localhost:3001"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
