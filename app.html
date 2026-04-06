@@ -1262,13 +1262,21 @@ let _scanBusy         = false;
 let _lastResult       = null;
 let _wakeLock         = null;
 
+let _analyzing = false;
+
 uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag-over'));
 uploadZone.addEventListener('drop', e=>{
-  e.preventDefault(); uploadZone.classList.remove('drag-over');
-  const f=e.dataTransfer.files[0]; if(f) analyzePlant(f);
+  e.preventDefault();
+  e.stopPropagation(); // prevent drop reaching fileInput so change doesn't double-fire
+  uploadZone.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];
+  if(f && !_analyzing) analyzePlant(f);
 });
-fileInput.addEventListener('change', e=>{ const f=e.target.files[0]; if(f) analyzePlant(f); });
+fileInput.addEventListener('change', e=>{
+  const f=e.target.files[0];
+  if(f && !_analyzing) analyzePlant(f);
+});
 startCameraBtn.addEventListener('click', openCamera);
 
 // ── Live Camera HUD ──────────────────────────────────────────────────────
@@ -1429,10 +1437,21 @@ document.getElementById('hud-close-btn').addEventListener('click', closeCamera);
 cameraHud.addEventListener('click', e=>{ if(e.target===cameraHud) closeCamera(); });
 
 async function analyzePlant(file){
+  _analyzing = true;
+  fileInput.value = ''; // reset immediately so same file can be re-selected
+
   // Show preview
   const reader = new FileReader();
   reader.onload = e=>{ preview.src=e.target.result; preview.classList.add('visible'); };
   reader.readAsDataURL(file);
+
+  // Clear previous results before showing loading state
+  document.getElementById('alerts-list').innerHTML = '';
+  document.getElementById('details-list').innerHTML = '';
+  document.getElementById('species-banner').classList.remove('visible');
+  document.getElementById('treatment-card').classList.remove('visible');
+  document.getElementById('score-circle').textContent = '—';
+  document.getElementById('score-ring').style.strokeDashoffset = '226';
 
   // Show scanning state
   uploadZone.classList.add('scanning');
@@ -1547,7 +1566,7 @@ async function analyzePlant(file){
       detailsList.appendChild(li);
     });
 
-    fileInput.value='';
+    _analyzing = false;
   } catch(err){
     uploadZone.classList.remove('scanning');
     document.getElementById('plant-loading').classList.remove('visible');
@@ -1557,7 +1576,7 @@ async function analyzePlant(file){
     document.getElementById('score-desc').textContent = isNet
       ? 'Connection interrupted. Verify endpoint availability and retry.'
       : (err.detail || err.message || 'Signal interrupted. Retry required.');
-    fileInput.value='';
+    _analyzing = false;
   }
 }
 
