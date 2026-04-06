@@ -190,10 +190,16 @@ async def analyze_plant_video(
 def solar_status():
     """
     Get the current solar system status — output, battery, demand, routing.
+    Each request creates a fresh controller seeded to the real current hour
+    so solar output reflects the actual time of day and battery never drains
+    between API calls.
     """
     try:
-        data = _solar_controller.step()
-        decision = _solar_controller.reroute_decision()
+        from datetime import datetime as _dt
+        controller = SolarAIController()
+        controller.simulation_hour = _dt.now().hour
+        data = controller.step()
+        decision = controller.reroute_decision()
         return {
             "status": "ok",
             "solar_output_kw": data["solar_output"],
@@ -240,7 +246,11 @@ def solar_recommend():
     Get AI-generated power management recommendations based on current state.
     """
     try:
-        decision = _solar_controller.reroute_decision()
+        from datetime import datetime as _dt
+        controller = SolarAIController()
+        controller.simulation_hour = _dt.now().hour
+        controller.step()  # advance one step to populate state
+        decision = controller.reroute_decision()
         return {
             "status": "ok",
             "battery_charge_pct": decision["battery_charge"],
