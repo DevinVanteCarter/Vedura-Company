@@ -363,7 +363,7 @@ def get_weather(lat: float = 39.2686, lon: float = -84.2631):
     from collections import defaultdict
     from datetime import datetime as _dt
 
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    api_key = (os.environ.get("OPENWEATHER_API_KEY") or "").strip()
     if not api_key:
         raise HTTPException(
             status_code=503,
@@ -611,7 +611,7 @@ def get_homestead(lat: float = 39.2686, lon: float = -84.2631):
     import traceback as _tb
 
     # ── Weather (full OWM fetch) ────────────────────────────────────────────
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    api_key = (os.environ.get("OPENWEATHER_API_KEY") or "").strip()
     if not api_key:
         raise HTTPException(status_code=503,
                             detail="Homestead unavailable: OPENWEATHER_API_KEY not set.")
