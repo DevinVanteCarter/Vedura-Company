@@ -991,6 +991,98 @@ main{padding-top:72px}
   .hs-forecast-strip .hs-day-card:nth-child(n+3){display:none}
 }
 
+/* ── HOMESTEAD: Connections Row ── */
+.hs-connections-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--gold-border);margin:28px 0;
+}
+@media(max-width:900px){.hs-connections-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.hs-connections-row{grid-template-columns:1fr}}
+.hs-conn-card{
+  background:var(--deep);padding:22px 20px;
+  display:flex;flex-direction:column;gap:7px;
+  position:relative;overflow:hidden;transition:background .25s;
+}
+.hs-conn-card:hover{background:rgba(255,209,102,0.04)}
+.hs-conn-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.hs-conn-card:hover::after{opacity:.3}
+.hs-conn-icon{font-size:1.1rem;line-height:1;opacity:.65;margin-bottom:2px}
+.hs-conn-title{
+  font-family:var(--font-mono);font-size:.5rem;letter-spacing:.2em;
+  color:var(--gold);opacity:.55;
+}
+.hs-conn-body{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.05em;
+  color:var(--cream);line-height:1.55;flex:1;
+}
+.hs-conn-action{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.14em;
+  color:var(--green);cursor:pointer;background:none;border:none;
+  text-align:left;padding:4px 0 0;text-decoration:underline;
+  text-underline-offset:3px;display:none;
+}
+.hs-conn-action:hover{color:var(--gold)}
+
+/* ── HOMESTEAD: Crop Watch ── */
+.hs-crops-section{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--gold-border);margin:28px 0;
+}
+@media(max-width:800px){.hs-crops-section{grid-template-columns:1fr}}
+.hs-crops-block{background:var(--deep);padding:24px}
+.hs-crops-block-label{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.24em;
+  color:var(--gold);opacity:.5;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.hs-crops-block-label::before{content:'';display:inline-block;width:12px;height:1px;background:var(--gold)}
+.hs-crops-block-label.warn{color:#e2874a;opacity:.75}
+.hs-crops-block-label.warn::before{background:#e2874a}
+.hs-crop-row{
+  padding:10px 0;border-bottom:1px solid rgba(255,209,102,0.07);
+  display:flex;flex-direction:column;gap:4px;
+}
+.hs-crop-row:last-child{border-bottom:none}
+.hs-crop-name{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;color:var(--cream)}
+.hs-crop-action{font-size:.72rem;color:var(--muted);line-height:1.5}
+.hs-crop-risk{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.08em;
+  color:rgba(226,135,74,0.9);
+}
+.hs-crop-empty{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;
+  color:var(--muted);opacity:.35;padding:12px 0;
+}
+
+/* ── HOMESTEAD: Priority Actions ── */
+.hs-actions-section{margin:28px 0 0}
+.hs-actions-header{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.28em;
+  color:var(--gold);opacity:.5;margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.hs-actions-header::before{content:'';display:inline-block;width:18px;height:1px;background:var(--gold)}
+.hs-action-item{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 0;border-bottom:1px solid rgba(255,209,102,0.07);
+  cursor:pointer;transition:opacity .25s;user-select:none;
+}
+.hs-action-item:last-child{border-bottom:none}
+.hs-action-item.done{opacity:.28}
+.hs-action-item.done .hs-action-text{text-decoration:line-through}
+.hs-action-num{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;
+  color:var(--gold);opacity:.4;flex-shrink:0;padding-top:2px;min-width:22px;
+}
+.hs-action-text{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;
+  color:var(--cream);line-height:1.55;
+}
+
 /* ── Footer ── */
 footer{
   padding:40px;border-top:1px solid var(--gold-border);
@@ -1311,7 +1403,7 @@ footer{
     <!-- Loading state -->
     <div class="hs-loading" id="hs-loading">
       <div class="hs-loading-bar"></div>
-      <p>SYNCING ATMOSPHERIC DATA...</p>
+      <p>SYNCING HOMESTEAD INTELLIGENCE...</p>
     </div>
 
     <!-- Main content -->
@@ -1355,6 +1447,53 @@ footer{
       <!-- 5-day forecast strip -->
       <div class="hs-forecast-strip" id="hs-forecast-strip">
         <!-- injected by JS -->
+      </div>
+
+      <!-- Connections Row -->
+      <div class="hs-connections-row" id="hs-connections" style="display:none">
+        <div class="hs-conn-card">
+          <div class="hs-conn-icon">☀</div>
+          <div class="hs-conn-title">WEATHER → SOLAR</div>
+          <div class="hs-conn-body" id="hs-conn-ws">—</div>
+        </div>
+        <div class="hs-conn-card">
+          <div class="hs-conn-icon">🌿</div>
+          <div class="hs-conn-title">WEATHER → CROPS</div>
+          <div class="hs-conn-body" id="hs-conn-wc">—</div>
+        </div>
+        <div class="hs-conn-card">
+          <div class="hs-conn-icon">⚡</div>
+          <div class="hs-conn-title">SOLAR → LOADS</div>
+          <div class="hs-conn-body" id="hs-conn-sl">—</div>
+        </div>
+        <div class="hs-conn-card">
+          <div class="hs-conn-icon">◈</div>
+          <div class="hs-conn-title">CROPS → SCANNER</div>
+          <div class="hs-conn-body" id="hs-conn-cs">—</div>
+          <button class="hs-conn-action" id="hs-scan-link">SCAN PLANTS NOW →</button>
+        </div>
+      </div>
+
+      <!-- Crop Watch -->
+      <div class="hs-crops-section" id="hs-crops-section" style="display:none">
+        <div class="hs-crops-block">
+          <div class="hs-crops-block-label">PLANT NOW</div>
+          <div id="hs-plant-now"></div>
+        </div>
+        <div class="hs-crops-block">
+          <div class="hs-crops-block-label">HARVEST SOON</div>
+          <div id="hs-harvest-soon"></div>
+        </div>
+        <div class="hs-crops-block">
+          <div class="hs-crops-block-label warn">WATCH LIST</div>
+          <div id="hs-watch-list"></div>
+        </div>
+      </div>
+
+      <!-- Priority Actions -->
+      <div class="hs-actions-section" id="hs-actions-section" style="display:none">
+        <div class="hs-actions-header">TODAY'S PRIORITY ACTIONS</div>
+        <div id="hs-actions-list"></div>
       </div>
 
       <!-- Footer: location + last updated -->
@@ -1985,7 +2124,9 @@ async function sendMessage(){
   sendBtn.disabled=false;
   msgs.scrollTop=msgs.scrollHeight;
 }
-window.sendMessage = sendMessage;
+window.sendMessage   = sendMessage;
+window.showSection   = showSection;
+window.loadHomestead = loadHomestead;
 
 // ── Homestead Weather Engine ──────────────────────────────────────────────
 let _hsCoords       = { lat: 39.2686, lon: -84.2631 };
@@ -2003,9 +2144,12 @@ async function loadHomestead(force = false){
   // Try geolocation first, fall back to Loveland OH
   const doFetch = async (lat, lon) => {
     try{
-      const res = await apiFetch(`/weather?lat=${lat}&lon=${lon}`);
+      const res = await apiFetch(`/homestead?lat=${lat}&lon=${lon}`);
       const d   = await res.json();
-      _renderWeather(d);
+      _renderWeather(d.weather_summary);
+      _renderConnections(d);
+      _renderCrops(d.crop_data);
+      _renderActions(d.priority_actions);
       _hsLoaded = true;
       // Auto-refresh every 30 min
       if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
@@ -2116,6 +2260,77 @@ function _renderWeather(d){
 
   loading.classList.remove('visible');
   content.classList.add('visible');
+}
+
+function _renderConnections(d){
+  const c = d.connections || {};
+  document.getElementById('hs-conn-ws').textContent = c.weather_affects_solar || '—';
+  document.getElementById('hs-conn-wc').textContent = c.weather_affects_crops || '—';
+  document.getElementById('hs-conn-sl').textContent = c.solar_affects_loads   || '—';
+  document.getElementById('hs-conn-cs').textContent = c.crops_need_attention  || '—';
+
+  const scanBtn = document.getElementById('hs-scan-link');
+  if(d.crop_alerts && d.crop_alerts.length > 0){
+    scanBtn.style.display = 'block';
+    scanBtn.onclick = () => showSection('plants');
+  }
+
+  document.getElementById('hs-connections').style.display = '';
+}
+
+function _renderCrops(crops){
+  if(!crops) return;
+
+  function _fillBlock(elId, items, renderFn, emptyMsg){
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    if(!items || items.length === 0){
+      el.innerHTML = `<div class="hs-crop-empty">${emptyMsg}</div>`;
+      return;
+    }
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'hs-crop-row';
+      row.innerHTML = renderFn(item);
+      el.appendChild(row);
+    });
+  }
+
+  _fillBlock('hs-plant-now', (crops.plant_now||[]).slice(0,6),
+    item => `<div class="hs-crop-name">${item.crop}</div>
+             <div class="hs-crop-action">${item.action}</div>`,
+    'No planting action needed this month.');
+
+  _fillBlock('hs-harvest-soon', crops.harvest_soon||[],
+    item => `<div class="hs-crop-name">${item.crop}</div>
+             <div class="hs-crop-action">${item.ready}</div>`,
+    'No harvest action this month.');
+
+  _fillBlock('hs-watch-list', crops.watch_list||[],
+    item => `<div class="hs-crop-name">${item.crop}</div>
+             <div class="hs-crop-risk">⚠ ${item.risk}</div>
+             <div class="hs-crop-action">${item.reason} — ${item.action}</div>`,
+    'No active disease or pest alerts.');
+
+  document.getElementById('hs-crops-section').style.display = '';
+}
+
+function _renderActions(actions){
+  if(!actions || !actions.length) return;
+  const listEl = document.getElementById('hs-actions-list');
+  listEl.innerHTML = '';
+  actions.forEach((text, i) => {
+    const clean = text.replace(/^\d+\.\s*/, '');
+    const item  = document.createElement('div');
+    item.className = 'hs-action-item';
+    item.innerHTML = `
+      <div class="hs-action-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="hs-action-text">${clean}</div>
+    `;
+    item.addEventListener('click', () => item.classList.toggle('done'));
+    listEl.appendChild(item);
+  });
+  document.getElementById('hs-actions-section').style.display = '';
 }
 
 })();
