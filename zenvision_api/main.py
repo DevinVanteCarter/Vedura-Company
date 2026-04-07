@@ -14,6 +14,7 @@ import tempfile
 import os
 import shutil
 import json
+import math
 import anthropic
 
 from plant_health.image_analyzer import analyze_image
@@ -68,8 +69,10 @@ def health():
 @app.get("/debug/env", tags=["System"])
 def debug_env():
     return {
-        "plantnet_key_set": bool(os.environ.get("PLANTNET_API_KEY")),
-        "plantid_key_set": bool(os.environ.get("PLANT_ID_API_KEY")),
+        "plantnet_key_set":    bool(os.environ.get("PLANTNET_API_KEY")),
+        "plantid_key_set":     bool(os.environ.get("PLANT_ID_API_KEY")),
+        "openweather_key_set": bool(os.environ.get("OPENWEATHER_API_KEY")),
+        "anthropic_key_set":   bool(os.environ.get("ANTHROPIC_API_KEY")),
     }
 
 
