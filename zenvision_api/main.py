@@ -15,6 +15,7 @@ import os
 import shutil
 import json
 import math
+import requests
 import anthropic
 
 from plant_health.image_analyzer import analyze_image
