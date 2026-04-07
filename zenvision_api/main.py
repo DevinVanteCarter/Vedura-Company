@@ -281,6 +281,207 @@ def solar_real(
 
 
 # ─────────────────────────────────────────────
+# HOMESTEAD — WEATHER ENGINE
+# ─────────────────────────────────────────────
+
+def _solar_irradiance_estimate(cloud_cover: int) -> str:
+    if cloud_cover < 20:   return "high"
+    if cloud_cover < 50:   return "medium"
+    if cloud_cover < 80:   return "low"
+    return "none"
+
+def _estimate_uv(cloud_cover: int) -> int:
+    from datetime import datetime as _dt
+    hour = _dt.now().hour
+    if hour < 7 or hour > 19:
+        return 0
+    angle = math.pi * (hour - 7) / 12.0
+    time_factor = max(0.0, math.sin(angle))
+    cloud_factor = 1.0 - (cloud_cover / 100.0) * 0.75
+    return round(11 * time_factor * cloud_factor)
+
+def _solar_rating(avg_clouds: float, rain_chance: int) -> str:
+    if avg_clouds < 20 and rain_chance < 20: return "excellent"
+    if avg_clouds < 50 and rain_chance < 50: return "good"
+    if avg_clouds < 75:                      return "fair"
+    return "poor"
+
+def _day_plant_risk(humidity: float, low_f: float, rain_chance: int) -> str:
+    if humidity > 80 and low_f > 60:           return "high"
+    if humidity > 70 and rain_chance > 40:     return "medium"
+    return "low"
+
+def _overall_disease_risk(humidity: int, temp_f: float, forecast: list) -> str:
+    if humidity > 80 and temp_f > 60:
+        return "high"
+    rain_days = sum(1 for d in forecast if d["rain_chance_pct"] > 40)
+    if humidity > 70 and rain_days > 1:
+        return "medium"
+    return "low"
+
+def _solar_outlook(irradiance: str, forecast: list) -> str:
+    good = sum(1 for d in forecast if d["solar_rating"] in ("excellent", "good"))
+    if irradiance in ("high", "medium") and good >= 3: return "strong"
+    if good >= 2:                                       return "moderate"
+    return "weak"
+
+def _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
+                        storm_incoming, disease_risk, forecast) -> str:
+    if frost_warning:
+        return "Frost risk tonight — cover your seedlings before dark and bring tender plants inside."
+    storm_day = next((d for d in forecast[:3] if d["rain_chance_pct"] > 70), None)
+    if storm_incoming and storm_day:
+        return (f"Storm incoming {storm_day['day']} — harvest what's ready now "
+                f"and charge your battery to 100%.")
+    if disease_risk == "high":
+        return ("High humidity and warmth are prime fungal conditions — "
+                "inspect your plants closely today.")
+    if irradiance == "high":
+        return ("Strong solar day — run your water pump, charge the battery fully, "
+                "and defer all grid draw.")
+    if irradiance == "none":
+        return ("Heavy cloud cover today — conserve battery and defer non-essential "
+                "loads until conditions improve.")
+    if temp_f < 45:
+        return ("Cold day — check on cold-sensitive crops and protect water lines "
+                "from freezing overnight.")
+    return ("Conditions are favorable — a good day to tend the garden and "
+            "top off your battery bank.")
+
+
+@app.get("/weather", tags=["Homestead"])
+def get_weather(lat: float = 39.2686, lon: float = -84.2631):
+    """
+    Get current weather + 5-day forecast with homestead intelligence.
+    Returns plant disease risk, frost warnings, solar outlook, and a
+    one-sentence homestead briefing. Defaults to Loveland, Ohio.
+    """
+    from collections import defaultdict
+    from datetime import datetime as _dt
+
+    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Weather unavailable: OPENWEATHER_API_KEY not set."
+        )
+
+    try:
+        # ── Current weather ──────────────────────────────────────────────
+        cw_resp = requests.get(
+            "https://api.openweathermap.org/data/2.5/weather",
+            params={"lat": lat, "lon": lon, "appid": api_key, "units": "imperial"},
+            timeout=10
+        )
+        cw_resp.raise_for_status()
+        cw = cw_resp.json()
+
+        # ── 5-day / 3-hour forecast ──────────────────────────────────────
+        fc_resp = requests.get(
+            "https://api.openweathermap.org/data/2.5/forecast",
+            params={"lat": lat, "lon": lon, "appid": api_key,
+                    "units": "imperial", "cnt": 40},
+            timeout=10
+        )
+        fc_resp.raise_for_status()
+        fw = fc_resp.json()
+
+        # ── Parse current ────────────────────────────────────────────────
+        temp_f       = round(cw["main"]["temp"])
+        feels_like_f = round(cw["main"]["feels_like"])
+        humidity     = cw["main"]["humidity"]
+        description  = cw["weather"][0]["description"].capitalize()
+        wind_mph     = round(cw["wind"]["speed"])
+        cloud_cover  = cw["clouds"]["all"]
+        city         = cw.get("name", "")
+        country      = cw.get("sys", {}).get("country", "")
+        location     = f"{city}, {country}" if city else f"{lat:.4f}°N, {abs(lon):.4f}°W"
+
+        irradiance = _solar_irradiance_estimate(cloud_cover)
+        uv_index   = _estimate_uv(cloud_cover)
+
+        # ── Aggregate forecast to daily ──────────────────────────────────
+        daily: dict = defaultdict(list)
+        for item in fw["list"]:
+            daily[item["dt_txt"][:10]].append(item)
+
+        forecast_5day = []
+        for date_str, items in sorted(daily.items())[:5]:
+            temps    = [i["main"]["temp"]     for i in items]
+            pops     = [i.get("pop", 0)       for i in items]
+            clouds   = [i["clouds"]["all"]    for i in items]
+            humids   = [i["main"]["humidity"] for i in items]
+
+            high_f      = round(max(temps))
+            low_f       = round(min(temps))
+            rain_chance = round(max(pops) * 100)
+            avg_clouds  = sum(clouds) / len(clouds)
+            avg_humidity= sum(humids) / len(humids)
+
+            midday = next(
+                (i for i in items if "12:" in i["dt_txt"]),
+                items[len(items) // 2]
+            )
+            desc     = midday["weather"][0]["description"].capitalize()
+            day_name = _dt.strptime(date_str, "%Y-%m-%d").strftime("%A")
+
+            forecast_5day.append({
+                "date":           date_str,
+                "day":            day_name,
+                "high_f":         high_f,
+                "low_f":          low_f,
+                "description":    desc,
+                "rain_chance_pct":rain_chance,
+                "frost_risk":     low_f < 36,
+                "solar_rating":   _solar_rating(avg_clouds, rain_chance),
+                "plant_risk":     _day_plant_risk(avg_humidity, low_f, rain_chance),
+            })
+
+        # ── Alerts ───────────────────────────────────────────────────────
+        frost_warning   = any(d["low_f"] < 32          for d in forecast_5day[:2])
+        storm_incoming  = any(d["rain_chance_pct"] > 70 for d in forecast_5day[:3])
+        drought_risk    = all(d["rain_chance_pct"] < 10  for d in forecast_5day)
+        disease_risk    = _overall_disease_risk(humidity, temp_f, forecast_5day)
+        solar_outlook   = _solar_outlook(irradiance, forecast_5day)
+
+        briefing = _homestead_briefing(
+            temp_f, humidity, irradiance,
+            frost_warning, storm_incoming, disease_risk, forecast_5day
+        )
+
+        return {
+            "status":   "ok",
+            "location": location,
+            "current": {
+                "temp_f":                  temp_f,
+                "feels_like_f":            feels_like_f,
+                "humidity":                humidity,
+                "description":             description,
+                "wind_mph":                wind_mph,
+                "uv_index":                uv_index,
+                "cloud_cover_pct":         cloud_cover,
+                "solar_irradiance_estimate": irradiance,
+            },
+            "forecast_5day": forecast_5day,
+            "alerts": {
+                "frost_warning":      frost_warning,
+                "frost_date_last":    "May 1",
+                "storm_incoming":     storm_incoming,
+                "drought_risk":       drought_risk,
+                "plant_disease_risk": disease_risk,
+                "solar_outlook":      solar_outlook,
+            },
+            "homestead_briefing": briefing,
+        }
+
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Weather API error: {str(e)}")
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
+
+
+# ─────────────────────────────────────────────
 # KNOWLEDGE GUIDE ENDPOINTS
 # ─────────────────────────────────────────────
 

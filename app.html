@@ -803,6 +803,194 @@ main{padding-top:72px}
 .advisor-send:hover{box-shadow:0 0 20px var(--gold-glow)}
 .advisor-send:disabled{opacity:.4;cursor:not-allowed}
 
+/* ════════════════════════════════════
+   HOMESTEAD — WEATHER ENGINE
+════════════════════════════════════ */
+.nav-tabs a.homestead-tab{
+  color:var(--gold);
+  border:1px solid rgba(255,209,102,0.2);
+}
+.nav-tabs a.homestead-tab:hover,
+.nav-tabs a.homestead-tab.active{
+  background:rgba(255,209,102,0.1);
+  border-color:var(--gold);
+}
+
+/* Briefing */
+.hs-briefing{
+  border-left:3px solid var(--gold);
+  padding:18px 20px;
+  background:rgba(255,209,102,0.05);
+  margin-bottom:28px;
+  font-family:var(--font-display);
+  font-size:1.25rem;
+  font-weight:300;
+  font-style:italic;
+  color:var(--cream);
+  line-height:1.4;
+}
+.hs-briefing-label{
+  font-family:var(--font-mono);
+  font-size:.52rem;
+  letter-spacing:.22em;
+  color:rgba(255,209,102,0.45);
+  display:block;
+  margin-bottom:8px;
+}
+
+/* Top row */
+.hs-top-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--gold-border);
+  margin-bottom:20px;
+}
+.hs-card{
+  background:var(--deep);
+  padding:24px;
+  position:relative;
+}
+.hs-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-border),transparent);
+}
+.hs-card-label{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.22em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:14px;
+}
+.hs-temp{
+  font-family:var(--font-display);font-size:3.2rem;font-weight:300;
+  color:var(--cream);line-height:1;margin-bottom:4px;
+}
+.hs-temp span{font-size:1.2rem;color:var(--muted)}
+.hs-desc{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;
+  color:var(--gold);margin-bottom:14px;
+}
+.hs-meta-row{
+  display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;
+}
+.hs-meta-item{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;
+  color:var(--muted);display:flex;flex-direction:column;gap:3px;
+}
+.hs-meta-item strong{color:var(--cream);font-size:.75rem}
+
+.hs-irradiance{
+  font-family:var(--font-display);font-size:2.6rem;font-weight:300;
+  line-height:1;margin-bottom:8px;
+}
+.hs-irradiance.high  {color:#FFD166;text-shadow:0 0 20px rgba(255,209,102,0.4)}
+.hs-irradiance.medium{color:#c8a63a}
+.hs-irradiance.low   {color:rgba(240,237,216,0.5)}
+.hs-irradiance.none  {color:rgba(240,237,216,0.2)}
+.hs-solar-sub{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.12em;
+  color:var(--muted);margin-bottom:14px;
+}
+.hs-solar-bar-wrap{height:3px;background:rgba(255,209,102,0.1);overflow:hidden;margin-top:10px}
+.hs-solar-bar{height:3px;background:var(--gold);transition:width 1.2s ease;
+  box-shadow:0 0 8px rgba(255,209,102,0.5)}
+
+/* 5-day forecast */
+.hs-forecast-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:1px;background:var(--gold-border);margin-bottom:20px;
+}
+.hs-day-card{
+  background:var(--deep);padding:16px 12px;text-align:center;
+  transition:background .2s;cursor:default;
+}
+.hs-day-card:hover{background:rgba(255,209,102,0.05)}
+.hs-day-card.frost{background:rgba(100,160,255,0.06)}
+.hs-day-name{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.15em;
+  color:var(--muted);margin-bottom:8px}
+.hs-day-desc{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.06em;
+  color:var(--cream);opacity:.6;margin-bottom:10px;line-height:1.3}
+.hs-day-temps{font-family:var(--font-display);font-size:1.1rem;font-weight:300;
+  color:var(--cream);margin-bottom:6px}
+.hs-day-temps .low{color:var(--muted);font-size:.85rem;margin-left:4px}
+.hs-day-rain{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;
+  color:rgba(100,180,255,0.7);margin-bottom:4px}
+.hs-day-solar{
+  font-family:var(--font-mono);font-size:.5rem;letter-spacing:.1em;
+  padding:2px 6px;display:inline-block;margin-top:4px;
+}
+.hs-day-solar.excellent{color:#FFD166;border:1px solid rgba(255,209,102,0.3)}
+.hs-day-solar.good     {color:#a8c87a;border:1px solid rgba(168,200,122,0.3)}
+.hs-day-solar.fair     {color:rgba(240,237,216,0.4);border:1px solid rgba(240,237,216,0.1)}
+.hs-day-solar.poor     {color:rgba(240,237,216,0.2);border:1px solid rgba(240,237,216,0.06)}
+.hs-frost-tag{
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.1em;
+  color:rgba(100,160,255,0.8);margin-top:4px;display:block;
+}
+
+/* Alerts bar */
+.hs-alerts{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;
+}
+.hs-alert-pill{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.12em;
+  padding:6px 14px;border:1px solid;display:flex;align-items:center;gap:6px;
+}
+.hs-alert-pill.ok   {color:rgba(82,183,136,0.7); border-color:rgba(82,183,136,0.2)}
+.hs-alert-pill.warn {color:rgba(255,209,102,0.8); border-color:rgba(255,209,102,0.25)}
+.hs-alert-pill.danger{color:rgba(226,75,74,0.85); border-color:rgba(226,75,74,0.25)}
+.hs-alert-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* Location / refresh row */
+.hs-footer-row{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-top:8px;
+}
+.hs-coords{
+  font-family:var(--font-mono);font-size:.56rem;letter-spacing:.12em;
+  color:rgba(255,209,102,0.35);
+}
+.hs-last-updated{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.1em;
+  color:var(--muted);opacity:.5;
+}
+
+/* Loading state */
+.hs-loading{
+  display:none;text-align:center;padding:60px 0;
+}
+.hs-loading.visible{display:block}
+.hs-loading p{
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.25em;
+  color:rgba(255,209,102,0.5);margin-top:12px;
+}
+.hs-loading-bar{
+  width:160px;height:2px;background:rgba(255,209,102,0.1);
+  margin:0 auto;overflow:hidden;
+}
+.hs-loading-bar::after{
+  content:'';display:block;height:100%;
+  background:var(--gold);
+  animation:hs-scan 1.4s ease-in-out infinite;
+}
+@keyframes hs-scan{
+  0%{width:0;margin-left:0}
+  50%{width:100%;margin-left:0}
+  100%{width:0;margin-left:100%}
+}
+
+/* Main content wrapper */
+.hs-content{display:none}
+.hs-content.visible{display:block}
+
+@media(max-width:700px){
+  .hs-top-row{grid-template-columns:1fr}
+  .hs-forecast-strip{grid-template-columns:repeat(3,1fr)}
+  .hs-forecast-strip .hs-day-card:nth-child(n+4){display:none}
+}
+@media(max-width:480px){
+  .hs-forecast-strip{grid-template-columns:repeat(2,1fr)}
+  .hs-forecast-strip .hs-day-card:nth-child(n+3){display:none}
+}
+
 /* ── Footer ── */
 footer{
   padding:40px;border-top:1px solid var(--gold-border);
@@ -849,6 +1037,7 @@ footer{
     <li><a href="#plants" data-section="plants">PLANTS</a></li>
     <li><a href="#solar"  data-section="solar">SOLAR</a></li>
     <li><a href="#advisor" data-section="advisor">ADVISOR</a></li>
+    <li><a href="#homestead" data-section="homestead" class="homestead-tab">HOMESTEAD</a></li>
   </ul>
   <a href="index.html" class="nav-enter">← HOME</a>
 </nav>
@@ -1112,6 +1301,73 @@ footer{
 
   </div><!-- /section-advisor -->
 
+
+  <!-- ════ HOMESTEAD INTELLIGENCE ════ -->
+  <div class="section" id="section-homestead">
+    <div class="section-tag">04 / HOMESTEAD INTELLIGENCE</div>
+    <h2 class="section-title">Your land. Your weather.<br><em>Your briefing.</em></h2>
+    <p class="section-sub">Real-time atmospheric conditions analyzed for your homestead — frost risk, solar outlook, plant disease conditions, and a daily intelligence briefing built for people who work the land.</p>
+
+    <!-- Loading state -->
+    <div class="hs-loading" id="hs-loading">
+      <div class="hs-loading-bar"></div>
+      <p>SYNCING ATMOSPHERIC DATA...</p>
+    </div>
+
+    <!-- Main content -->
+    <div class="hs-content" id="hs-content">
+
+      <!-- Briefing -->
+      <div class="hs-briefing" id="hs-briefing">
+        <span class="hs-briefing-label">◈ TODAY'S HOMESTEAD BRIEFING</span>
+        <span id="hs-briefing-text">—</span>
+      </div>
+
+      <!-- Alerts bar -->
+      <div class="hs-alerts" id="hs-alerts"></div>
+
+      <!-- Top row: current + solar -->
+      <div class="hs-top-row">
+        <div class="hs-card">
+          <div class="hs-card-label">Current Conditions</div>
+          <div class="hs-temp" id="hs-temp">—<span>°F</span></div>
+          <div class="hs-desc" id="hs-desc">—</div>
+          <div class="hs-meta-row">
+            <div class="hs-meta-item"><span>Humidity</span><strong id="hs-humidity">—</strong></div>
+            <div class="hs-meta-item"><span>Wind</span><strong id="hs-wind">—</strong></div>
+            <div class="hs-meta-item"><span>Feels Like</span><strong id="hs-feels">—</strong></div>
+            <div class="hs-meta-item"><span>UV Index</span><strong id="hs-uv">—</strong></div>
+            <div class="hs-meta-item"><span>Cloud Cover</span><strong id="hs-cloud">—</strong></div>
+          </div>
+        </div>
+        <div class="hs-card">
+          <div class="hs-card-label">Solar Outlook</div>
+          <div class="hs-irradiance" id="hs-irradiance">—</div>
+          <div class="hs-solar-sub" id="hs-solar-sub">Calculating irradiance...</div>
+          <div class="hs-solar-bar-wrap"><div class="hs-solar-bar" id="hs-solar-bar" style="width:0%"></div></div>
+          <div class="hs-meta-row" style="margin-top:16px">
+            <div class="hs-meta-item"><span>5-Day Outlook</span><strong id="hs-solar-outlook">—</strong></div>
+            <div class="hs-meta-item"><span>Avg Irradiance</span><strong id="hs-irradiance-label">—</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5-day forecast strip -->
+      <div class="hs-forecast-strip" id="hs-forecast-strip">
+        <!-- injected by JS -->
+      </div>
+
+      <!-- Footer: location + last updated -->
+      <div class="hs-footer-row">
+        <span class="hs-coords" id="hs-coords">—</span>
+        <span class="hs-last-updated" id="hs-last-updated">—</span>
+        <button class="refresh-btn" style="margin-top:0" onclick="loadHomestead(true)">↻ REFRESH</button>
+      </div>
+
+    </div><!-- /hs-content -->
+  </div><!-- /section-homestead -->
+
+
 </main>
 
 <footer>
@@ -1218,9 +1474,10 @@ for(let i=0;i<100;i++){ const p=mkP(); p.life=Math.random()*p.maxLife; particles
 
 // ── Tab navigation ────────────────────────────────────────────────────────
 const sections = {
-  plants:  document.getElementById('section-plants'),
-  solar:   document.getElementById('section-solar'),
-  advisor: document.getElementById('section-advisor')
+  plants:    document.getElementById('section-plants'),
+  solar:     document.getElementById('section-solar'),
+  advisor:   document.getElementById('section-advisor'),
+  homestead: document.getElementById('section-homestead')
 };
 const navLinks = document.querySelectorAll('.nav-tabs a[data-section]');
 
@@ -1229,7 +1486,8 @@ function showSection(id){
   const sec = sections[id];
   if(sec){ sec.classList.add('active'); window.scrollTo(0,0); }
   navLinks.forEach(a=>a.classList.toggle('active', a.dataset.section===id));
-  if(id==='solar') loadSolar();
+  if(id==='solar')     loadSolar();
+  if(id==='homestead') loadHomestead();
 }
 
 navLinks.forEach(a=>{
@@ -1728,6 +1986,137 @@ async function sendMessage(){
   msgs.scrollTop=msgs.scrollHeight;
 }
 window.sendMessage = sendMessage;
+
+// ── Homestead Weather Engine ──────────────────────────────────────────────
+let _hsCoords       = { lat: 39.2686, lon: -84.2631 };
+let _hsLoaded       = false;
+let _hsRefreshTimer = null;
+
+async function loadHomestead(force = false){
+  if(_hsLoaded && !force) return;
+
+  const loading = document.getElementById('hs-loading');
+  const content = document.getElementById('hs-content');
+  loading.classList.add('visible');
+  content.classList.remove('visible');
+
+  // Try geolocation first, fall back to Loveland OH
+  const doFetch = async (lat, lon) => {
+    try{
+      const res = await apiFetch(`/weather?lat=${lat}&lon=${lon}`);
+      const d   = await res.json();
+      _renderWeather(d);
+      _hsLoaded = true;
+      // Auto-refresh every 30 min
+      if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
+      _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
+    } catch(e){
+      loading.classList.remove('visible');
+      content.classList.add('visible');
+      document.getElementById('hs-briefing-text').textContent =
+        'Atmospheric sync failed — verify API connection and retry.';
+    }
+  };
+
+  if(!_hsLoaded && navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        _hsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        doFetch(_hsCoords.lat, _hsCoords.lon);
+      },
+      () => doFetch(_hsCoords.lat, _hsCoords.lon), // denied — use default
+      { timeout: 6000 }
+    );
+  } else {
+    doFetch(_hsCoords.lat, _hsCoords.lon);
+  }
+}
+
+function _renderWeather(d){
+  const loading = document.getElementById('hs-loading');
+  const content = document.getElementById('hs-content');
+
+  // Briefing
+  document.getElementById('hs-briefing-text').textContent = d.homestead_briefing || '—';
+
+  // Alerts bar
+  const alertsEl = document.getElementById('hs-alerts');
+  alertsEl.innerHTML = '';
+  const a = d.alerts || {};
+  const pills = [
+    { label: a.frost_warning    ? '❄ FROST WARNING'                 : '❄ NO FROST RISK',
+      cls:   a.frost_warning    ? 'danger' : 'ok' },
+    { label: a.storm_incoming   ? '⚡ STORM INCOMING'                : '✓ NO STORM',
+      cls:   a.storm_incoming   ? 'warn'   : 'ok' },
+    { label: `PLANT DISEASE: ${(a.plant_disease_risk||'low').toUpperCase()}`,
+      cls: a.plant_disease_risk==='high' ? 'danger' : a.plant_disease_risk==='medium' ? 'warn' : 'ok' },
+    { label: `SOLAR: ${(a.solar_outlook||'—').toUpperCase()}`,
+      cls: a.solar_outlook==='strong' ? 'ok' : a.solar_outlook==='weak' ? 'warn' : 'ok' },
+    { label: a.drought_risk     ? '⚠ DROUGHT RISK'                  : '✓ MOISTURE OK',
+      cls:   a.drought_risk     ? 'warn'   : 'ok' },
+  ];
+  if(a.frost_date_last){
+    pills.push({ label:`LAST FROST: ${a.frost_date_last}`, cls:'ok' });
+  }
+  pills.forEach(p=>{
+    const el = document.createElement('div');
+    el.className = `hs-alert-pill ${p.cls}`;
+    el.innerHTML = `<div class="hs-alert-dot"></div>${p.label}`;
+    alertsEl.appendChild(el);
+  });
+
+  // Current conditions
+  const c = d.current || {};
+  document.getElementById('hs-temp').innerHTML    = `${c.temp_f}<span>°F</span>`;
+  document.getElementById('hs-desc').textContent  = c.description || '—';
+  document.getElementById('hs-humidity').textContent = `${c.humidity}%`;
+  document.getElementById('hs-wind').textContent     = `${c.wind_mph} mph`;
+  document.getElementById('hs-feels').textContent    = `${c.feels_like_f}°F`;
+  document.getElementById('hs-uv').textContent       = c.uv_index ?? '—';
+  document.getElementById('hs-cloud').textContent    = `${c.cloud_cover_pct}%`;
+
+  // Solar card
+  const irr = c.solar_irradiance_estimate || 'none';
+  const irrEl = document.getElementById('hs-irradiance');
+  irrEl.textContent  = irr.toUpperCase();
+  irrEl.className    = `hs-irradiance ${irr}`;
+  const irrBars = { high:100, medium:65, low:35, none:5 };
+  document.getElementById('hs-solar-bar').style.width = (irrBars[irr]||5)+'%';
+  document.getElementById('hs-solar-sub').textContent =
+    irr==='high'   ? 'Optimal solar generation — panels at peak output' :
+    irr==='medium' ? 'Partial cloud cover — moderate generation expected' :
+    irr==='low'    ? 'Heavy cloud cover — reduced solar output today' :
+                     'No solar generation — full cloud or night';
+  document.getElementById('hs-solar-outlook').textContent  = (a.solar_outlook||'—').toUpperCase();
+  document.getElementById('hs-irradiance-label').textContent= irr.toUpperCase();
+
+  // 5-day forecast strip
+  const strip = document.getElementById('hs-forecast-strip');
+  strip.innerHTML = '';
+  (d.forecast_5day || []).forEach(day=>{
+    const card = document.createElement('div');
+    card.className = 'hs-day-card' + (day.frost_risk ? ' frost' : '');
+    const ratingCls = day.solar_rating || 'fair';
+    card.innerHTML = `
+      <div class="hs-day-name">${(day.day||'').slice(0,3).toUpperCase()}</div>
+      <div class="hs-day-desc">${day.description||'—'}</div>
+      <div class="hs-day-temps">${day.high_f}° <span class="low">${day.low_f}°</span></div>
+      <div class="hs-day-rain">${day.rain_chance_pct}% rain</div>
+      <div class="hs-day-solar ${ratingCls}">${ratingCls.toUpperCase()}</div>
+      ${day.frost_risk ? '<span class="hs-frost-tag">❄ FROST</span>' : ''}
+    `;
+    strip.appendChild(card);
+  });
+
+  // Coords + timestamp
+  document.getElementById('hs-coords').textContent =
+    `${_hsCoords.lat.toFixed(4)}° N · ${Math.abs(_hsCoords.lon).toFixed(4)}° W · ${d.location||''}`;
+  document.getElementById('hs-last-updated').textContent =
+    `Last synced: ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+
+  loading.classList.remove('visible');
+  content.classList.add('visible');
+}
 
 })();
 </script>
