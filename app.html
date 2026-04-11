@@ -2286,17 +2286,26 @@ async function loadHomestead(force = false){
     }
   };
 
-  if(!_hsLoaded && navigator.geolocation){
+  // Fetch immediately with default coords — no waiting on geolocation prompt
+  doFetch(_hsCoords.lat, _hsCoords.lon);
+
+  // Silently try geolocation in background; if it resolves quickly, refresh
+  if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       pos => {
-        _hsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        doFetch(_hsCoords.lat, _hsCoords.lon);
+        const newLat = pos.coords.latitude;
+        const newLon = pos.coords.longitude;
+        const moved  = Math.abs(newLat - _hsCoords.lat) > 0.05 ||
+                       Math.abs(newLon - _hsCoords.lon) > 0.05;
+        if(moved){
+          _hsCoords = { lat: newLat, lon: newLon };
+          _hsLoaded = false;
+          doFetch(_hsCoords.lat, _hsCoords.lon);
+        }
       },
-      () => doFetch(_hsCoords.lat, _hsCoords.lon), // denied — use default
-      { timeout: 6000 }
+      () => {}, // denied or unavailable — already loaded with defaults
+      { timeout: 5000, maximumAge: 60000 }
     );
-  } else {
-    doFetch(_hsCoords.lat, _hsCoords.lon);
   }
 }
 
