@@ -2275,7 +2275,7 @@ async function loadHomestead(force = false){
     _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
   } catch(e){
     document.getElementById('hs-briefing-text').textContent =
-      `Sync failed: ${e.message || e} — click REFRESH to retry.`;
+      'Atmospheric sync failed — verify API connection and retry.';
   } finally {
     loading.classList.remove('visible');
   }
@@ -2376,9 +2376,6 @@ function _renderWeather(d){
     `${_hsCoords.lat.toFixed(4)}° N · ${Math.abs(_hsCoords.lon).toFixed(4)}° W · ${d.location||''}`;
   document.getElementById('hs-last-updated').textContent =
     `Last synced: ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
-
-  loading.classList.remove('visible');
-  content.classList.add('visible');
 }
 
 function _renderConnections(d){
