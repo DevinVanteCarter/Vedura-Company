@@ -978,9 +978,8 @@ main{padding-top:72px}
   100%{width:0;margin-left:100%}
 }
 
-/* Main content wrapper */
-.hs-content{display:none}
-.hs-content.visible{display:block}
+/* Main content wrapper — always visible inside the active section */
+.hs-content{display:block}
 
 @media(max-width:700px){
   .hs-top-row{grid-template-columns:1fr}
@@ -2258,17 +2257,10 @@ let _hsLoaded       = false;
 let _hsRefreshTimer = null;
 
 async function loadHomestead(force = false){
+  if(_hsLoaded && !force) return;
+
   const loading = document.getElementById('hs-loading');
-  const content = document.getElementById('hs-content');
-
-  if(_hsLoaded && !force){
-    loading.classList.remove('visible');
-    content.classList.add('visible');
-    return;
-  }
-
   loading.classList.add('visible');
-  content.classList.remove('visible');
 
   try {
     const res = await apiFetch(`/homestead?lat=${_hsCoords.lat}&lon=${_hsCoords.lon}`);
@@ -2285,19 +2277,16 @@ async function loadHomestead(force = false){
       'Atmospheric sync failed — verify API connection and retry.';
   } finally {
     loading.classList.remove('visible');
-    content.classList.add('visible');
   }
 
   // Silently try geolocation; if user is >5km from defaults, refresh once
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       pos => {
-        const newLat = pos.coords.latitude;
-        const newLon = pos.coords.longitude;
-        const moved  = Math.abs(newLat - _hsCoords.lat) > 0.05 ||
-                       Math.abs(newLon - _hsCoords.lon) > 0.05;
+        const moved = Math.abs(pos.coords.latitude  - _hsCoords.lat) > 0.05 ||
+                      Math.abs(pos.coords.longitude - _hsCoords.lon) > 0.05;
         if(moved){
-          _hsCoords = { lat: newLat, lon: newLon };
+          _hsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
           _hsLoaded = false;
           loadHomestead(true);
         }
@@ -2309,9 +2298,6 @@ async function loadHomestead(force = false){
 }
 
 function _renderWeather(d){
-  const loading = document.getElementById('hs-loading');
-  const content = document.getElementById('hs-content');
-
   // Briefing
   document.getElementById('hs-briefing-text').textContent = d.homestead_briefing || '—';
 
