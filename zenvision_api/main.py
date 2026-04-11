@@ -386,8 +386,45 @@ def solar_real(lat: float = 39.27, lon: float = -84.26, capacity: float = 5.0):
     try:
         data = get_real_solar_data(lat=lat, lon=lon, system_capacity_kw=capacity)
         return {"status": "ok", **data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        # NREL unavailable (rate limit, outage, etc.) — return estimated data
+        # Base values for a 5 kW system in Ohio; scale linearly by capacity
+        scale = capacity / 5.0
+        base_monthly = [280, 340, 480, 560, 640, 680, 680, 640, 540, 420, 290, 240]
+        monthly_kwh = [round(v * scale, 1) for v in base_monthly]
+        annual_kwh  = round(sum(monthly_kwh), 1)
+        now = datetime.now()
+        month_i = now.month - 1
+        days_in_month = [31,28,31,30,31,30,31,31,30,31,30,31][month_i]
+        current_month_kwh = monthly_kwh[month_i]
+        daily_avg = current_month_kwh / days_in_month
+        peak_sun_hours = round(daily_avg / max(capacity * 0.15, 0.1), 2)
+        hour = now.hour + now.minute / 60.0
+        if 6 <= hour <= 19:
+            time_factor = max(0.0, math.sin(math.pi * (hour - 6) / 13.0))
+        else:
+            time_factor = 0.0
+        solar_output_kw = round((daily_avg / max(peak_sun_hours, 0.1)) * time_factor, 2)
+        months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        return {
+            "status": "ok",
+            "location": f"{lat:.2f}, {lon:.2f} (estimated)",
+            "monthly_kwh": monthly_kwh,
+            "monthly_labels": months,
+            "annual_kwh": annual_kwh,
+            "current_month_kwh": current_month_kwh,
+            "daily_avg_kwh": round(daily_avg, 2),
+            "peak_sun_hours": peak_sun_hours,
+            "solar_output_kw": solar_output_kw,
+            "solrad_monthly": [],
+            "capacity_factor": round((annual_kwh / (capacity * 8760)) * 100, 2),
+            "system_capacity_kw": capacity,
+            "recommendations": [
+                f"Estimated production based on typical Ohio solar for a {capacity} kW system.",
+                f"Peak month: Jun/Jul (~{monthly_kwh[5]} kWh). Lowest: Dec (~{monthly_kwh[11]} kWh).",
+            ],
+            "month_index": month_i,
+        }
 
 
 @app.get("/solar/history", tags=["Solar AI"])
