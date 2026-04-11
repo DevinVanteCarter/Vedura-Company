@@ -2257,7 +2257,7 @@ let _hsCoords       = { lat: 39.2686, lon: -84.2631 };
 let _hsLoaded       = false;
 let _hsRefreshTimer = null;
 
-async function loadHomestead(force = false){
+async function loadHomestead(force = false, _retry = false){
   if(_hsLoaded && !force) return;
 
   const loading = document.getElementById('hs-loading');
@@ -2274,6 +2274,11 @@ async function loadHomestead(force = false){
     if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
     _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
   } catch(e){
+    if(!_retry){
+      // Railway cold start — wait 3s and try once more automatically
+      setTimeout(()=> loadHomestead(true, true), 3000);
+      return;
+    }
     document.getElementById('hs-briefing-text').textContent =
       'Atmospheric sync failed — verify API connection and retry.';
   } finally {
