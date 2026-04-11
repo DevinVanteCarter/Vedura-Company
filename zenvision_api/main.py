@@ -734,139 +734,146 @@ def get_homestead(lat: float = 39.2686, lon: float = -84.2631):
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Weather fetch failed: {e}")
 
-    temp_f       = round(cw["main"]["temp"])
-    feels_like_f = round(cw["main"]["feels_like"])
-    humidity     = cw["main"]["humidity"]
-    description  = cw["weather"][0]["description"].capitalize()
-    wind_mph     = round(cw["wind"]["speed"])
-    cloud_cover  = cw["clouds"]["all"]
-    city         = cw.get("name",""); country = cw.get("sys",{}).get("country","")
-    location     = f"{city}, {country}" if city else f"{lat:.4f}°N, {abs(lon):.4f}°W"
-    irradiance   = _solar_irradiance_estimate(cloud_cover)
-    uv_index     = _estimate_uv(cloud_cover)
-
-    daily: dict = defaultdict(list)
-    for item in fw["list"]:
-        daily[item["dt_txt"][:10]].append(item)
-    forecast_5day = []
-    for date_str, items in sorted(daily.items())[:5]:
-        temps  = [i["main"]["temp"] for i in items]
-        pops   = [i.get("pop",0)    for i in items]
-        clouds = [i["clouds"]["all"] for i in items]
-        humids = [i["main"]["humidity"] for i in items]
-        midday = next((i for i in items if "12:" in i["dt_txt"]), items[len(items)//2])
-        forecast_5day.append({
-            "date": date_str,
-            "day":  _dt.strptime(date_str, "%Y-%m-%d").strftime("%A"),
-            "high_f": round(max(temps)), "low_f": round(min(temps)),
-            "description": midday["weather"][0]["description"].capitalize(),
-            "rain_chance_pct": round(max(pops)*100),
-            "frost_risk": round(min(temps)) < 36,
-            "solar_rating": _solar_rating(sum(clouds)/len(clouds), round(max(pops)*100)),
-            "plant_risk":   _day_plant_risk(sum(humids)/len(humids), round(min(temps)), round(max(pops)*100)),
-        })
-
-    frost_warning  = any(d["low_f"] < 32          for d in forecast_5day[:2])
-    storm_incoming = any(d["rain_chance_pct"] > 70 for d in forecast_5day[:3])
-    drought_risk   = all(d["rain_chance_pct"] < 10 for d in forecast_5day)
-    disease_risk   = _overall_disease_risk(humidity, temp_f, forecast_5day)
-    solar_out      = _solar_outlook(irradiance, forecast_5day)
-    briefing       = _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
-                                         storm_incoming, disease_risk, forecast_5day)
-
-    weather_summary = {
-        "status":"ok","location":location,
-        "current":{"temp_f":temp_f,"feels_like_f":feels_like_f,"humidity":humidity,
-                   "description":description,"wind_mph":wind_mph,"uv_index":uv_index,
-                   "cloud_cover_pct":cloud_cover,"solar_irradiance_estimate":irradiance},
-        "forecast_5day": forecast_5day,
-        "alerts":{"frost_warning":frost_warning,"frost_date_last":"May 1",
-                  "storm_incoming":storm_incoming,"drought_risk":drought_risk,
-                  "plant_disease_risk":disease_risk,"solar_outlook":solar_out},
-        "homestead_briefing": briefing,
-    }
-
-    month  = _dt.now().month
-    season = ("spring" if month in (3,4,5) else "summer" if month in (6,7,8)
-              else "fall" if month in (9,10,11) else "winter")
-    plant_now = [{"crop":c,"action":a,"days_to_harvest":d,"notes":n}
-                 for c,a,d,n in _OHIO_CROPS.get(month,[])]
-    watch_list = []
-    if disease_risk in ("high","medium"):
-        for item in plant_now:
-            crop = item["crop"]
-            if crop in _DISEASE_MAP:
-                watch_list.append({
-                    "crop":crop,"risk":_DISEASE_MAP[crop],
-                    "reason":f"{'High' if disease_risk=='high' else 'Elevated'} humidity ({humidity}%) forecast",
-                    "action":"Inspect leaves, apply neem oil preventatively",
-                })
-    crop_data = {
-        "location":"Loveland, OH","usda_zone":"6b",
-        "last_frost_date":"April 15","first_frost_date":"October 15",
-        "current_season":season,
-        "plant_now":plant_now,"harvest_soon":_OHIO_HARVEST.get(month,[]),"watch_list":watch_list,
-    }
-
     try:
-        sol = SolarAIController()
-        sol.simulation_hour = _dt.now().hour
-        sol_data = sol.step(); sol_dec = sol.reroute_decision()
-        battery  = sol_data["battery_charge"]
-        solar_summary = {"current_output_kw":sol_data["solar_output"],"battery_pct":battery,
-                         "recommendation":sol_dec["actions"][0] if sol_dec["actions"] else "System nominal",
-                         "solar_irradiance":irradiance}
-    except Exception:
-        battery = 50
-        solar_summary = {"current_output_kw":0,"battery_pct":battery,
-                         "recommendation":"Solar data temporarily unavailable","solar_irradiance":irradiance}
+        temp_f       = round(cw["main"]["temp"])
+        feels_like_f = round(cw["main"]["feels_like"])
+        humidity     = cw["main"]["humidity"]
+        description  = cw["weather"][0]["description"].capitalize()
+        wind_mph     = round(cw["wind"]["speed"])
+        cloud_cover  = cw["clouds"]["all"]
+        city         = cw.get("name", ""); country = cw.get("sys", {}).get("country", "")
+        location     = f"{city}, {country}" if city else f"{lat:.4f}°N, {abs(lon):.4f}°W"
+        irradiance   = _solar_irradiance_estimate(cloud_cover)
+        uv_index     = _estimate_uv(cloud_cover)
 
-    cloud_impact = {"high":"Strong solar output — panels at peak generation",
-                    "medium":"Partial clouds — output reduced ~30%",
-                    "low":"Heavy overcast — output reduced ~65%",
-                    "none":"No solar generation today"}.get(irradiance,"—")
-    connections = {
-        "weather_affects_solar": cloud_impact,
-        "weather_affects_crops": (
-            "High humidity — fungal disease risk for tomatoes & peppers" if disease_risk=="high" else
-            "Elevated moisture — monitor for leaf disease"               if disease_risk=="medium" else
-            "Conditions favorable for most crops"),
-        "solar_affects_loads": (
-            f"Battery {battery}% — charge before storm arrives"  if storm_incoming and battery<80 else
-            f"Battery {battery}% — strong output, run loads now" if irradiance in ("high","medium") else
-            f"Low output — conserve battery (currently {battery}%)"),
-        "crops_need_attention": (
-            f"{watch_list[0]['crop']} flagged — scan recommended" if watch_list else
-            "No active crop alerts — conditions stable"),
-    }
+        daily: dict = defaultdict(list)
+        for item in fw["list"]:
+            daily[item["dt_txt"][:10]].append(item)
+        forecast_5day = []
+        for date_str, items in sorted(daily.items())[:5]:
+            temps  = [i["main"]["temp"]     for i in items]
+            pops   = [i.get("pop", 0)       for i in items]
+            clouds = [i["clouds"]["all"]    for i in items]
+            humids = [i["main"]["humidity"] for i in items]
+            midday = next((i for i in items if "12:" in i["dt_txt"]), items[len(items)//2])
+            forecast_5day.append({
+                "date": date_str,
+                "day":  _dt.strptime(date_str, "%Y-%m-%d").strftime("%A"),
+                "high_f": round(max(temps)), "low_f": round(min(temps)),
+                "description": midday["weather"][0]["description"].capitalize(),
+                "rain_chance_pct": round(max(pops) * 100),
+                "frost_risk": round(min(temps)) < 36,
+                "solar_rating": _solar_rating(sum(clouds)/len(clouds), round(max(pops)*100)),
+                "plant_risk":   _day_plant_risk(sum(humids)/len(humids), round(min(temps)), round(max(pops)*100)),
+            })
 
-    actions = []
-    if frost_warning:    actions.append("Cover seedlings tonight — frost risk in next 48 hours")
-    if storm_incoming and battery < 80:
-        actions.append("Charge battery to 100% before storm arrives")
-        actions.append("Harvest any ripe crops before storm day")
-    if disease_risk == "high": actions.append(f"Inspect plants for fungal disease — {humidity}% humidity today")
-    if irradiance in ("high","medium") and battery < 60:
-        actions.append("Run water pump and high-draw loads — strong solar output today")
-    for w in watch_list[:2]:
-        actions.append(f"Check {w['crop']} for {w['risk']} — {w['action']}")
-    if not actions:
-        actions.append("Conditions favorable — good day to tend the garden")
-        actions.append("Top off battery bank while solar is available")
+        frost_warning  = any(d["low_f"] < 32           for d in forecast_5day[:2])
+        storm_incoming = any(d["rain_chance_pct"] > 70  for d in forecast_5day[:3])
+        drought_risk   = all(d["rain_chance_pct"] < 10  for d in forecast_5day)
+        disease_risk   = _overall_disease_risk(humidity, temp_f, forecast_5day)
+        solar_out      = _solar_outlook(irradiance, forecast_5day)
+        briefing       = _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
+                                             storm_incoming, disease_risk, forecast_5day)
 
-    return {
-        "briefing": briefing,
-        "weather_summary": weather_summary,
-        "solar_summary": solar_summary,
-        "crop_data": crop_data,
-        "crop_alerts": watch_list,
-        "plant_health_context": (
-            "High humidity today — tomato blight risk elevated. Use the plant scanner." if disease_risk=="high" else
-            "Elevated moisture — monitor for fungal signs on leaves." if disease_risk=="medium" else
-            "Conditions favorable — no active plant disease risk detected."),
-        "priority_actions": [f"{i+1}. {a}" for i,a in enumerate(actions)],
-        "connections": connections,
-    }
+        weather_summary = {
+            "status": "ok", "location": location,
+            "current": {"temp_f": temp_f, "feels_like_f": feels_like_f, "humidity": humidity,
+                        "description": description, "wind_mph": wind_mph, "uv_index": uv_index,
+                        "cloud_cover_pct": cloud_cover, "solar_irradiance_estimate": irradiance},
+            "forecast_5day": forecast_5day,
+            "alerts": {"frost_warning": frost_warning, "frost_date_last": "May 1",
+                       "storm_incoming": storm_incoming, "drought_risk": drought_risk,
+                       "plant_disease_risk": disease_risk, "solar_outlook": solar_out},
+            "homestead_briefing": briefing,
+        }
+
+        month  = _dt.now().month
+        season = ("spring" if month in (3,4,5) else "summer" if month in (6,7,8)
+                  else "fall" if month in (9,10,11) else "winter")
+        plant_now = [{"crop": c, "action": a, "days_to_harvest": d, "notes": n}
+                     for c, a, d, n in _OHIO_CROPS.get(month, [])]
+        watch_list = []
+        if disease_risk in ("high", "medium"):
+            for item in plant_now:
+                crop = item["crop"]
+                if crop in _DISEASE_MAP:
+                    watch_list.append({
+                        "crop": crop, "risk": _DISEASE_MAP[crop],
+                        "reason": f"{'High' if disease_risk=='high' else 'Elevated'} humidity ({humidity}%) forecast",
+                        "action": "Inspect leaves, apply neem oil preventatively",
+                    })
+        crop_data = {
+            "location": "Loveland, OH", "usda_zone": "6b",
+            "last_frost_date": "April 15", "first_frost_date": "October 15",
+            "current_season": season,
+            "plant_now": plant_now, "harvest_soon": _OHIO_HARVEST.get(month, []), "watch_list": watch_list,
+        }
+
+        try:
+            sol = SolarAIController()
+            sol.simulation_hour = _dt.now().hour
+            sol_data = sol.step()
+            sol_dec  = sol.reroute_decision()
+            battery  = sol_data["battery_charge"]
+            solar_summary = {"current_output_kw": sol_data["solar_output"], "battery_pct": battery,
+                             "recommendation": sol_dec["actions"][0] if sol_dec["actions"] else "System nominal",
+                             "solar_irradiance": irradiance}
+        except Exception:
+            battery = 50
+            solar_summary = {"current_output_kw": 0, "battery_pct": battery,
+                             "recommendation": "Solar data temporarily unavailable", "solar_irradiance": irradiance}
+
+        cloud_impact = {"high": "Strong solar output — panels at peak generation",
+                        "medium": "Partial clouds — output reduced ~30%",
+                        "low": "Heavy overcast — output reduced ~65%",
+                        "none": "No solar generation today"}.get(irradiance, "—")
+        connections = {
+            "weather_affects_solar": cloud_impact,
+            "weather_affects_crops": (
+                "High humidity — fungal disease risk for tomatoes & peppers" if disease_risk == "high" else
+                "Elevated moisture — monitor for leaf disease"               if disease_risk == "medium" else
+                "Conditions favorable for most crops"),
+            "solar_affects_loads": (
+                f"Battery {battery}% — charge before storm arrives"  if storm_incoming and battery < 80 else
+                f"Battery {battery}% — strong output, run loads now" if irradiance in ("high", "medium") else
+                f"Low output — conserve battery (currently {battery}%)"),
+            "crops_need_attention": (
+                f"{watch_list[0]['crop']} flagged — scan recommended" if watch_list else
+                "No active crop alerts — conditions stable"),
+        }
+
+        actions = []
+        if frost_warning:
+            actions.append("Cover seedlings tonight — frost risk in next 48 hours")
+        if storm_incoming and battery < 80:
+            actions.append("Charge battery to 100% before storm arrives")
+            actions.append("Harvest any ripe crops before storm day")
+        if disease_risk == "high":
+            actions.append(f"Inspect plants for fungal disease — {humidity}% humidity today")
+        if irradiance in ("high", "medium") and battery < 60:
+            actions.append("Run water pump and high-draw loads — strong solar output today")
+        for w in watch_list[:2]:
+            actions.append(f"Check {w['crop']} for {w['risk']} — {w['action']}")
+        if not actions:
+            actions.append("Conditions favorable — good day to tend the garden")
+            actions.append("Top off battery bank while solar is available")
+
+        return {
+            "briefing": briefing,
+            "weather_summary": weather_summary,
+            "solar_summary": solar_summary,
+            "crop_data": crop_data,
+            "crop_alerts": watch_list,
+            "plant_health_context": (
+                "High humidity today — tomato blight risk elevated. Use the plant scanner." if disease_risk == "high" else
+                "Elevated moisture — monitor for fungal signs on leaves." if disease_risk == "medium" else
+                "Conditions favorable — no active plant disease risk detected."),
+            "priority_actions": [f"{i+1}. {a}" for i, a in enumerate(actions)],
+            "connections": connections,
+        }
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
 
 
 # ── MYCELIUM NODE ────────────────────────────────────────
