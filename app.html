@@ -2280,6 +2280,8 @@ async function loadHomestead(force = false){
       _renderCrops(d.crop_data);
       _renderActions(d.priority_actions);
       _hsLoaded = true;
+      loading.classList.remove('visible');
+      content.classList.add('visible');
       // Auto-refresh every 30 min
       if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
       _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
