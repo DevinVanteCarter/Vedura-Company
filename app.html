@@ -2103,7 +2103,7 @@ async function analyzePlant(file){
 // ── Solar dashboard ───────────────────────────────────────────────────────
 let _solarCoords = { lat: 39.27, lon: -84.26 }; // default: Loveland, OH
 
-async function loadSolar(){
+async function loadSolar(_retry = false){
   try{
     setApiStatus(`API: ${API}`);
 
@@ -2166,6 +2166,10 @@ async function loadSolar(){
       _renderRecs(real.recommendations || [], d.recommendations || []);
     }
   } catch(err){
+    if(!_retry){
+      setTimeout(()=> loadSolar(true), 3000);
+      return;
+    }
     document.getElementById('rec-list').innerHTML=
       '<div class="rec-item"><div class="rec-dot"></div><span>Grid signal lost — verify network connection and retry.</span></div>';
     if(location.protocol==='file:')
