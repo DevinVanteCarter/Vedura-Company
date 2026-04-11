@@ -1169,6 +1169,213 @@ footer{
   .nav-enter{display:none}
   .scanner-layout{grid-template-columns:1fr}
 }
+
+/* ── feat-grid: 5-column override ── */
+.feat-grid{grid-template-columns:repeat(5,1fr)}
+@media(max-width:1100px){.feat-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.feat-grid{grid-template-columns:1fr}}
+
+/* ════════════════════════════════════
+   MYCELIUM — GROW NETWORK
+════════════════════════════════════ */
+.nav-tabs a.mycelium-tab{
+  color:var(--green);
+  border:1px solid rgba(82,183,136,0.2);
+}
+.nav-tabs a.mycelium-tab:hover,
+.nav-tabs a.mycelium-tab.active{
+  background:rgba(82,183,136,0.1);
+  border-color:var(--green);
+  color:#a8e6c8;
+}
+
+/* Morning brief */
+.mc-brief{
+  border-left:3px solid var(--green);
+  padding:18px 20px;
+  background:rgba(82,183,136,0.04);
+  margin-bottom:28px;
+  font-family:var(--font-display);
+  font-size:1.25rem;
+  font-weight:300;
+  font-style:italic;
+  color:var(--cream);
+  line-height:1.4;
+}
+.mc-brief-label{
+  font-family:var(--font-mono);
+  font-size:.52rem;
+  letter-spacing:.22em;
+  color:rgba(82,183,136,0.5);
+  display:block;
+  margin-bottom:8px;
+}
+.mc-brief-loading{
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  letter-spacing:.15em;
+  color:rgba(82,183,136,0.4);
+  animation:pulse-op 1.5s ease-in-out infinite;
+}
+
+/* Stats row */
+.mc-stats-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:rgba(82,183,136,0.15);
+  margin-bottom:28px;
+}
+@media(max-width:800px){.mc-stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.mc-stats-row{grid-template-columns:1fr}}
+.mc-stat{
+  background:var(--deep);padding:22px 20px;
+  position:relative;overflow:hidden;
+}
+.mc-stat::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.15;
+}
+.mc-stat-label{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.2em;
+  color:rgba(82,183,136,0.5);text-transform:uppercase;margin-bottom:10px;
+}
+.mc-stat-val{
+  font-family:var(--font-display);font-size:2.2rem;font-weight:300;
+  color:var(--green);line-height:1;
+}
+.mc-stat-unit{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;
+  color:rgba(82,183,136,0.35);margin-top:5px;
+}
+
+/* Two-column layout */
+.mc-layout{
+  display:grid;grid-template-columns:1fr 1.4fr;gap:1px;
+  background:rgba(82,183,136,0.15);
+}
+@media(max-width:900px){.mc-layout{grid-template-columns:1fr}}
+
+/* Left: grow tracker */
+.mc-left{background:var(--deep);padding:32px 28px;display:flex;flex-direction:column;gap:22px}
+.mc-section-label{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.24em;
+  color:var(--green);opacity:.6;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.mc-section-label::before{content:'';display:inline-block;width:12px;height:1px;background:var(--green)}
+
+/* Plant list */
+.mc-plant-list{list-style:none;display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.mc-plant-list::-webkit-scrollbar{width:3px}
+.mc-plant-list::-webkit-scrollbar-thumb{background:rgba(82,183,136,0.2)}
+.mc-plant-item{
+  padding:9px 14px;
+  border:1px solid rgba(82,183,136,0.12);
+  background:rgba(82,183,136,0.03);
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.06em;color:var(--cream);
+}
+.mc-plant-stage{
+  font-size:.52rem;letter-spacing:.1em;color:rgba(82,183,136,0.6);
+  padding:2px 7px;border:1px solid rgba(82,183,136,0.2);
+}
+.mc-plant-empty{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.1em;
+  color:rgba(82,183,136,0.3);padding:10px 0;
+}
+
+/* Forms */
+.mc-form{display:flex;flex-direction:column;gap:7px}
+.mc-input{
+  background:rgba(82,183,136,0.05);
+  border:1px solid rgba(82,183,136,0.18);
+  color:var(--cream);padding:9px 13px;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.06em;
+  outline:none;width:100%;transition:border-color .2s;
+}
+.mc-input:focus{border-color:rgba(82,183,136,0.45)}
+.mc-input::placeholder{color:rgba(82,183,136,0.28)}
+.mc-btn{
+  background:rgba(82,183,136,0.1);
+  border:1px solid rgba(82,183,136,0.28);
+  color:var(--green);padding:9px 16px;
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.18em;
+  cursor:pointer;transition:background .2s,box-shadow .2s;
+  text-transform:uppercase;align-self:flex-start;
+}
+.mc-btn:hover{background:rgba(82,183,136,0.18);box-shadow:0 0 14px rgba(82,183,136,0.12)}
+.mc-feedback{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.1em;
+  color:rgba(82,183,136,0.65);min-height:1em;
+}
+
+/* Right: network + feed */
+.mc-right{background:rgba(0,0,0,0.5);display:flex;flex-direction:column}
+
+/* Network canvas */
+.mc-canvas-wrap{position:relative;flex-shrink:0}
+#mc-network-canvas{
+  display:block;width:100%;height:320px;cursor:crosshair;
+  background:rgba(0,3,2,0.7);
+}
+.mc-canvas-label{
+  position:absolute;top:12px;left:16px;
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.22em;
+  color:rgba(82,183,136,0.35);pointer-events:none;
+}
+
+/* Live feed */
+.mc-feed-header{
+  padding:11px 18px;border-top:1px solid rgba(82,183,136,0.12);
+  border-bottom:1px solid rgba(82,183,136,0.12);
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.22em;
+  color:rgba(82,183,136,0.4);
+  display:flex;align-items:center;gap:8px;
+}
+.mc-feed-header::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--green);animation:blink 2s step-end infinite;
+  flex-shrink:0;box-shadow:0 0 6px rgba(82,183,136,0.4);
+}
+.mc-feed-cols{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:rgba(82,183,136,0.1);flex:1;
+}
+.mc-feed-col{
+  background:var(--deep);padding:14px 16px;overflow-y:auto;max-height:190px;
+}
+.mc-feed-col::-webkit-scrollbar{width:3px}
+.mc-feed-col::-webkit-scrollbar-thumb{background:rgba(82,183,136,0.15)}
+.mc-feed-col-label{
+  font-family:var(--font-mono);font-size:.46rem;letter-spacing:.2em;
+  color:rgba(82,183,136,0.38);margin-bottom:10px;
+}
+.mc-feed-item{
+  padding:6px 0;border-bottom:1px solid rgba(82,183,136,0.07);
+  font-size:.7rem;color:rgba(240,237,216,0.6);line-height:1.5;
+}
+.mc-feed-item:last-child{border-bottom:none}
+.mc-feed-time{
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.08em;
+  color:rgba(82,183,136,0.38);display:block;margin-bottom:1px;
+}
+
+/* feat-card mycelium variant */
+.feat-card.feat-mc{background:rgba(0,5,3,1)}
+.feat-card.feat-mc:hover{background:rgba(82,183,136,0.04)}
+.feat-card.feat-mc::before{
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+}
+.feat-card.feat-mc .feat-card-tag{color:var(--green);opacity:.65}
+.feat-card.feat-mc .feat-card-title{color:var(--cream)}
+.feat-card.feat-mc .feat-card-desc{color:rgba(82,183,136,0.5)}
+.feat-card.feat-mc .feat-card-btn{
+  background:rgba(82,183,136,0.12);
+  color:var(--green);
+  border:1px solid rgba(82,183,136,0.3);
+  clip-path:none;
+}
+.feat-card.feat-mc .feat-card-btn:hover{box-shadow:0 0 18px rgba(82,183,136,0.2)}
 </style>
 </head>
 <body>
@@ -1191,6 +1398,7 @@ footer{
     <li><a href="#solar"  data-section="solar">SOLAR</a></li>
     <li><a href="#advisor" data-section="advisor">ADVISOR</a></li>
     <li><a href="#homestead" data-section="homestead" class="homestead-tab">HOMESTEAD</a></li>
+    <li><a href="#mycelium" data-section="mycelium" class="mycelium-tab">MYCELIUM</a></li>
   </ul>
   <a href="index.html" class="nav-enter">← HOME</a>
 </nav>
@@ -1260,6 +1468,32 @@ footer{
         <div class="feat-card-title">Homestead<br>Intelligence</div>
         <div class="feat-card-desc">Weather · Crops · Solar · Plants — unified.</div>
         <button class="feat-card-btn">VIEW HOMESTEAD</button>
+      </div>
+
+      <div class="feat-card feat-mc" onclick="showSection('mycelium')">
+        <svg class="feat-card-icon" viewBox="0 0 36 36" fill="none" stroke="var(--green)" stroke-width="1.2">
+          <circle cx="18" cy="18" r="3.5" fill="rgba(255,209,102,0.25)" stroke="#FFD166"/>
+          <circle cx="6"  cy="10" r="2" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="30" cy="10" r="2" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="6"  cy="26" r="2" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="30" cy="26" r="2" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="18" cy="4"  r="1.8" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="18" cy="32" r="1.8" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="28" cy="18" r="1.8" fill="rgba(82,183,136,0.2)"/>
+          <circle cx="8"  cy="18" r="1.8" fill="rgba(82,183,136,0.2)"/>
+          <path d="M18 14.5Q12 12 6 10" stroke-width=".9" opacity=".5"/>
+          <path d="M18 14.5Q24 12 30 10" stroke-width=".9" opacity=".5"/>
+          <path d="M18 21.5Q12 24 6 26" stroke-width=".9" opacity=".5"/>
+          <path d="M18 21.5Q24 24 30 26" stroke-width=".9" opacity=".5"/>
+          <path d="M18 14.5Q18 9 18 4"   stroke-width=".9" opacity=".5"/>
+          <path d="M18 21.5Q18 27 18 32"  stroke-width=".9" opacity=".5"/>
+          <path d="M21.5 18Q25 18 28 18"  stroke-width=".9" opacity=".5"/>
+          <path d="M14.5 18Q11 18 8 18"   stroke-width=".9" opacity=".5"/>
+        </svg>
+        <div class="feat-card-tag">05 / MYCELIUM</div>
+        <div class="feat-card-title">Mycelium<br>Network</div>
+        <div class="feat-card-desc">Grow tracker · Harvest log · Grower network</div>
+        <button class="feat-card-btn">ENTER NETWORK</button>
       </div>
 
     </div><!-- /feat-grid -->
@@ -1629,6 +1863,108 @@ footer{
   </div><!-- /section-homestead -->
 
 
+  <!-- ════ MYCELIUM NETWORK ════ -->
+  <div class="section" id="section-mycelium">
+    <div class="section-tag">05 / MYCELIUM NETWORK</div>
+    <h2 class="section-title">Grow together.<br><em>Thread the network.</em></h2>
+    <p class="section-sub">Track your grow, log harvests, and connect with growers through the living mycelium network — a living map of what's growing near you.</p>
+
+    <!-- Morning brief -->
+    <div class="mc-brief">
+      <span class="mc-brief-label">◈ MORNING BRIEF</span>
+      <span id="mc-brief-text" class="mc-brief-loading">SYNCING MORNING BRIEF...</span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="mc-stats-row">
+      <div class="mc-stat">
+        <div class="mc-stat-label">Plants Tracked</div>
+        <div class="mc-stat-val" id="mc-stat-plants">—</div>
+        <div class="mc-stat-unit">in your grow</div>
+      </div>
+      <div class="mc-stat">
+        <div class="mc-stat-label">Harvest Logged</div>
+        <div class="mc-stat-val" id="mc-stat-harvests">—</div>
+        <div class="mc-stat-unit">this season</div>
+      </div>
+      <div class="mc-stat">
+        <div class="mc-stat-label">Growers Online</div>
+        <div class="mc-stat-val" id="mc-stat-growers">—</div>
+        <div class="mc-stat-unit">in network</div>
+      </div>
+      <div class="mc-stat">
+        <div class="mc-stat-label">Threads</div>
+        <div class="mc-stat-val" id="mc-stat-threads">—</div>
+        <div class="mc-stat-unit">active connections</div>
+      </div>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="mc-layout">
+
+      <!-- Left: grow tracker -->
+      <div class="mc-left">
+
+        <div>
+          <div class="mc-section-label">ACTIVE PLANTS</div>
+          <ul class="mc-plant-list" id="mc-plant-list">
+            <li class="mc-plant-item" style="justify-content:center">
+              <span class="mc-plant-empty">LOADING GROW DATA...</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="mc-section-label">ADD PLANT</div>
+          <div class="mc-form">
+            <input class="mc-input" id="mc-plant-name"  placeholder="Plant name (e.g. Tomato, Basil)" />
+            <input class="mc-input" id="mc-plant-stage" placeholder="Stage (e.g. seedling, flowering)" />
+            <input class="mc-input" id="mc-plant-notes" placeholder="Notes (optional)" />
+            <button class="mc-btn" onclick="mcAddPlant()">+ ADD TO GROW</button>
+            <div class="mc-feedback" id="mc-plant-feedback"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="mc-section-label">LOG HARVEST</div>
+          <div class="mc-form">
+            <input class="mc-input" id="mc-harvest-crop"  placeholder="Crop (e.g. Tomatoes, Kale)" />
+            <input class="mc-input" id="mc-harvest-qty"   placeholder="Quantity (e.g. 2.4 lbs, 12 heads)" />
+            <input class="mc-input" id="mc-harvest-notes" placeholder="Notes (optional)" />
+            <button class="mc-btn" onclick="mcLogHarvest()">↓ LOG HARVEST</button>
+            <div class="mc-feedback" id="mc-harvest-feedback"></div>
+          </div>
+        </div>
+
+      </div><!-- /mc-left -->
+
+      <!-- Right: network canvas + live feed -->
+      <div class="mc-right">
+
+        <div class="mc-canvas-wrap">
+          <canvas id="mc-network-canvas"></canvas>
+          <div class="mc-canvas-label">MYCELIUM NETWORK · CLICK TO RELEASE SPORES</div>
+        </div>
+
+        <div class="mc-feed-header">LIVE NETWORK FEED</div>
+        <div class="mc-feed-cols">
+          <div class="mc-feed-col">
+            <div class="mc-feed-col-label">RECENT HARVESTS</div>
+            <div id="mc-feed-harvests"></div>
+          </div>
+          <div class="mc-feed-col">
+            <div class="mc-feed-col-label">GROW ACTIVITY</div>
+            <div id="mc-feed-activity"></div>
+          </div>
+        </div>
+
+      </div><!-- /mc-right -->
+
+    </div><!-- /mc-layout -->
+
+  </div><!-- /section-mycelium -->
+
+
 </main>
 
 <footer>
@@ -1738,7 +2074,8 @@ const sections = {
   plants:    document.getElementById('section-plants'),
   solar:     document.getElementById('section-solar'),
   advisor:   document.getElementById('section-advisor'),
-  homestead: document.getElementById('section-homestead')
+  homestead: document.getElementById('section-homestead'),
+  mycelium:  document.getElementById('section-mycelium')
 };
 const navLinks = document.querySelectorAll('.nav-tabs a[data-section]');
 
@@ -1749,6 +2086,7 @@ function showSection(id){
   navLinks.forEach(a=>a.classList.toggle('active', a.dataset.section===id));
   if(id==='solar')     loadSolar();
   if(id==='homestead') loadHomestead();
+  if(id==='mycelium')  initMycelium();
 }
 
 navLinks.forEach(a=>{
@@ -2241,7 +2579,7 @@ async function sendMessage(){
     const res = await apiFetch('/advisor',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:text})
+      body:JSON.stringify({message:text, include_garden_context:true})
     });
     const data = await res.json();
     thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p>${data.response}`;
@@ -2458,6 +2796,356 @@ function _renderActions(actions){
   });
   document.getElementById('hs-actions-section').style.display = '';
 }
+
+// ── Mycelium Network ──────────────────────────────────────────────────────
+let _mcInited = false;
+let _mcHarvestCount = 0;
+
+function initMycelium(){
+  if(_mcInited) return;
+  _mcInited = true;
+  mcLoadMorningBrief();
+  mcLoadPlants();
+  mcInitFeed();
+  mcAnimateStats();
+  mcStartNetwork();
+}
+
+// Morning brief
+async function mcLoadMorningBrief(){
+  try{
+    const res = await apiFetch('/advisor/morning-brief',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({context:'garden'})
+    });
+    const d = await res.json();
+    const txt = d.brief || d.response || d.message || 'The network stirs. Your grow awaits.';
+    document.getElementById('mc-brief-text').textContent = txt;
+    document.getElementById('mc-brief-text').classList.remove('mc-brief-loading');
+  } catch(_){
+    document.getElementById('mc-brief-text').textContent =
+      'The mycelium network is quiet this morning — check soil moisture, inspect young seedlings, and tend what is growing.';
+    document.getElementById('mc-brief-text').classList.remove('mc-brief-loading');
+  }
+}
+
+// Plants
+async function mcLoadPlants(){
+  try{
+    const res = await apiFetch('/plants');
+    const d   = await res.json();
+    const plants = Array.isArray(d) ? d : (d.plants || []);
+    mcRenderPlants(plants);
+    document.getElementById('mc-stat-plants').textContent = plants.length;
+  } catch(_){
+    mcRenderPlants([]);
+    document.getElementById('mc-stat-plants').textContent = '0';
+  }
+}
+
+function mcRenderPlants(plants){
+  const list = document.getElementById('mc-plant-list');
+  if(!plants.length){
+    list.innerHTML = '<li class="mc-plant-item" style="justify-content:center"><span class="mc-plant-empty">NO PLANTS TRACKED YET</span></li>';
+    return;
+  }
+  list.innerHTML = plants.map(p=>{
+    const name  = p.name || p.plant_name || (typeof p==='string' ? p : '—');
+    const stage = p.stage || 'growing';
+    return `<li class="mc-plant-item"><span>${name}</span><span class="mc-plant-stage">${stage}</span></li>`;
+  }).join('');
+}
+
+async function mcAddPlant(){
+  const name  = document.getElementById('mc-plant-name').value.trim();
+  const stage = document.getElementById('mc-plant-stage').value.trim() || 'seedling';
+  const notes = document.getElementById('mc-plant-notes').value.trim();
+  const fb    = document.getElementById('mc-plant-feedback');
+  if(!name){ fb.textContent = 'Enter a plant name'; return; }
+  fb.textContent = 'Adding...';
+  try{
+    await apiFetch('/plants',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name, stage, notes})
+    });
+    fb.textContent = `✓ ${name} added to your grow`;
+    document.getElementById('mc-plant-name').value  = '';
+    document.getElementById('mc-plant-stage').value = '';
+    document.getElementById('mc-plant-notes').value = '';
+    mcLoadPlants();
+    setTimeout(()=>{ fb.textContent=''; }, 3000);
+  } catch(_){
+    // Optimistic local update if API not yet wired
+    fb.textContent = `✓ ${name} added (local)`;
+    const cur = parseInt(document.getElementById('mc-stat-plants').textContent)||0;
+    document.getElementById('mc-stat-plants').textContent = cur+1;
+    document.getElementById('mc-plant-name').value  = '';
+    document.getElementById('mc-plant-stage').value = '';
+    document.getElementById('mc-plant-notes').value = '';
+    setTimeout(()=>{ fb.textContent=''; }, 3000);
+  }
+}
+
+async function mcLogHarvest(){
+  const crop  = document.getElementById('mc-harvest-crop').value.trim();
+  const qty   = document.getElementById('mc-harvest-qty').value.trim();
+  const notes = document.getElementById('mc-harvest-notes').value.trim();
+  const fb    = document.getElementById('mc-harvest-feedback');
+  if(!crop||!qty){ fb.textContent = 'Enter crop and quantity'; return; }
+  fb.textContent = 'Logging...';
+  try{
+    await apiFetch('/harvests',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({crop, quantity:qty, notes})
+    });
+    fb.textContent = `✓ Logged — ${qty} ${crop}`;
+    _mcHarvestCount++;
+    document.getElementById('mc-stat-harvests').textContent = _mcHarvestCount;
+    // prepend to feed
+    const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const fEl = document.getElementById('mc-feed-harvests');
+    const item = document.createElement('div');
+    item.className = 'mc-feed-item';
+    item.innerHTML = `<span class="mc-feed-time">${now}</span>${qty} ${crop}`;
+    fEl.insertBefore(item, fEl.firstChild);
+  } catch(_){
+    fb.textContent = `✓ Logged (local) — ${qty} ${crop}`;
+    _mcHarvestCount++;
+    document.getElementById('mc-stat-harvests').textContent = _mcHarvestCount;
+  }
+  document.getElementById('mc-harvest-crop').value  = '';
+  document.getElementById('mc-harvest-qty').value   = '';
+  document.getElementById('mc-harvest-notes').value = '';
+  setTimeout(()=>{ fb.textContent=''; }, 3000);
+}
+
+// Animated stats
+function mcAnimateStats(){
+  let growers = 7 + Math.floor(Math.random()*4);
+  let threads = growers * 4 + Math.floor(Math.random()*8);
+  document.getElementById('mc-stat-growers').textContent  = growers;
+  document.getElementById('mc-stat-threads').textContent  = threads;
+  document.getElementById('mc-stat-harvests').textContent = _mcHarvestCount;
+  setInterval(()=>{
+    growers = 6 + Math.floor(Math.random()*9);
+    threads = growers * 4 + Math.floor(Math.random()*10);
+    document.getElementById('mc-stat-growers').textContent = growers;
+    document.getElementById('mc-stat-threads').textContent = threads;
+  }, 7000 + Math.random()*5000);
+}
+
+// Live feed initial mock data
+function mcInitFeed(){
+  const harvests = [
+    {time:'08:14', text:'3.2 lbs kale · J.H.'},
+    {time:'07:55', text:'12 heads lettuce · M.R.'},
+    {time:'06:40', text:'1.8 lbs spinach · A.L.'},
+    {time:'Yesterday', text:'7 lbs tomatoes · D.K.'},
+    {time:'Yesterday', text:'4 lbs zucchini · P.M.'},
+  ];
+  const activity = [
+    {time:'08:22', text:'Basil transplanted'},
+    {time:'07:30', text:'Tomatoes: flowering stage'},
+    {time:'Yesterday', text:'Compost applied — beds 3–4'},
+    {time:'Yesterday', text:'Drip irrigation adjusted'},
+    {time:'2d ago',    text:'Kale seedlings set in'},
+  ];
+  document.getElementById('mc-feed-harvests').innerHTML = harvests.map(h=>
+    `<div class="mc-feed-item"><span class="mc-feed-time">${h.time}</span>${h.text}</div>`
+  ).join('');
+  document.getElementById('mc-feed-activity').innerHTML = activity.map(a=>
+    `<div class="mc-feed-item"><span class="mc-feed-time">${a.time}</span>${a.text}</div>`
+  ).join('');
+}
+
+// ── Network Canvas ────────────────────────────────────────────────────────
+const mcCanvas  = document.getElementById('mc-network-canvas');
+const mcCtx2d   = mcCanvas.getContext('2d');
+let mcW2, mcH2, mcNodes2 = [], mcSpores2 = [], mcRafId = null;
+
+function mcResize(){
+  mcCanvas.width  = mcCanvas.offsetWidth;
+  mcCanvas.height = 320;
+  mcW2 = mcCanvas.width;
+  mcH2 = mcCanvas.height;
+}
+
+function mcMakeNodes(){
+  mcNodes2 = [];
+  // YOU — amber center node
+  mcNodes2.push({
+    x:mcW2/2, y:mcH2/2,
+    vx:0, vy:0, r:7,
+    label:'YOU', isYou:true,
+    phase:0,
+    col:'#FFD166',
+  });
+  // 13 other grower nodes — green/sage palette
+  const cols = [
+    '#52B788','#74c69d','#95d5b2','#40916c',
+    '#52B788','#74c69d','#2d6a4f','#95d5b2',
+    '#52B788','#74c69d','#95d5b2','#40916c','#52B788'
+  ];
+  for(let i=0;i<13;i++){
+    const ang  = (i/13)*Math.PI*2 + (Math.random()-.5)*0.9;
+    const minR = 70, maxR = Math.min(mcW2,mcH2)*0.4;
+    const dist = minR + Math.random()*(maxR-minR);
+    mcNodes2.push({
+      x:mcW2/2 + Math.cos(ang)*dist,
+      y:mcH2/2 + Math.sin(ang)*dist,
+      vx:(Math.random()-.5)*.3,
+      vy:(Math.random()-.5)*.3,
+      r:2.5+Math.random()*2.5,
+      label:`G${String(i+1).padStart(2,'0')}`,
+      isYou:false,
+      phase:Math.random()*Math.PI*2,
+      phaseSpeed:0.003+Math.random()*0.008,
+      col:cols[i],
+    });
+  }
+}
+
+function mcNearest4(){
+  const you = mcNodes2[0];
+  return mcNodes2.slice(1)
+    .map(n=>({n, d:Math.hypot(n.x-you.x, n.y-you.y)}))
+    .sort((a,b)=>a.d-b.d)
+    .slice(0,4)
+    .map(x=>x.n);
+}
+
+function mcBezierPt(x1,y1,x2,y2,t2){
+  const mx=(x1+x2)/2, my=(y1+y2)/2 - Math.hypot(x2-x1,y2-y1)*0.22;
+  return {
+    x:(1-t2)*(1-t2)*x1 + 2*(1-t2)*t2*mx + t2*t2*x2,
+    y:(1-t2)*(1-t2)*y1 + 2*(1-t2)*t2*my + t2*t2*y2,
+  };
+}
+
+function mcDrawNet(ts){
+  mcCtx2d.clearRect(0,0,mcW2,mcH2);
+  const ctx = mcCtx2d;
+  const you = mcNodes2[0];
+  const bonded = mcNearest4();
+
+  // Update node positions
+  mcNodes2.forEach(n=>{
+    if(n.isYou){
+      n.phase += 0.004;
+      n.x += Math.sin(n.phase*0.7)*0.22;
+      n.y += Math.cos(n.phase*0.5)*0.17;
+      n.x = Math.max(20, Math.min(mcW2-20, n.x));
+      n.y = Math.max(20, Math.min(mcH2-20, n.y));
+    } else {
+      n.phase += n.phaseSpeed;
+      n.x += n.vx + Math.sin(n.phase)*0.11;
+      n.y += n.vy + Math.cos(n.phase*0.85)*0.09;
+      if(n.x < n.r){ n.x=n.r; n.vx*=-0.7; }
+      if(n.x > mcW2-n.r){ n.x=mcW2-n.r; n.vx*=-0.7; }
+      if(n.y < n.r){ n.y=n.r; n.vy*=-0.7; }
+      if(n.y > mcH2-n.r){ n.y=mcH2-n.r; n.vy*=-0.7; }
+    }
+  });
+
+  // Faint threads between non-YOU nodes
+  for(let i=1;i<mcNodes2.length;i++){
+    for(let j=i+1;j<mcNodes2.length;j++){
+      const a=mcNodes2[i], b=mcNodes2[j];
+      const d=Math.hypot(a.x-b.x, a.y-b.y);
+      const maxD=mcW2*0.3;
+      if(d<maxD){
+        const alpha=(1-d/maxD)*0.07;
+        const mx=(a.x+b.x)/2, my=(a.y+b.y)/2-d*0.18;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y);
+        ctx.quadraticCurveTo(mx,my,b.x,b.y);
+        ctx.strokeStyle=`rgba(82,183,136,${alpha})`;
+        ctx.lineWidth=0.6; ctx.stroke();
+      }
+    }
+  }
+
+  // Glowing bonded threads — YOU to nearest 4
+  bonded.forEach(n=>{
+    const pulse = 0.22 + Math.sin(ts*0.0018 + n.phase)*0.17;
+    const mx=(you.x+n.x)/2, my=(you.y+n.y)/2 - Math.hypot(n.x-you.x,n.y-you.y)*0.22;
+    ctx.beginPath(); ctx.moveTo(you.x,you.y);
+    ctx.quadraticCurveTo(mx,my,n.x,n.y);
+    ctx.strokeStyle=`rgba(255,209,102,${pulse})`;
+    ctx.lineWidth=1.4; ctx.stroke();
+  });
+
+  // Spore particles
+  mcSpores2 = mcSpores2.filter(s=>s.p<1);
+  mcSpores2.forEach(s=>{
+    s.p += 0.013;
+    const pt = mcBezierPt(s.x1,s.y1,s.x2,s.y2,s.p);
+    const alpha = Math.sin(s.p*Math.PI);
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,209,102,${alpha*0.9})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,5.5,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,209,102,${alpha*0.18})`; ctx.fill();
+  });
+
+  // Draw nodes
+  mcNodes2.forEach(n=>{
+    // Glow halo
+    const grd = ctx.createRadialGradient(n.x,n.y,0, n.x,n.y,n.r*5);
+    grd.addColorStop(0, n.isYou ? 'rgba(255,209,102,0.16)' : 'rgba(82,183,136,0.09)');
+    grd.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r*5,0,Math.PI*2);
+    ctx.fillStyle=grd; ctx.fill();
+
+    // Node body
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle = n.isYou ? 'rgba(255,209,102,0.88)' : n.col+'CC';
+    ctx.fill();
+    ctx.strokeStyle = n.col;
+    ctx.lineWidth = n.isYou ? 1.5 : 0.7;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = n.isYou ? '#FFD166' : 'rgba(82,183,136,0.7)';
+    ctx.font = `${n.isYou ? 500 : 400} ${n.isYou ? 7 : 6}px 'Share Tech Mono',monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(n.label, n.x, n.y + n.r + 3);
+  });
+
+  mcRafId = requestAnimationFrame(mcDrawNet);
+}
+
+function mcStartNetwork(){
+  if(mcRafId) return;
+  mcResize();
+  mcMakeNodes();
+  mcRafId = requestAnimationFrame(mcDrawNet);
+}
+
+mcCanvas.addEventListener('click', e=>{
+  const rect = mcCanvas.getBoundingClientRect();
+  const cx   = e.clientX - rect.left;
+  const cy   = e.clientY - rect.top;
+  mcNodes2.slice(1).forEach(n=>{
+    mcSpores2.push({x1:cx, y1:cy, x2:n.x, y2:n.y, p:0});
+  });
+});
+
+window.addEventListener('resize',()=>{
+  if(mcRafId){
+    cancelAnimationFrame(mcRafId);
+    mcRafId = null;
+    mcResize();
+    mcMakeNodes();
+    mcRafId = requestAnimationFrame(mcDrawNet);
+  }
+});
+
+window.mcAddPlant   = mcAddPlant;
+window.mcLogHarvest = mcLogHarvest;
+window.initMycelium = initMycelium;
 
 })();
 </script>
