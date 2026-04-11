@@ -8,3 +8,4 @@ anthropic>=0.25.0
 onnxruntime>=1.17.0
 requests>=2.31.0
 # force rebuild Sat Apr  5 2026
+httpx
