@@ -253,36 +253,142 @@ def get_plant_harvests(plant_id: str):
     }
 
 
-# ── SOLAR (existing + logging) ───────────────────────────
+# ── SOLAR ────────────────────────────────────────────────
 
-solar_controller = SolarAIController()
+def _solar_irradiance_estimate(cloud_cover: int) -> str:
+    if cloud_cover < 20: return "high"
+    if cloud_cover < 50: return "medium"
+    if cloud_cover < 80: return "low"
+    return "none"
+
+def _estimate_uv(cloud_cover: int) -> int:
+    from datetime import datetime as _dt
+    hour = _dt.now().hour
+    if hour < 7 or hour > 19: return 0
+    angle = math.pi * (hour - 7) / 12.0
+    time_factor = max(0.0, math.sin(angle))
+    cloud_factor = 1.0 - (cloud_cover / 100.0) * 0.75
+    return round(11 * time_factor * cloud_factor)
+
+def _solar_rating(avg_clouds: float, rain_chance: int) -> str:
+    if avg_clouds < 20 and rain_chance < 20: return "excellent"
+    if avg_clouds < 50 and rain_chance < 50: return "good"
+    if avg_clouds < 75:                      return "fair"
+    return "poor"
+
+def _day_plant_risk(humidity: float, low_f: float, rain_chance: int) -> str:
+    if humidity > 80 and low_f > 60:       return "high"
+    if humidity > 70 and rain_chance > 40: return "medium"
+    return "low"
+
+def _overall_disease_risk(humidity: int, temp_f: float, forecast: list) -> str:
+    if humidity > 80 and temp_f > 60: return "high"
+    rain_days = sum(1 for d in forecast if d["rain_chance_pct"] > 40)
+    if humidity > 70 and rain_days > 1: return "medium"
+    return "low"
+
+def _solar_outlook(irradiance: str, forecast: list) -> str:
+    good = sum(1 for d in forecast if d["solar_rating"] in ("excellent", "good"))
+    if irradiance in ("high", "medium") and good >= 3: return "strong"
+    if good >= 2:                                       return "moderate"
+    return "weak"
+
+def _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
+                        storm_incoming, disease_risk, forecast) -> str:
+    if frost_warning:
+        return "Frost risk tonight — cover your seedlings before dark and bring tender plants inside."
+    storm_day = next((d for d in forecast[:3] if d["rain_chance_pct"] > 70), None)
+    if storm_incoming and storm_day:
+        return (f"Storm incoming {storm_day['day']} — harvest what's ready now and charge your battery to 100%.")
+    if disease_risk == "high":
+        return "High humidity and warmth are prime fungal conditions — inspect your plants closely today."
+    if irradiance == "high":
+        return "Strong solar day — run your water pump, charge the battery fully, and defer all grid draw."
+    if irradiance == "none":
+        return "Heavy cloud cover today — conserve battery and defer non-essential loads until conditions improve."
+    if temp_f < 45:
+        return "Cold day — check on cold-sensitive crops and protect water lines from freezing overnight."
+    return "Conditions are favorable — a good day to tend the garden and top off your battery bank."
 
 
-@app.get("/solar/status")
+@app.get("/solar/status", tags=["Solar AI"])
 def solar_status(background_tasks: BackgroundTasks):
-    status = solar_controller.get_status()
-    # Auto-log solar reading
-    if status.get("solar_output_kw") is not None:
+    """Current solar output, battery %, demand, and routing."""
+    try:
+        from datetime import datetime as _dt
+        controller = SolarAIController()
+        controller.simulation_hour = _dt.now().hour
+        data = controller.step()
+        decision = controller.reroute_decision()
+        result = {
+            "status": "ok",
+            "solar_output_kw":    data["solar_output"],
+            "battery_charge_pct": data["battery_charge"],
+            "battery_health_pct": data["battery_health"],
+            "total_demand_kw":    data["total_demand"],
+            "grid_usage_kw":      data["grid_usage"],
+            "unused_solar_kw":    data["unused_solar"],
+            "grid_price_per_kwh": data["grid_price"],
+            "load_routing":       data["routing"],
+            "recommendations":    decision["actions"],
+        }
         background_tasks.add_task(
             db.log_solar,
-            status.get("solar_output_kw", 0),
-            status.get("battery_charge_pct", 0),
-            status.get("total_demand_kw", 0)
+            result["solar_output_kw"],
+            result["battery_charge_pct"],
+            result["total_demand_kw"],
         )
-    return status
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/solar/simulate")
+@app.post("/solar/simulate", tags=["Solar AI"])
 def solar_simulate(hours: int = 24):
-    return solar_controller.simulate(hours=hours)
+    if not 1 <= hours <= 24:
+        raise HTTPException(status_code=400, detail="Hours must be between 1 and 24.")
+    controller = SolarAIController()
+    timeline = []
+    for _ in range(hours):
+        timeline.append(controller.step())
+    return {
+        "status": "ok",
+        "hours_simulated": hours,
+        "total_power_distributed_kwh": round(controller.total_power_distributed, 2),
+        "final_battery_pct": round(controller.battery_charge_level, 1),
+        "timeline": timeline,
+    }
 
 
-@app.get("/solar/recommend")
+@app.get("/solar/recommend", tags=["Solar AI"])
 def solar_recommend():
-    return solar_controller.reroute_decision()
+    try:
+        from datetime import datetime as _dt
+        controller = SolarAIController()
+        controller.simulation_hour = _dt.now().hour
+        controller.step()
+        decision = controller.reroute_decision()
+        return {
+            "status": "ok",
+            "battery_charge_pct": decision["battery_charge"],
+            "grid_price_per_kwh": decision["grid_price"],
+            "actions": decision["actions"],
+            "routing": decision["routing"],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/solar/history")
+@app.get("/solar/real", tags=["Solar AI"])
+def solar_real(lat: float = 39.27, lon: float = -84.26, capacity: float = 5.0):
+    try:
+        data = get_real_solar_data(lat=lat, lon=lon, system_capacity_kw=capacity)
+        return {"status": "ok", **data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/solar/history", tags=["Solar AI"])
 def solar_history(hours: int = 24):
     return {"history": db.get_solar_history(hours=hours)}
 
@@ -439,6 +545,327 @@ Tone: calm, knowledgeable, like a trusted advisor who knows the land."""
         "brief": data["content"][0]["text"],
         "generated_at": datetime.utcnow().isoformat(),
         "model": "claude-sonnet-4-6"
+    }
+
+
+# ── HOMESTEAD INTELLIGENCE ───────────────────────────────
+
+_OHIO_CROPS: dict = {
+    1:  [("Onions","Start seeds indoors under lights",100,"12-14 wks before last frost"),
+         ("Peppers","Start seeds indoors",80,"10-12 wks before transplant"),
+         ("Lettuce","Start indoors under grow lights",45,"Transplant outside in March")],
+    2:  [("Onions","Start seeds indoors",100,"12-14 wks before last frost April 15"),
+         ("Peppers","Start seeds indoors",80,"10-12 wks before transplant date"),
+         ("Tomatoes","Start seeds indoors",75,"6-8 wks before last frost April 15"),
+         ("Lettuce","Start indoors under grow lights",45,"Transplant outside in April")],
+    3:  [("Lettuce","Direct sow or transplant",45,"Cold-tolerant — plant now"),
+         ("Spinach","Direct sow",40,"Hardy to 20°F — plant now"),
+         ("Kale","Start indoors or direct sow",55,"Frost-tolerant"),
+         ("Onions","Transplant seedlings outdoors",100,"Harden off before planting"),
+         ("Tomatoes","Start indoors",75,"6 wks before last frost April 15"),
+         ("Peppers","Start indoors",80,"8 wks before transplant date")],
+    4:  [("Tomatoes","Start indoors or transplant after May 1",75,"After last frost Apr 15"),
+         ("Peppers","Start indoors — transplant after May 15",80,"Needs warm soil 65°F+"),
+         ("Cucumbers","Start indoors — transplant after May 15",55,"Frost-sensitive"),
+         ("Squash","Start indoors or direct sow after May 1",50,"Plant after last frost"),
+         ("Basil","Start indoors now",60,"Transplant after last frost"),
+         ("Lettuce","Direct sow — ideal conditions",45,"Sow every 2 wks for continuous harvest"),
+         ("Spinach","Direct sow",40,"Bolt-resistant variety for spring"),
+         ("Kale","Direct sow or transplant",55,"Excellent spring crop")],
+    5:  [("Tomatoes","Transplant outdoors — soil 60°F+",75,"Last frost past — go time"),
+         ("Peppers","Transplant outdoors after May 15",80,"Soil must be warm 65°F+"),
+         ("Cucumbers","Direct sow or transplant",55,"Full sun, consistent moisture"),
+         ("Squash","Direct sow outdoors",50,"1 inch water per week"),
+         ("Beans","Direct sow",55,"1 inch deep, 6 inches apart"),
+         ("Corn","Direct sow when soil hits 65°F",75,"Plant in blocks for pollination"),
+         ("Basil","Transplant outdoors",60,"Pinch flowers to keep producing")],
+    6:  [("Beans","Succession plant every 2 weeks",55,"Keep harvesting for continuous yield"),
+         ("Cucumbers","Last chance to start for summer",55,"Needs full season to produce"),
+         ("Basil","Direct sow outdoors",60,"Peak basil season"),
+         ("Corn","Last succession planting",75,"Plant for fall harvest")],
+    7:  [("Kale","Start for fall harvest",55,"Tastes better after frost"),
+         ("Spinach","Direct sow for fall",40,"8 wks before first frost Oct 15"),
+         ("Lettuce","Start for fall harvest",45,"Bolt risk reduces as temps cool"),
+         ("Beans","Last direct sow for season",55,"Must mature before Oct 15 frost")],
+    8:  [("Kale","Direct sow for fall — best crop",55,"Hardy through light frost"),
+         ("Spinach","Direct sow for fall",40,"September harvest possible"),
+         ("Lettuce","Direct sow for fall",45,"Perfect fall conditions ahead"),
+         ("Garlic","Prepare beds for October planting",240,"Plant cloves in October for next year")],
+    9:  [("Garlic","Plant cloves 2 inches deep",240,"4-6 wks before freeze — mulch after"),
+         ("Kale","Last direct sow",55,"Hardy through light frost"),
+         ("Spinach","Last direct sow",40,"Can overwinter with row cover")],
+    10: [("Garlic","Plant now if not yet done",240,"Mulch heavily after planting"),
+         ("Cover Crops","Winter rye or crimson clover",0,"Protect and feed soil over winter")],
+    11: [("Cover Crops","Last chance to establish",0,"Soil protection for winter")],
+    12: [],
+}
+
+_OHIO_HARVEST: dict = {
+    4:  [{"crop":"Overwintered Spinach","ready":"Harvest before it bolts — prime now"},
+         {"crop":"Overwintered Kale","ready":"Peak flavor after frost — harvest outer leaves"}],
+    5:  [{"crop":"Lettuce","ready":"March plantings ready — harvest before heat sets in"},
+         {"crop":"Spinach","ready":"March plantings mature — harvest before bolting"},
+         {"crop":"Radishes","ready":"April plantings ready in 25-30 days"}],
+    6:  [{"crop":"Lettuce","ready":"May plantings ready — harvest before summer heat"},
+         {"crop":"Peas","ready":"April plantings mature — check pods daily"}],
+    7:  [{"crop":"Cucumbers","ready":"First harvests — check daily once flowering"},
+         {"crop":"Beans","ready":"May plantings mature — harvest before seeds develop"},
+         {"crop":"Zucchini","ready":"Harvest at 6-8 inches — don't let over-grow"}],
+    8:  [{"crop":"Tomatoes","ready":"Main harvest season — check daily"},
+         {"crop":"Peppers","ready":"Harvest when color develops fully"},
+         {"crop":"Corn","ready":"Check silk browning and kernel fill"},
+         {"crop":"Cucumbers","ready":"Peak production — harvest every 2 days"}],
+    9:  [{"crop":"Winter Squash","ready":"Harvest before first frost — skin must be hard"},
+         {"crop":"Dry Beans","ready":"Leave on vine until pods rattle"},
+         {"crop":"Tomatoes","ready":"Frost risk — pick green tomatoes, ripen indoors"}],
+    10: [{"crop":"Root Vegetables","ready":"Carrots, beets, turnips — frost improves sweetness"},
+         {"crop":"Brussels Sprouts","ready":"Best after frost — harvest bottom-up"}],
+}
+
+_DISEASE_MAP = {
+    "Tomatoes":  "Early Blight",
+    "Peppers":   "Phytophthora Blight",
+    "Cucumbers": "Downy Mildew",
+    "Squash":    "Powdery Mildew",
+    "Beans":     "Bean Rust",
+    "Corn":      "Gray Leaf Spot",
+}
+
+
+@app.get("/weather", tags=["Homestead"])
+def get_weather(lat: float = 39.2686, lon: float = -84.2631):
+    from collections import defaultdict
+    from datetime import datetime as _dt
+    api_key = (os.environ.get("OPENWEATHER_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="OPENWEATHER_API_KEY not set.")
+    try:
+        cw = requests.get("https://api.openweathermap.org/data/2.5/weather",
+            params={"lat":lat,"lon":lon,"appid":api_key,"units":"imperial"}, timeout=10)
+        cw.raise_for_status(); cw = cw.json()
+        fw = requests.get("https://api.openweathermap.org/data/2.5/forecast",
+            params={"lat":lat,"lon":lon,"appid":api_key,"units":"imperial","cnt":40}, timeout=10)
+        fw.raise_for_status(); fw = fw.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Weather API error: {e}")
+
+    temp_f       = round(cw["main"]["temp"])
+    feels_like_f = round(cw["main"]["feels_like"])
+    humidity     = cw["main"]["humidity"]
+    description  = cw["weather"][0]["description"].capitalize()
+    wind_mph     = round(cw["wind"]["speed"])
+    cloud_cover  = cw["clouds"]["all"]
+    city         = cw.get("name","")
+    country      = cw.get("sys",{}).get("country","")
+    location     = f"{city}, {country}" if city else f"{lat:.4f}°N, {abs(lon):.4f}°W"
+    irradiance   = _solar_irradiance_estimate(cloud_cover)
+    uv_index     = _estimate_uv(cloud_cover)
+
+    daily: dict = defaultdict(list)
+    for item in fw["list"]:
+        daily[item["dt_txt"][:10]].append(item)
+    forecast_5day = []
+    for date_str, items in sorted(daily.items())[:5]:
+        temps  = [i["main"]["temp"] for i in items]
+        pops   = [i.get("pop",0)    for i in items]
+        clouds = [i["clouds"]["all"] for i in items]
+        humids = [i["main"]["humidity"] for i in items]
+        midday = next((i for i in items if "12:" in i["dt_txt"]), items[len(items)//2])
+        forecast_5day.append({
+            "date": date_str,
+            "day":  _dt.strptime(date_str, "%Y-%m-%d").strftime("%A"),
+            "high_f": round(max(temps)), "low_f": round(min(temps)),
+            "description": midday["weather"][0]["description"].capitalize(),
+            "rain_chance_pct": round(max(pops)*100),
+            "frost_risk": round(min(temps)) < 36,
+            "solar_rating": _solar_rating(sum(clouds)/len(clouds), round(max(pops)*100)),
+            "plant_risk":   _day_plant_risk(sum(humids)/len(humids), round(min(temps)), round(max(pops)*100)),
+        })
+    frost_warning  = any(d["low_f"] < 32          for d in forecast_5day[:2])
+    storm_incoming = any(d["rain_chance_pct"] > 70 for d in forecast_5day[:3])
+    disease_risk   = _overall_disease_risk(humidity, temp_f, forecast_5day)
+    solar_out      = _solar_outlook(irradiance, forecast_5day)
+    briefing       = _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
+                                         storm_incoming, disease_risk, forecast_5day)
+    return {
+        "status": "ok", "location": location,
+        "current": {"temp_f":temp_f,"feels_like_f":feels_like_f,"humidity":humidity,
+                    "description":description,"wind_mph":wind_mph,"uv_index":uv_index,
+                    "cloud_cover_pct":cloud_cover,"solar_irradiance_estimate":irradiance},
+        "forecast_5day": forecast_5day,
+        "alerts": {"frost_warning":frost_warning,"frost_date_last":"May 1",
+                   "storm_incoming":storm_incoming,"drought_risk":all(d["rain_chance_pct"]<10 for d in forecast_5day),
+                   "plant_disease_risk":disease_risk,"solar_outlook":solar_out},
+        "homestead_briefing": briefing,
+    }
+
+
+@app.get("/crops", tags=["Homestead"])
+def get_crops(lat: float = 39.2686, lon: float = -84.2631):
+    from datetime import datetime as _dt
+    month = _dt.now().month
+    season = ("spring" if month in (3,4,5) else "summer" if month in (6,7,8)
+              else "fall" if month in (9,10,11) else "winter")
+    return {
+        "location":"Loveland, OH","usda_zone":"6b",
+        "last_frost_date":"April 15","first_frost_date":"October 15",
+        "current_season":season,
+        "plant_now":[{"crop":c,"action":a,"days_to_harvest":d,"notes":n}
+                     for c,a,d,n in _OHIO_CROPS.get(month,[])],
+        "harvest_soon": _OHIO_HARVEST.get(month,[]),
+        "watch_list":   [],
+    }
+
+
+@app.get("/homestead", tags=["Homestead"])
+def get_homestead(lat: float = 39.2686, lon: float = -84.2631):
+    from collections import defaultdict
+    from datetime import datetime as _dt
+    api_key = (os.environ.get("OPENWEATHER_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="OPENWEATHER_API_KEY not set.")
+    try:
+        cw = requests.get("https://api.openweathermap.org/data/2.5/weather",
+            params={"lat":lat,"lon":lon,"appid":api_key,"units":"imperial"}, timeout=10)
+        cw.raise_for_status(); cw = cw.json()
+        fw = requests.get("https://api.openweathermap.org/data/2.5/forecast",
+            params={"lat":lat,"lon":lon,"appid":api_key,"units":"imperial","cnt":40}, timeout=10)
+        fw.raise_for_status(); fw = fw.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Weather fetch failed: {e}")
+
+    temp_f       = round(cw["main"]["temp"])
+    feels_like_f = round(cw["main"]["feels_like"])
+    humidity     = cw["main"]["humidity"]
+    description  = cw["weather"][0]["description"].capitalize()
+    wind_mph     = round(cw["wind"]["speed"])
+    cloud_cover  = cw["clouds"]["all"]
+    city         = cw.get("name",""); country = cw.get("sys",{}).get("country","")
+    location     = f"{city}, {country}" if city else f"{lat:.4f}°N, {abs(lon):.4f}°W"
+    irradiance   = _solar_irradiance_estimate(cloud_cover)
+    uv_index     = _estimate_uv(cloud_cover)
+
+    daily: dict = defaultdict(list)
+    for item in fw["list"]:
+        daily[item["dt_txt"][:10]].append(item)
+    forecast_5day = []
+    for date_str, items in sorted(daily.items())[:5]:
+        temps  = [i["main"]["temp"] for i in items]
+        pops   = [i.get("pop",0)    for i in items]
+        clouds = [i["clouds"]["all"] for i in items]
+        humids = [i["main"]["humidity"] for i in items]
+        midday = next((i for i in items if "12:" in i["dt_txt"]), items[len(items)//2])
+        forecast_5day.append({
+            "date": date_str,
+            "day":  _dt.strptime(date_str, "%Y-%m-%d").strftime("%A"),
+            "high_f": round(max(temps)), "low_f": round(min(temps)),
+            "description": midday["weather"][0]["description"].capitalize(),
+            "rain_chance_pct": round(max(pops)*100),
+            "frost_risk": round(min(temps)) < 36,
+            "solar_rating": _solar_rating(sum(clouds)/len(clouds), round(max(pops)*100)),
+            "plant_risk":   _day_plant_risk(sum(humids)/len(humids), round(min(temps)), round(max(pops)*100)),
+        })
+
+    frost_warning  = any(d["low_f"] < 32          for d in forecast_5day[:2])
+    storm_incoming = any(d["rain_chance_pct"] > 70 for d in forecast_5day[:3])
+    drought_risk   = all(d["rain_chance_pct"] < 10 for d in forecast_5day)
+    disease_risk   = _overall_disease_risk(humidity, temp_f, forecast_5day)
+    solar_out      = _solar_outlook(irradiance, forecast_5day)
+    briefing       = _homestead_briefing(temp_f, humidity, irradiance, frost_warning,
+                                         storm_incoming, disease_risk, forecast_5day)
+
+    weather_summary = {
+        "status":"ok","location":location,
+        "current":{"temp_f":temp_f,"feels_like_f":feels_like_f,"humidity":humidity,
+                   "description":description,"wind_mph":wind_mph,"uv_index":uv_index,
+                   "cloud_cover_pct":cloud_cover,"solar_irradiance_estimate":irradiance},
+        "forecast_5day": forecast_5day,
+        "alerts":{"frost_warning":frost_warning,"frost_date_last":"May 1",
+                  "storm_incoming":storm_incoming,"drought_risk":drought_risk,
+                  "plant_disease_risk":disease_risk,"solar_outlook":solar_out},
+        "homestead_briefing": briefing,
+    }
+
+    month  = _dt.now().month
+    season = ("spring" if month in (3,4,5) else "summer" if month in (6,7,8)
+              else "fall" if month in (9,10,11) else "winter")
+    plant_now = [{"crop":c,"action":a,"days_to_harvest":d,"notes":n}
+                 for c,a,d,n in _OHIO_CROPS.get(month,[])]
+    watch_list = []
+    if disease_risk in ("high","medium"):
+        for item in plant_now:
+            crop = item["crop"]
+            if crop in _DISEASE_MAP:
+                watch_list.append({
+                    "crop":crop,"risk":_DISEASE_MAP[crop],
+                    "reason":f"{'High' if disease_risk=='high' else 'Elevated'} humidity ({humidity}%) forecast",
+                    "action":"Inspect leaves, apply neem oil preventatively",
+                })
+    crop_data = {
+        "location":"Loveland, OH","usda_zone":"6b",
+        "last_frost_date":"April 15","first_frost_date":"October 15",
+        "current_season":season,
+        "plant_now":plant_now,"harvest_soon":_OHIO_HARVEST.get(month,[]),"watch_list":watch_list,
+    }
+
+    try:
+        sol = SolarAIController()
+        sol.simulation_hour = _dt.now().hour
+        sol_data = sol.step(); sol_dec = sol.reroute_decision()
+        battery  = sol_data["battery_charge"]
+        solar_summary = {"current_output_kw":sol_data["solar_output"],"battery_pct":battery,
+                         "recommendation":sol_dec["actions"][0] if sol_dec["actions"] else "System nominal",
+                         "solar_irradiance":irradiance}
+    except Exception:
+        battery = 50
+        solar_summary = {"current_output_kw":0,"battery_pct":battery,
+                         "recommendation":"Solar data temporarily unavailable","solar_irradiance":irradiance}
+
+    cloud_impact = {"high":"Strong solar output — panels at peak generation",
+                    "medium":"Partial clouds — output reduced ~30%",
+                    "low":"Heavy overcast — output reduced ~65%",
+                    "none":"No solar generation today"}.get(irradiance,"—")
+    connections = {
+        "weather_affects_solar": cloud_impact,
+        "weather_affects_crops": (
+            "High humidity — fungal disease risk for tomatoes & peppers" if disease_risk=="high" else
+            "Elevated moisture — monitor for leaf disease"               if disease_risk=="medium" else
+            "Conditions favorable for most crops"),
+        "solar_affects_loads": (
+            f"Battery {battery}% — charge before storm arrives"  if storm_incoming and battery<80 else
+            f"Battery {battery}% — strong output, run loads now" if irradiance in ("high","medium") else
+            f"Low output — conserve battery (currently {battery}%)"),
+        "crops_need_attention": (
+            f"{watch_list[0]['crop']} flagged — scan recommended" if watch_list else
+            "No active crop alerts — conditions stable"),
+    }
+
+    actions = []
+    if frost_warning:    actions.append("Cover seedlings tonight — frost risk in next 48 hours")
+    if storm_incoming and battery < 80:
+        actions.append("Charge battery to 100% before storm arrives")
+        actions.append("Harvest any ripe crops before storm day")
+    if disease_risk == "high": actions.append(f"Inspect plants for fungal disease — {humidity}% humidity today")
+    if irradiance in ("high","medium") and battery < 60:
+        actions.append("Run water pump and high-draw loads — strong solar output today")
+    for w in watch_list[:2]:
+        actions.append(f"Check {w['crop']} for {w['risk']} — {w['action']}")
+    if not actions:
+        actions.append("Conditions favorable — good day to tend the garden")
+        actions.append("Top off battery bank while solar is available")
+
+    return {
+        "briefing": briefing,
+        "weather_summary": weather_summary,
+        "solar_summary": solar_summary,
+        "crop_data": crop_data,
+        "crop_alerts": watch_list,
+        "plant_health_context": (
+            "High humidity today — tomato blight risk elevated. Use the plant scanner." if disease_risk=="high" else
+            "Elevated moisture — monitor for fungal signs on leaves." if disease_risk=="medium" else
+            "Conditions favorable — no active plant disease risk detected."),
+        "priority_actions": [f"{i+1}. {a}" for i,a in enumerate(actions)],
+        "connections": connections,
     }
 
 
