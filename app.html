@@ -2258,10 +2258,15 @@ let _hsLoaded       = false;
 let _hsRefreshTimer = null;
 
 async function loadHomestead(force = false){
-  if(_hsLoaded && !force) return;
-
   const loading = document.getElementById('hs-loading');
   const content = document.getElementById('hs-content');
+
+  if(_hsLoaded && !force){
+    loading.classList.remove('visible');
+    content.classList.add('visible');
+    return;
+  }
+
   loading.classList.add('visible');
   content.classList.remove('visible');
 
