@@ -2270,33 +2270,25 @@ async function loadHomestead(force = false){
   loading.classList.add('visible');
   content.classList.remove('visible');
 
-  // Try geolocation first, fall back to Loveland OH
-  const doFetch = async (lat, lon) => {
-    try{
-      const res = await apiFetch(`/homestead?lat=${lat}&lon=${lon}`);
-      const d   = await res.json();
-      _renderWeather(d.weather_summary);
-      _renderConnections(d);
-      _renderCrops(d.crop_data);
-      _renderActions(d.priority_actions);
-      _hsLoaded = true;
-      loading.classList.remove('visible');
-      content.classList.add('visible');
-      // Auto-refresh every 30 min
-      if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
-      _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
-    } catch(e){
-      loading.classList.remove('visible');
-      content.classList.add('visible');
-      document.getElementById('hs-briefing-text').textContent =
-        'Atmospheric sync failed — verify API connection and retry.';
-    }
-  };
+  try {
+    const res = await apiFetch(`/homestead?lat=${_hsCoords.lat}&lon=${_hsCoords.lon}`);
+    const d   = await res.json();
+    _renderWeather(d.weather_summary);
+    _renderConnections(d);
+    _renderCrops(d.crop_data);
+    _renderActions(d.priority_actions);
+    _hsLoaded = true;
+    if(_hsRefreshTimer) clearTimeout(_hsRefreshTimer);
+    _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
+  } catch(e){
+    document.getElementById('hs-briefing-text').textContent =
+      'Atmospheric sync failed — verify API connection and retry.';
+  } finally {
+    loading.classList.remove('visible');
+    content.classList.add('visible');
+  }
 
-  // Fetch immediately with default coords — no waiting on geolocation prompt
-  doFetch(_hsCoords.lat, _hsCoords.lon);
-
-  // Silently try geolocation in background; if it resolves quickly, refresh
+  // Silently try geolocation; if user is >5km from defaults, refresh once
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -2307,10 +2299,10 @@ async function loadHomestead(force = false){
         if(moved){
           _hsCoords = { lat: newLat, lon: newLon };
           _hsLoaded = false;
-          doFetch(_hsCoords.lat, _hsCoords.lon);
+          loadHomestead(true);
         }
       },
-      () => {}, // denied or unavailable — already loaded with defaults
+      () => {},
       { timeout: 5000, maximumAge: 60000 }
     );
   }
