@@ -278,7 +278,7 @@ main{padding-top:72px}
   border-color:var(--gold);background:var(--gold-dim);
 }
 .upload-zone input{
-  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  display:none;
 }
 /* Scanning animation overlay */
 .upload-zone.scanning::after{
@@ -1783,6 +1783,7 @@ let _wakeLock         = null;
 
 let _analyzing = false;
 
+uploadZone.addEventListener('click', ()=> fileInput.click());
 uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag-over'));
 uploadZone.addEventListener('drop', e=>{
