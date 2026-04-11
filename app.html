@@ -2128,8 +2128,9 @@ async function loadSolar(_retry = false){
     // ── Real data — fetched separately, won't break page if slow/down ──
     let real = null;
     try{
-      const realRes = await apiFetch(`/solar/real?lat=${_solarCoords.lat}&lon=${_solarCoords.lon}&capacity=5.0`);
-      real = await realRes.json();
+      // Use plain fetch — NREL rate-limits are expected and shouldn't trigger the error banner
+      const realRes = await fetch(API+`/solar/real?lat=${_solarCoords.lat}&lon=${_solarCoords.lon}&capacity=5.0`,{cache:'no-cache',mode:'cors'});
+      if(realRes.ok) real = await realRes.json();
     } catch(_){ /* NREL unavailable — sim data already showing, no harm */ }
 
     // ── Real data banner + chart ──
