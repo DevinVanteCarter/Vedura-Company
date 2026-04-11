@@ -2275,7 +2275,7 @@ async function loadHomestead(force = false){
     _hsRefreshTimer = setTimeout(()=>{ _hsLoaded=false; loadHomestead(true); }, 30*60*1000);
   } catch(e){
     document.getElementById('hs-briefing-text').textContent =
-      'Atmospheric sync failed — verify API connection and retry.';
+      `Sync failed: ${e.message || e} — click REFRESH to retry.`;
   } finally {
     loading.classList.remove('visible');
   }
