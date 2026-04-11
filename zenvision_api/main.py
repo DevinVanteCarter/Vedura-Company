@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from plant_health.image_analyzer import analyze_image
 from plant_health.video_analyzer import analyze_video
-from plant_health.solar_ai import SolarAIController
+from plant_health.solar_ai import SolarAIController, get_real_solar_data
 import db
 
 # ── APP ──────────────────────────────────────────────────

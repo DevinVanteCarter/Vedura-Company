@@ -2237,13 +2237,13 @@ async function sendMessage(){
   msgs.scrollTop=msgs.scrollHeight;
 
   try{
-    const res = await fetch('/api/advisor',{
+    const res = await apiFetch('/advisor',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({message:text})
     });
     const data = await res.json();
-    thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p>${data.reply}`;
+    thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p>${data.response}`;
   } catch(e){
     thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p>Signal lost. Retry required.';
   }
