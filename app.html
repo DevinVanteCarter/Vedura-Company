@@ -1158,22 +1158,8 @@ footer{
 
 /* ── Responsive ── */
 @media(max-width:700px){
-  nav{padding:10px 16px;flex-wrap:wrap;gap:6px}
-  .nav-tabs{
-    display:flex;
-    order:3;width:100%;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    gap:2px;
-  }
-  .nav-tabs::-webkit-scrollbar{display:none}
-  .nav-tabs a{
-    font-size:.55rem;
-    padding:5px 10px;
-    white-space:nowrap;
-    flex-shrink:0;
-  }
+  nav{padding:14px 20px}
+  .nav-tabs{display:none}
   .section{padding:60px 20px}
   .solar-grid{grid-template-columns:1fr}
   .health-score-wrap{flex-direction:column;text-align:center}
@@ -2099,7 +2085,7 @@ function showSection(id){
   if(sec){ sec.classList.add('active'); window.scrollTo(0,0); }
   navLinks.forEach(a=>a.classList.toggle('active', a.dataset.section===id));
   if(id==='solar')     loadSolar();
-  if(id==='homestead') loadHomestead(!_hsLoaded);
+  if(id==='homestead') loadHomestead();
   if(id==='mycelium')  initMycelium();
 }
 
