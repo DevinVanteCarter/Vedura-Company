@@ -45,16 +45,17 @@ def identify_species(image_path: str) -> dict | None:
             timeout=_TIMEOUT,
         )
 
-        # 404 means no results found (not a plant or unrecognized)
+        # 404 means PlantNet couldn't identify the species — not that it's definitely
+        # not a plant. Return None so the ONNX disease model runs without interference.
         if resp.status_code == 404:
-            return {"is_plant": False, "common_name": None, "scientific_name": None, "confidence": 0.0}
+            return None
 
         resp.raise_for_status()
         data = resp.json()
 
         results = data.get("results", [])
         if not results:
-            return {"is_plant": False, "common_name": None, "scientific_name": None, "confidence": 0.0}
+            return None
 
         top = results[0]
         confidence = round(float(top.get("score", 0.0)), 4)
