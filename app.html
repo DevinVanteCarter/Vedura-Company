@@ -721,11 +721,11 @@ main{padding-top:72px}
 .chart-units{color:var(--gold);opacity:.6}
 .monthly-chart{
   display:grid;grid-template-columns:repeat(12,1fr);gap:6px;
-  align-items:flex-end;height:80px;
+  align-items:end;height:96px;
 }
 .month-bar-wrap{
   display:flex;flex-direction:column;align-items:center;gap:4px;
-  height:100%;justify-content:flex-end;
+  justify-content:flex-end;height:96px;
 }
 .month-bar{
   width:100%;background:var(--gold);opacity:.45;
@@ -2526,13 +2526,14 @@ async function loadSolar(_retry = false){
       const vals   = real.monthly_kwh || [];
       const maxVal = Math.max(...vals, 1);
       const curIdx = real.month_index ?? (new Date().getMonth());
+      const CHART_H = 72; // px — matches the bar area (chart height minus label row)
       vals.forEach((v, i)=>{
-        const heightPct = Math.max(3, (v / maxVal) * 100);
+        const heightPx = Math.max(2, Math.round((v / maxVal) * CHART_H));
         const wrap = document.createElement('div');
         wrap.className = 'month-bar-wrap';
         const bar = document.createElement('div');
         bar.className = 'month-bar' + (i===curIdx ? ' current' : '');
-        bar.style.height = '0%';
+        bar.style.height = '0px';
         bar.title = `${months[i]}: ${v} kWh`;
         const lbl = document.createElement('div');
         lbl.className = 'month-label';
@@ -2540,7 +2541,8 @@ async function loadSolar(_retry = false){
         wrap.appendChild(bar);
         wrap.appendChild(lbl);
         chart.appendChild(wrap);
-        requestAnimationFrame(()=>{ bar.style.height = heightPct+'%'; });
+        // Double rAF ensures the browser renders height:0 first so transition fires
+        requestAnimationFrame(()=> requestAnimationFrame(()=>{ bar.style.height = heightPx+'px'; }));
       });
 
       // Update recs with merged real + sim data
