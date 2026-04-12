@@ -1092,8 +1092,6 @@ async def _flush_sync_queue():
         await sync_scan_to_mycelium(s["id"])
     for h in unsynced_harvests:
         await sync_harvest_to_mycelium(h["id"])
-    for h in unsynced_harvests:
-        await sync_harvest_to_mycelium(h["id"])
 
 
 # ── HELPERS ──────────────────────────────────────────────

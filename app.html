@@ -1994,9 +1994,10 @@ async function apiFetch(path, opts={}){
   if(res.ok) return res;
   let detail;
   try{ detail = (await res.json()).detail; } catch(_){}
-  const err = new Error(detail || `Signal lost: ${res.status}`);
+  const errMsg = detail || `API error ${res.status}`;
+  const err = new Error(errMsg);
   err.detail = detail;
-  setApiStatus(`Signal lost: ${res.status}`, true);
+  setApiStatus(errMsg, true);
   throw err;
 }
 
@@ -2085,7 +2086,7 @@ function showSection(id){
   if(sec){ sec.classList.add('active'); window.scrollTo(0,0); }
   navLinks.forEach(a=>a.classList.toggle('active', a.dataset.section===id));
   if(id==='solar')     loadSolar();
-  if(id==='homestead') loadHomestead();
+  if(id==='homestead'){ _hsLoaded=false; loadHomestead(true); }
   if(id==='mycelium')  initMycelium();
 }
 
@@ -2584,7 +2585,8 @@ async function sendMessage(){
     const data = await res.json();
     thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p>${data.response}`;
   } catch(e){
-    thinkDiv.innerHTML='<p class="msg-sender">Vedura AI</p>Signal lost. Retry required.';
+    const errMsg = e.detail || e.message || 'Advisor unavailable. Please retry.';
+    thinkDiv.innerHTML=`<p class="msg-sender">Vedura AI</p><span style="color:#E24B4A;opacity:.8">${errMsg}</span>`;
   }
 
   sendBtn.disabled=false;
