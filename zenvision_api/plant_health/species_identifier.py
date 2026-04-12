@@ -44,20 +44,33 @@ def _identify_with_claude(image_path: str) -> dict | None:
         b64 = base64.standard_b64encode(image_data).decode("utf-8")
 
         prompt = (
-            "You are a plant identification expert. Look at this image and identify the plant.\n\n"
-            "Respond with ONLY a JSON object — no markdown, no explanation:\n"
-            '{"is_plant": true/false, "common_name": "...", "scientific_name": "...", "confidence": 0.0-1.0}\n\n'
+            "You are a plant health expert. Analyze this image and respond with ONLY a JSON object — no markdown, no explanation:\n\n"
+            "{\n"
+            '  "is_plant": true/false,\n'
+            '  "common_name": "...",\n'
+            '  "scientific_name": "...",\n'
+            '  "confidence": 0.0-1.0,\n'
+            '  "has_leaves": true/false,\n'
+            '  "health_score": 0-100,\n'
+            '  "issues": ["issue 1", "issue 2"],\n'
+            '  "treatment": "..."\n'
+            "}\n\n"
             "Rules:\n"
-            "- is_plant: false only if there is clearly no plant in the image\n"
-            "- common_name: the most recognisable common name (e.g. 'Strawberry', 'Tomato', 'Basil')\n"
-            "- scientific_name: genus species (e.g. 'Fragaria × ananassa')\n"
-            "- confidence: your confidence 0.0 to 1.0\n"
-            "- If multiple plants are visible, identify the most prominent one"
+            "- is_plant: false only if there is clearly no plant\n"
+            "- common_name: most recognisable name (e.g. 'Strawberry', 'Tomato')\n"
+            "- scientific_name: genus species\n"
+            "- has_leaves: true if plant leaves are clearly visible and assessable\n"
+            "- health_score: 0-100 based only on what you can see. "
+            "If no leaves visible (fruit/flower photo) set 85. "
+            "Healthy leaves = 75-95. Yellowing/spots/wilting = 40-70. Severe disease = 10-40.\n"
+            "- issues: list of visible problems on the LEAVES (empty list if no leaves or no problems)\n"
+            "- treatment: one sentence organic treatment, or empty string if plant looks healthy\n"
+            "- If multiple plants visible, assess the most prominent one"
         )
 
         payload = {
             "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 120,
+            "max_tokens": 300,
             "messages": [{
                 "role": "user",
                 "content": [
@@ -94,6 +107,10 @@ def _identify_with_claude(image_path: str) -> dict | None:
             "common_name":   data.get("common_name") or None,
             "scientific_name": data.get("scientific_name") or None,
             "confidence":    float(data.get("confidence", 0.7)),
+            "has_leaves":    bool(data.get("has_leaves", True)),
+            "health_score":  int(data.get("health_score", 85)),
+            "issues":        list(data.get("issues") or []),
+            "treatment":     str(data.get("treatment") or ""),
         }
 
     except Exception:

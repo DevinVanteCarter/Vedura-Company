@@ -685,11 +685,19 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
             species_hint = matched
 
     # ── Stage 2/3: Disease analysis ────────────────────────────────────────
-    result = _run_ml(path, species_hint=species_hint)
-    if result is None:
-        result = _analyze_cv_fallback(path, save_annotated)
+    # If Claude identified the plant but leaves aren't visible (fruit/flower photo),
+    # skip ONNX entirely — it was trained on leaf photos and will produce false positives.
+    claude_has_leaves = species_result.get("has_leaves", True) if species_result else True
 
-    # ── Merge Plant.id species info into result ────────────────────────────
+    if not claude_has_leaves:
+        # Use CV fallback just for pixel-level stats, but trust Claude's health assessment.
+        result = _analyze_cv_fallback(path, save_annotated)
+    else:
+        result = _run_ml(path, species_hint=species_hint)
+        if result is None:
+            result = _analyze_cv_fallback(path, save_annotated)
+
+    # ── Merge species info into result ────────────────────────────────────
     if species_result is not None and species_result.get("is_plant") is not False:
         plantid_common     = species_result.get("common_name")
         plantid_scientific = species_result.get("scientific_name")
@@ -702,43 +710,87 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
         matched_crop = _species_in_supported(plantid_common, plantid_scientific)
 
         if matched_crop:
-            # Plant.id confirmed a supported crop — trust disease model as-is,
-            # but override identified_species with the clean crop name.
             result["identified_species"] = matched_crop
+
+            # If no leaves visible, override ONNX/CV with Claude's health assessment.
+            if not claude_has_leaves:
+                result["is_healthy"]   = True
+                result["disease_name"] = "Healthy"
+                result["severity"]     = "none"
+                result["treatment"]    = _HEALTHY_TREATMENT
+                result["species_note"] = (
+                    f"Showing {matched_crop} fruit/flower — upload a leaf photo "
+                    "for disease detection."
+                )
+                result["green_ratio"]          = 1.2
+                result["yellowing_confidence"] = 0.0
+                result["burn_confidence"]      = 0.0
+                result["spots_confidence"]     = 0.0
+                result["yellowing_suspected"]  = False
+                result["burn_suspected"]       = False
+                result["spots_suspected"]      = False
+
+                # If Claude spotted real leaf issues in the background, surface them.
+                claude_issues = species_result.get("issues") or []
+                if claude_issues:
+                    result["species_note"] = (
+                        f"{matched_crop} — leaf disease check: "
+                        + "; ".join(claude_issues)
+                    )
+                    result["is_healthy"]   = False
+                    result["disease_name"] = claude_issues[0]
+                    result["severity"]     = "mild"
+                    result["treatment"]    = species_result.get("treatment") or _HEALTHY_TREATMENT
         else:
-            # Plant.id identified a plant NOT in PlantVillage training set.
-            # Suppress disease detection — the disease model is unreliable here.
+            # Claude identified a plant NOT in PlantVillage training set.
+            # Use Claude's own health assessment instead of ONNX.
             friendly_name = plantid_common or plantid_scientific or "Unknown plant"
+            claude_score  = species_result.get("health_score", 85)
+            claude_issues = species_result.get("issues") or []
+            claude_treatment = species_result.get("treatment", "")
+
             result["identified_species"]     = friendly_name
             result["low_confidence_species"] = True
-            result["is_healthy"]             = True
-            result["disease_name"]           = "Healthy"
-            result["severity"]               = "none"
-            result["treatment"]              = _HEALTHY_TREATMENT
+            result["is_healthy"]             = len(claude_issues) == 0
+            result["disease_name"]           = claude_issues[0] if claude_issues else "Healthy"
+            result["severity"]               = "mild" if claude_issues else "none"
+            result["treatment"]              = claude_treatment or _HEALTHY_TREATMENT
             result["species_note"]           = (
-                f"Identified as {friendly_name} — not a PlantVillage crop. "
-                "Disease model does not apply; check visually for issues."
+                f"Identified as {friendly_name}. "
+                + ("No issues detected." if not claude_issues
+                   else "Visual issues: " + "; ".join(claude_issues))
             )
-            result["green_ratio"]            = max(result.get("green_ratio", 1.0), 1.2)
-            result["yellowing_confidence"]   = 0.0
-            result["burn_confidence"]        = 0.0
-            result["spots_confidence"]       = 0.0
-            result["yellowing_suspected"]    = False
-            result["burn_suspected"]         = False
-            result["spots_suspected"]        = False
+            result["green_ratio"]            = max(result.get("green_ratio", 1.0),
+                                                   0.9 if claude_issues else 1.2)
+            # Preserve Claude's score by injecting it so _compute_health_score_and_alerts
+            # will produce a consistent result — done via green_ratio proxy.
+            if claude_issues:
+                result["yellowing_suspected"]  = any("yellow" in i.lower() for i in claude_issues)
+                result["burn_suspected"]       = any(
+                    w in " ".join(claude_issues).lower() for w in ("burn", "scorch", "blight")
+                )
+                result["spots_suspected"]      = any(
+                    w in " ".join(claude_issues).lower() for w in ("spot", "mold", "mite")
+                )
+            else:
+                result["yellowing_confidence"] = 0.0
+                result["burn_confidence"]      = 0.0
+                result["spots_confidence"]     = 0.0
+                result["yellowing_suspected"]  = False
+                result["burn_suspected"]       = False
+                result["spots_suspected"]      = False
 
     elif species_result is not None and species_result.get("is_plant") is False:
-        # Plant.id says this is not a plant at all.
-        result["identified_species"]     = "Not a plant"
-        result["low_confidence_species"] = True
-        result["is_healthy"]             = True
-        result["disease_name"]           = "N/A"
-        result["severity"]               = "none"
-        result["treatment"]              = "No plant detected in this image."
-        result["species_note"]           = "Plant.id did not detect a plant in this image."
-        result["plantid_common_name"]     = None
-        result["plantid_scientific_name"] = None
-        result["plantid_confidence"]      = 0.0
+        result["identified_species"]      = "Not a plant"
+        result["low_confidence_species"]  = True
+        result["is_healthy"]              = True
+        result["disease_name"]            = "N/A"
+        result["severity"]                = "none"
+        result["treatment"]               = "No plant detected in this image."
+        result["species_note"]            = "No plant detected in this image."
+        result["plantid_common_name"]      = None
+        result["plantid_scientific_name"]  = None
+        result["plantid_confidence"]       = 0.0
 
     # ── Stage 4: Derive health_score and alerts ───────────────────────────
     result["health_score"], result["alerts"] = _compute_health_score_and_alerts(result)
