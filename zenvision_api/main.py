@@ -114,8 +114,19 @@ async def analyze_plant_image(
     plant_id: Optional[str] = None,
     background_tasks: BackgroundTasks = None
 ):
+    import tempfile, pathlib
     contents = await file.read()
-    result = analyze_image(contents)
+    suffix = pathlib.Path(file.filename or "upload.jpg").suffix or ".jpg"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+    try:
+        result = analyze_image(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
     # NEW: auto-save to timeline if plant_id provided
     if plant_id and result.get("health_score") is not None:
