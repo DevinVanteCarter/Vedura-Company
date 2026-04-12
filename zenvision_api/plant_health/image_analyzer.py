@@ -278,16 +278,26 @@ def _run_ml(path: str, species_hint: Optional[str] = None) -> Optional[Dict]:
             inconsistent_species = len(top3_species) >= 3
 
         # ── Confidence threshold: lower bar when species is already confirmed ──
-        threshold = 0.35 if species_hint else _CONFIDENCE_THRESHOLD
-        low_confidence_species = top_conf < threshold or inconsistent_species
+        # Disease threshold: require 0.50 confidence to name a specific disease.
+        # Species threshold: much lower — if the top 3 predictions agree on a crop
+        # we report it even at modest confidence.
+        disease_threshold = 0.35 if species_hint else 0.50
+        low_confidence_disease = top_conf < disease_threshold
+        # Species is "unknown" only when the top 3 genuinely disagree on the crop.
+        low_confidence_species = inconsistent_species
 
-        if low_confidence_species:
+        if low_confidence_disease or low_confidence_species:
             is_healthy = True
             disease_name = "Healthy"
-            identified_species = "Unknown"
+            # Keep the species from the top prediction unless top-3 are contradictory.
+            if inconsistent_species:
+                identified_species = "Unknown"
+                species_note = "Multiple plant types detected — upload a clearer, closer photo."
+            else:
+                # Species looks right, just low disease confidence.
+                species_note = "Species identified; disease confidence too low for diagnosis."
             severity = "none"
             treatment = _HEALTHY_TREATMENT
-            species_note = "Plant species not in training data — manual inspection recommended."
             green_ratio = 1.25
             yellowing_conf = burn_conf = spots_conf = 0.0
             healthy_conf = 1.0
@@ -323,9 +333,10 @@ def _run_ml(path: str, species_hint: Optional[str] = None) -> Optional[Dict]:
             treatment = _TREATMENTS.get(top_idx, _HEALTHY_TREATMENT)
 
         # Map to compatibility fields (main.py reads these)
-        yellowing_suspected = not low_confidence_species and yellowing_conf > 0.25
-        burn_suspected      = not low_confidence_species and burn_conf > 0.25
-        spots_suspected     = not low_confidence_species and spots_conf > 0.25
+        low_conf_gate = low_confidence_disease or low_confidence_species
+        yellowing_suspected = not low_conf_gate and yellowing_conf > 0.25
+        burn_suspected      = not low_conf_gate and burn_conf > 0.25
+        spots_suspected     = not low_conf_gate and spots_conf > 0.25
 
         h, w = orig_img.shape[:2]
 
