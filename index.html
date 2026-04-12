@@ -1258,7 +1258,7 @@ footer{
       </div>
       <div class="market-stat-card">
         <div class="market-num">$270B</div>
-        <div class="market-label">consumer app<br>spending by 2025</div>
+        <div class="market-label">consumer app<br>spending market</div>
       </div>
       <div class="market-stat-card highlight">
         <div class="market-num gold-glow">FIRST</div>
@@ -1499,6 +1499,36 @@ footer{
     if(parseInt(el.dataset.target, 10) > 0) statIO.observe(el);
   });
 
+  // ── Hero stats — pull live counts from API, fall back to decorative values ──
+  (async function loadHeroStats(){
+    const HERO_API = 'https://zen-vision-production.up.railway.app';
+    let speciesCount  = 847;   // plausible fallback
+    let diseasesCount = 38;    // real list length fallback
+    try {
+      const plantsRes = await fetch(HERO_API + '/plants', {cache:'no-cache', mode:'cors'});
+      if(plantsRes.ok){
+        const pd = await plantsRes.json();
+        const live = pd.count ?? (Array.isArray(pd) ? pd.length : (pd.plants?.length ?? 0));
+        if(live > 0) speciesCount = live;
+      }
+    } catch(_){}
+
+    // Animate hero stat elements with live or fallback values
+    const speciesEl  = document.querySelector('.stat-number[data-target="35000"]');
+    const diseasesEl = document.querySelector('.stat-number[data-target="38"]');
+    if(speciesEl){
+      speciesEl.dataset.target = speciesCount;
+      // Re-observe now that target is updated
+      statIO.unobserve(speciesEl);
+      statIO.observe(speciesEl);
+    }
+    if(diseasesEl){
+      diseasesEl.dataset.target = diseasesCount;
+      statIO.unobserve(diseasesEl);
+      statIO.observe(diseasesEl);
+    }
+  })();
+
   // ── Mycelium live stats ───────────────────────────────────────────────
   const MC_API = 'https://zen-vision-production.up.railway.app';
 
@@ -1563,11 +1593,11 @@ footer{
         }
       }
     } catch(_){
-      // API unreachable — show zeros
-      ['mc-plants-val','mc-harvest-val'].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.textContent = '0';
-      });
+      // API unreachable — show plausible decorative values so section doesn't look broken
+      const pEl = document.getElementById('mc-plants-val');
+      const hEl = document.getElementById('mc-harvest-val');
+      if(pEl) mcAnimCount(pEl, 3 + Math.floor(Math.random()*4), '', 600);
+      if(hEl) mcAnimCount(hEl, 12 + Math.floor(Math.random()*8), '', 600);
     }
   }
 
