@@ -43,14 +43,19 @@ class PlantCreate(BaseModel):
     name: str
     variety: Optional[str] = None
     bed: Optional[str] = None
+    stage: Optional[str] = None        # e.g. "seedling", "flowering" — stored in notes
     notes: Optional[str] = None
     planted_at: Optional[str] = None
     expected_harvest_at: Optional[str] = None
 
 
 class HarvestLog(BaseModel):
-    plant_id: str
-    kg: float
+    # Structured harvest (linked to a plant)
+    plant_id: Optional[str] = None
+    kg: Optional[float] = None
+    # Free-form harvest (Mycelium tab — no plant required)
+    crop: Optional[str] = None
+    quantity: Optional[str] = None     # free-form string, e.g. "2.4 lbs"
     notes: Optional[str] = None
     broadcast: bool = True
     harvested_at: Optional[str] = None
@@ -143,11 +148,16 @@ async def analyze_plant_video(file: UploadFile = File(...)):
 
 @app.post("/plants")
 def create_plant(body: PlantCreate):
+    # Combine stage into notes when variety is not separately provided
+    notes = body.notes or ""
+    if body.stage:
+        stage_prefix = f"Stage: {body.stage}"
+        notes = f"{stage_prefix}\n{notes}".strip() if notes else stage_prefix
     plant = db.create_plant(
         name=body.name,
         variety=body.variety,
         bed=body.bed,
-        notes=body.notes,
+        notes=notes or None,
         planted_at=body.planted_at,
         expected_harvest_at=body.expected_harvest_at
     )
@@ -219,6 +229,20 @@ def get_plant_scans(plant_id: str, limit: int = 20):
 
 @app.post("/harvests")
 def log_harvest(body: HarvestLog, background_tasks: BackgroundTasks):
+    # Free-form path: crop name + quantity string, no plant_id required
+    if not body.plant_id:
+        crop = body.crop or "Unknown crop"
+        qty_str = body.quantity or (f"{body.kg} kg" if body.kg is not None else None)
+        harvest = db.log_freeform_harvest(
+            crop=crop,
+            quantity_str=qty_str,
+            notes=body.notes
+        )
+        return {**harvest, "type": "freeform"}
+
+    # Structured path: requires plant_id + kg
+    if body.kg is None:
+        raise HTTPException(status_code=422, detail="kg is required when plant_id is provided")
     plant = db.get_plant(body.plant_id)
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
@@ -231,16 +255,22 @@ def log_harvest(body: HarvestLog, background_tasks: BackgroundTasks):
     )
     if body.broadcast and SUPABASE_URL:
         background_tasks.add_task(sync_harvest_to_mycelium, harvest["id"])
-    return harvest
+    return {**harvest, "type": "structured"}
 
 
 @app.get("/harvests")
 def list_harvests(limit: int = 50):
-    harvests = db.get_recent_harvests(limit=limit)
-    totals = db.get_harvest_totals()
+    structured = db.get_recent_harvests(limit=limit)
+    freeform   = db.get_recent_freeform_harvests(limit=limit)
+    totals     = db.get_harvest_totals()
+    ff_totals  = db.get_freeform_harvest_totals()
+    # Merge counts
+    totals["freeform_count"] = ff_totals.get("entry_count", 0)
+    totals["total_entries"] = totals.get("entry_count", 0) + totals["freeform_count"]
     return {
-        "harvests": harvests,
-        "totals": totals
+        "harvests": structured,
+        "freeform_harvests": freeform,
+        "totals": totals,
     }
 
 
@@ -578,6 +608,9 @@ Tone: calm, knowledgeable, like a trusted advisor who knows the land."""
                 "messages": [{"role": "user", "content": context}]
             }
         )
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Claude API error: {response.text}")
 
     data = response.json()
     return {
@@ -1046,6 +1079,8 @@ async def _flush_sync_queue():
     unsynced_harvests = db.get_unsynced("harvests")
     for s in unsynced_scans:
         await sync_scan_to_mycelium(s["id"])
+    for h in unsynced_harvests:
+        await sync_harvest_to_mycelium(h["id"])
     for h in unsynced_harvests:
         await sync_harvest_to_mycelium(h["id"])
 

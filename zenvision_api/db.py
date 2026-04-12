@@ -68,6 +68,14 @@ def init_db():
                 location    TEXT,
                 created_at  TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS freeform_harvests (
+                id           TEXT PRIMARY KEY,
+                crop         TEXT NOT NULL,
+                quantity_str TEXT,
+                notes        TEXT,
+                harvested_at TEXT NOT NULL
+            );
         """)
 
 
@@ -272,6 +280,44 @@ def get_plant_timeline(plant_id):
         "total_harvest_kg": sum(h['kg'] for h in harvests),
         "harvest_count": len(harvests),
     }
+
+
+# ── FREEFORM HARVESTS (Mycelium tab — no plant_id required) ──────────────
+
+def log_freeform_harvest(crop, quantity_str=None, notes=None):
+    harvest_id = str(uuid.uuid4())
+    now = datetime.utcnow().isoformat()
+    with get_conn() as conn:
+        conn.execute("""
+            INSERT INTO freeform_harvests (id, crop, quantity_str, notes, harvested_at)
+            VALUES (?,?,?,?,?)
+        """, (harvest_id, crop, quantity_str, notes, now))
+    return get_freeform_harvest(harvest_id)
+
+
+def get_freeform_harvest(harvest_id):
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM freeform_harvests WHERE id=?", (harvest_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def get_recent_freeform_harvests(limit=50):
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM freeform_harvests ORDER BY harvested_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_freeform_harvest_totals():
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) as entry_count FROM freeform_harvests"
+        ).fetchone()
+        return dict(row) if row else {"entry_count": 0}
 
 
 # ── MYCELIUM BROADCAST QUEUE ─────────────────────────────

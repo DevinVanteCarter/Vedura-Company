@@ -744,6 +744,126 @@ nav{
   .comp-cell:nth-child(3){display:none}
 }
 
+/* ── Mycelium Teaser ── */
+.mycelium-section{
+  padding:100px 48px;
+  position:relative;
+  overflow:hidden;
+}
+.mycelium-section::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 60%,rgba(78,230,128,0.04) 0%,transparent 65%);
+  pointer-events:none;
+}
+.mycelium-eyebrow{
+  font-family:var(--font-mono);
+  font-size:.58rem;
+  letter-spacing:.3em;
+  color:rgba(78,230,128,0.5);
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.mycelium-eyebrow::before{
+  content:'';display:inline-block;width:20px;height:1px;
+  background:rgba(78,230,128,0.4);
+}
+.mycelium-title{
+  font-family:var(--font-display);
+  font-size:clamp(2rem,4vw,3.4rem);
+  font-weight:300;
+  line-height:1.18;
+  max-width:680px;
+  margin-bottom:16px;
+  color:var(--cream);
+}
+.mycelium-title em{font-style:italic;color:var(--green)}
+.mycelium-desc{
+  font-size:.88rem;
+  color:rgba(240,237,216,0.45);
+  line-height:1.8;
+  max-width:520px;
+  margin-bottom:52px;
+}
+.mycelium-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:rgba(78,230,128,0.1);
+  max-width:900px;
+  margin-bottom:40px;
+}
+@media(max-width:800px){.mycelium-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.mycelium-stats{grid-template-columns:1fr}}
+.mc-stat-tile{
+  background:#000805;
+  padding:28px 24px;
+  position:relative;
+  overflow:hidden;
+}
+.mc-stat-tile::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(78,230,128,0.18),transparent);
+}
+.mc-tile-label{
+  font-family:var(--font-mono);
+  font-size:.5rem;
+  letter-spacing:.22em;
+  color:rgba(78,230,128,0.4);
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.mc-tile-val{
+  font-family:var(--font-display);
+  font-size:2.4rem;
+  font-weight:300;
+  color:var(--green);
+  line-height:1;
+  margin-bottom:6px;
+}
+.mc-tile-val.amber{color:var(--amber)}
+.mc-tile-unit{
+  font-family:var(--font-mono);
+  font-size:.52rem;
+  letter-spacing:.1em;
+  color:rgba(240,237,216,0.25);
+}
+.mc-tile-live{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--font-mono);font-size:.48rem;letter-spacing:.15em;
+  color:rgba(78,230,128,0.45);margin-top:6px;
+}
+.mc-tile-live::before{
+  content:'';width:4px;height:4px;border-radius:50%;
+  background:var(--green);animation:mc-blink 2s step-end infinite;
+  box-shadow:0 0 4px rgba(78,230,128,0.6);
+}
+@keyframes mc-blink{0%,100%{opacity:1}50%{opacity:0.1}}
+.mycelium-cta{
+  font-family:var(--font-mono);
+  font-size:.62rem;
+  letter-spacing:.18em;
+  color:var(--green);
+  text-decoration:none;
+  border:1px solid rgba(78,230,128,0.3);
+  padding:11px 22px;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:border-color .2s,box-shadow .2s,color .2s;
+}
+.mycelium-cta:hover{
+  border-color:var(--green);
+  box-shadow:0 0 20px rgba(78,230,128,0.12);
+  color:#a8f0bc;
+}
+.mycelium-cta::after{content:'→';margin-left:4px}
+/* thread SVG decoration */
+.mc-thread-bg{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:420px;height:340px;opacity:.07;pointer-events:none;
+}
+@media(max-width:900px){.mc-thread-bg{display:none}}
+
 /* ── Manifesto ── */
 .manifesto-section{
   padding:120px 48px;
@@ -1030,6 +1150,72 @@ footer{
     </div>
   </section>
 
+  <!-- Mycelium Teaser -->
+  <section class="mycelium-section" id="mycelium">
+
+    <!-- Background thread network decoration -->
+    <svg class="mc-thread-bg" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="210" cy="170" r="10" stroke="#4EE680" stroke-width="1.5"/>
+      <circle cx="80"  cy="60"  r="5"  stroke="#4EE680" stroke-width="1"/>
+      <circle cx="340" cy="80"  r="5"  stroke="#4EE680" stroke-width="1"/>
+      <circle cx="60"  cy="230" r="5"  stroke="#4EE680" stroke-width="1"/>
+      <circle cx="360" cy="260" r="5"  stroke="#4EE680" stroke-width="1"/>
+      <circle cx="190" cy="40"  r="4"  stroke="#4EE680" stroke-width=".8"/>
+      <circle cx="380" cy="170" r="4"  stroke="#4EE680" stroke-width=".8"/>
+      <circle cx="40"  cy="150" r="4"  stroke="#4EE680" stroke-width=".8"/>
+      <circle cx="240" cy="300" r="4"  stroke="#4EE680" stroke-width=".8"/>
+      <path d="M210 160 Q145 110 80 60"    stroke="#4EE680" stroke-width=".7" opacity=".6"/>
+      <path d="M210 160 Q275 120 340 80"   stroke="#4EE680" stroke-width=".7" opacity=".6"/>
+      <path d="M210 180 Q135 205 60 230"   stroke="#4EE680" stroke-width=".7" opacity=".6"/>
+      <path d="M210 180 Q285 220 360 260"  stroke="#4EE680" stroke-width=".7" opacity=".6"/>
+      <path d="M210 160 Q200 100 190 40"   stroke="#4EE680" stroke-width=".5" opacity=".4"/>
+      <path d="M220 170 Q300 170 380 170"  stroke="#4EE680" stroke-width=".5" opacity=".4"/>
+      <path d="M200 170 Q120 160 40 150"   stroke="#4EE680" stroke-width=".5" opacity=".4"/>
+      <path d="M215 180 Q228 240 240 300"  stroke="#4EE680" stroke-width=".5" opacity=".4"/>
+      <circle cx="80"  cy="60"  r="2" fill="#4EE680" opacity=".5"/>
+      <circle cx="340" cy="80"  r="2" fill="#4EE680" opacity=".5"/>
+      <circle cx="60"  cy="230" r="2" fill="#4EE680" opacity=".5"/>
+      <circle cx="360" cy="260" r="2" fill="#4EE680" opacity=".5"/>
+    </svg>
+
+    <div class="mycelium-eyebrow reveal">05 / MYCELIUM NETWORK</div>
+    <h2 class="mycelium-title reveal">
+      The Mycelium —<br><em>every grower, connected.</em>
+    </h2>
+    <p class="mycelium-desc reveal">
+      A living network beneath the surface. Track what you grow, share what you harvest, and connect with growers nearby — anonymously, locally, without a cloud.
+    </p>
+
+    <!-- Live stats -->
+    <div class="mycelium-stats reveal" id="mc-stats-grid">
+      <div class="mc-stat-tile">
+        <div class="mc-tile-label">Growers Online</div>
+        <div class="mc-tile-val" id="mc-growers-val">—</div>
+        <div class="mc-tile-unit">in network</div>
+        <div class="mc-tile-live">LIVE</div>
+      </div>
+      <div class="mc-stat-tile">
+        <div class="mc-tile-label">Harvest Shared</div>
+        <div class="mc-tile-val amber" id="mc-harvest-val">—</div>
+        <div class="mc-tile-unit" id="mc-harvest-unit">kg this season</div>
+      </div>
+      <div class="mc-stat-tile">
+        <div class="mc-tile-label">Network Threads</div>
+        <div class="mc-tile-val" id="mc-threads-val">—</div>
+        <div class="mc-tile-unit">active connections</div>
+        <div class="mc-tile-live">LIVE</div>
+      </div>
+      <div class="mc-stat-tile">
+        <div class="mc-tile-label">Plants Tracked</div>
+        <div class="mc-tile-val" id="mc-plants-val">—</div>
+        <div class="mc-tile-unit">grows logged</div>
+      </div>
+    </div>
+
+    <a href="app.html#mycelium" class="mycelium-cta reveal">ENTER THE NETWORK</a>
+
+  </section>
+
   <!-- Market Opportunity -->
   <section class="market-section">
 
@@ -1312,6 +1498,91 @@ footer{
   document.querySelectorAll('.stat-number[data-target], .market-num[data-target]').forEach(el => {
     if(parseInt(el.dataset.target, 10) > 0) statIO.observe(el);
   });
+
+  // ── Mycelium live stats ───────────────────────────────────────────────
+  const MC_API = 'https://zen-vision-production.up.railway.app';
+
+  function mcAnimCount(el, target, suffix, duration){
+    const start = performance.now();
+    (function tick(now){
+      const pct  = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - pct, 3);
+      el.textContent = Math.round(target * ease) + (suffix || '');
+      if(pct < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  // Simulated "live" growers — slowly drifts
+  let _mcGrowerBase = 7 + Math.floor(Math.random() * 6);
+  let _mcThreadBase = _mcGrowerBase * 4 + Math.floor(Math.random() * 8);
+
+  function mcSetLiveStats(){
+    const gEl = document.getElementById('mc-growers-val');
+    const tEl = document.getElementById('mc-threads-val');
+    if(gEl) mcAnimCount(gEl, _mcGrowerBase, '', 900);
+    if(tEl) mcAnimCount(tEl, _mcThreadBase, '', 900);
+    // Drift every 8-14 seconds
+    setTimeout(()=>{
+      _mcGrowerBase = Math.max(4, _mcGrowerBase + Math.floor((Math.random()-.4)*3));
+      _mcThreadBase = _mcGrowerBase * 4 + Math.floor(Math.random()*10);
+      if(gEl) mcAnimCount(gEl, _mcGrowerBase, '', 600);
+      if(tEl) mcAnimCount(tEl, _mcThreadBase, '', 600);
+    }, 8000 + Math.random()*6000);
+  }
+
+  async function mcFetchStats(){
+    try{
+      const [plantsRes, harvestRes] = await Promise.all([
+        fetch(MC_API + '/plants', {cache:'no-cache', mode:'cors'}),
+        fetch(MC_API + '/harvests', {cache:'no-cache', mode:'cors'})
+      ]);
+      if(plantsRes.ok){
+        const pd = await plantsRes.json();
+        const count = pd.count ?? (Array.isArray(pd) ? pd.length : (pd.plants?.length ?? 0));
+        const pEl = document.getElementById('mc-plants-val');
+        if(pEl) mcAnimCount(pEl, count, '', 900);
+      }
+      if(harvestRes.ok){
+        const hd = await harvestRes.json();
+        const totalKg   = hd.totals?.total_kg || 0;
+        const totalFree = hd.totals?.freeform_count || 0;
+        const totalAll  = hd.totals?.total_entries || (totalFree + hd.harvests?.length || 0);
+        const hEl = document.getElementById('mc-harvest-val');
+        const uEl = document.getElementById('mc-harvest-unit');
+        if(hEl){
+          if(totalKg > 0){
+            mcAnimCount(hEl, Math.round(totalKg * 10) / 10, '', 900);
+            if(uEl) uEl.textContent = 'kg this season';
+          } else if(totalAll > 0){
+            mcAnimCount(hEl, totalAll, '', 900);
+            if(uEl) uEl.textContent = 'harvests logged';
+          } else {
+            hEl.textContent = '0';
+            if(uEl) uEl.textContent = 'kg this season';
+          }
+        }
+      }
+    } catch(_){
+      // API unreachable — show zeros
+      ['mc-plants-val','mc-harvest-val'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.textContent = '0';
+      });
+    }
+  }
+
+  // Trigger when section scrolls into view
+  const mcSectionEl = document.getElementById('mycelium');
+  if(mcSectionEl){
+    const mcIO = new IntersectionObserver(entries=>{
+      if(entries[0].isIntersecting){
+        mcSetLiveStats();
+        mcFetchStats();
+        mcIO.disconnect();
+      }
+    }, {threshold:.1});
+    mcIO.observe(mcSectionEl);
+  }
 
 })();
 </script>
