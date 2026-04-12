@@ -557,6 +557,95 @@ def _species_in_supported(common_name: Optional[str], scientific_name: Optional[
     return None
 
 
+def _compute_health_score_and_alerts(result: dict):
+    """
+    Derive health_score (0–100) and alerts (list[str]) from the
+    raw analyzer fields.  These two outputs are always consistent:
+    an empty alerts list means score >= 70.
+    """
+    alerts = []
+    is_healthy  = result.get("is_healthy", False)
+    low_conf    = result.get("low_confidence_species", False)
+    severity    = result.get("severity", "unknown")
+    disease     = result.get("disease_name", "") or ""
+    green_ratio = result.get("green_ratio", 1.0) or 1.0
+
+    # ── Base score from ML severity / healthy flag ────────────
+    if is_healthy or low_conf:
+        # ML confirmed healthy (or unsupported species → suppress disease).
+        # Fine-tune within 70–95 using green_ratio proxy.
+        base = 82 + int(min(13, max(-12, (green_ratio - 1.0) * 15)))
+        score = max(70, min(95, base))
+
+    elif severity == "none":
+        # Severity field says none but is_healthy wasn't set — treat as healthy.
+        base = 80 + int(min(10, max(-10, (green_ratio - 1.0) * 12)))
+        score = max(70, min(92, base))
+
+    elif severity == "mild":
+        score = max(55, min(74, 68 - int(max(0, (1.0 - green_ratio) * 15))))
+
+    elif severity == "moderate":
+        score = max(35, min(54, 46))
+
+    elif severity == "severe":
+        score = max(10, min(34, 22))
+
+    else:
+        # CV fallback — severity == "unknown", use signal-only scoring.
+        base = 75 + int(min(10, max(-20, (green_ratio - 1.0) * 15)))
+        score = max(55, min(88, base))
+
+    # ── Per-signal penalties and alert strings ────────────────
+    # Only emit alerts (and apply penalties) when not suppressed by healthy/low_conf.
+    yellowing_conf = result.get("yellowing_confidence", 0.0) or 0.0
+    burn_conf      = result.get("burn_confidence", 0.0)      or 0.0
+    spots_conf     = result.get("spots_confidence", 0.0)     or 0.0
+
+    if not (is_healthy or low_conf):
+        if result.get("yellowing_suspected"):
+            pct = int(yellowing_conf * 100)
+            alerts.append(f"Leaf yellowing detected — {pct}% confidence")
+            score -= min(15, int(yellowing_conf * 20))
+
+        if result.get("burn_suspected"):
+            pct = int(burn_conf * 100)
+            alerts.append(f"Leaf burn / tip scorch — {pct}% confidence")
+            score -= min(12, int(burn_conf * 15))
+
+        if result.get("spots_suspected"):
+            pct = int(spots_conf * 100)
+            alerts.append(f"Spots or mold present — {pct}% confidence")
+            score -= min(12, int(spots_conf * 15))
+
+        if result.get("light_stress_overexposed"):
+            alerts.append("Overexposure: possible sunscald or intense direct light")
+            score -= 5
+
+        if result.get("light_stress_underexposed"):
+            alerts.append("Low light: insufficient photosynthesis conditions")
+            score -= 5
+
+        # Prepend the disease name when ML identified a specific disease.
+        _known_non_disease = {"Unknown (CV mode)", "Healthy", "N/A", ""}
+        if disease not in _known_non_disease:
+            sev_label = severity if severity not in ("none", "unknown") else ""
+            label = f"{disease}" + (f" ({sev_label})" if sev_label else "")
+            alerts.insert(0, label)
+
+    # ── Species note as informational alert ───────────────────
+    if low_conf and result.get("species_note"):
+        alerts.append(result["species_note"])
+
+    score = max(5, min(100, score))
+
+    # Invariant guard: empty alerts must mean score >= 70.
+    if not alerts and score < 70:
+        score = 70
+
+    return int(score), alerts
+
+
 def analyze_image(path: str, save_annotated: bool = True) -> Dict:
     """
     Analyze a plant image for disease.
@@ -639,5 +728,12 @@ def analyze_image(path: str, save_annotated: bool = True) -> Dict:
         result["plantid_common_name"]     = None
         result["plantid_scientific_name"] = None
         result["plantid_confidence"]      = 0.0
+
+    # ── Stage 4: Derive health_score and alerts ───────────────────────────
+    result["health_score"], result["alerts"] = _compute_health_score_and_alerts(result)
+
+    # ── Stage 5: Expose raw analysis fields under "raw" for the frontend ──
+    result["raw"] = {k: v for k, v in result.items()
+                     if k not in ("health_score", "alerts", "raw")}
 
     return result
