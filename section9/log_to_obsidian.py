@@ -18,7 +18,7 @@ AGENT_FOLDERS = {
     "ishikawa": "04 - Ishikawa/Metrics Log.md",
     "saito": "05 - Saito/Copy Log.md",
     "paz": "06 - Paz/Outreach Log.md",
-    "borma": "07 - Borma/Study Log.md",
+    "borma": "07 - Borma/Mycelium Log.md",
     "conversations": "11 - Conversations/Conversations Log.md",
     "metrics": "12 - Metrics/Tracker.md",
 }
