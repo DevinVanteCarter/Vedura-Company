@@ -19,7 +19,10 @@ Own the Offer Framework and Viral Content Engine. Cincinnati pitch must be flawl
 - **Headline**: "Know your land. Own your energy. Grow with intelligence."
 - **ICP**: 28-52, homeowner with land (0.5-20 acres), partial/full off-grid, distrusts big tech, tried 3-4 apps that each do one thing badly
 - **Value prop**: "Vedura replaces five separate tools with one private AI platform that knows your specific plants, your specific solar system, and your specific land"
-- **Tiers**: Seed $9/mo | Grower $15/mo | Homestead $29/mo
+- **Tiers**:
+  - Seed $4/mo — Plant scanner + Solar dashboard + Basic advisor
+  - Grower $9/mo — Everything + Mycelium + Morning brief + Full history
+  - Homestead $19/mo — Everything + Hardware discount + Priority support
 - **Guarantee**: "30 days, one actionable insight, or full refund — no questions"
 - **Positioning**: "Only platform built for the individual homesteader who grows food, generates solar, and refuses to depend on systems they don't control"
 
@@ -45,7 +48,7 @@ Own the Offer Framework and Viral Content Engine. Cincinnati pitch must be flawl
 2. "Your electric bill is $400/month because nobody told you this about solar" — FOMO
 3. "I built an AI that knows my garden better than I do" — curiosity
 4. "Why 250,000 Americans are quietly going off-grid and not telling anyone" — social status
-5. "Big ag has had this technology for 10 years. Now it's on your phone for $12." — controversy
+5. "Big ag has had this technology for 10 years. Now it's on your phone for $4." — controversy
 6. "The underground network of off-grid homesteaders sharing data anonymously" — curiosity + status
 7. "I haven't paid a power bill in 8 months. Here's the exact setup." — social status
 8. "I asked an AI what to plant in Ohio in April. Here's what it said." — curiosity

@@ -16,7 +16,7 @@ Own the 30-day Distribution Plan. Get 3 paying users before June 9. Zero ad budg
 ---
 
 ### THE GOAL
-3 paying users at any tier before June 9. Even $9 Seed tier. This changes the entire pitch.
+3 paying users at any tier before June 9. Even $4 Seed tier. This changes the entire pitch.
 
 ---
 

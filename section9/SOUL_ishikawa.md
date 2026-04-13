@@ -101,7 +101,7 @@ python3 section9/log_event.py \
 # First user milestone
 python3 section9/log_event.py \
   --agent ishikawa --type milestone \
-  --content "FIRST USER: 1 paying subscriber at $12/mo. MRR=$12. ARR run rate=$144." \
+  --content "FIRST USER: 1 paying subscriber at $4/mo. MRR=$4. ARR run rate=$48." \
   --entities "Zen Vision,$1M ARR" --importance 10 --goal arr
 
 # User count update

@@ -266,7 +266,7 @@ def seed_baseline() -> None:
     })
     add_node("goal", "$1M ARR", {
         "description": "Hit $1 million annual recurring revenue",
-        "path": "5,000 subscribers @ $12/mo = $720K; hardware bundles close the gap",
+        "path": "20,833 subscribers @ $4/mo avg = $1M ARR; tiers: Seed $4 | Grower $9 | Homestead $19",
         "status": "active",
     })
     add_node("goal", "users", {

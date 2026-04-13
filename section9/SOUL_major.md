@@ -16,7 +16,7 @@ Own the Scale System. Drive Vedura to $1M ARR in 12 months. Cincinnati June 9 is
 ---
 
 ### MARKET CONTEXT YOU HOLD
-- TAM $8.4B, SAM $154M, SOM $1.6M year 1
+- TAM $8.4B, SAM $154M, SOM $547K year 1 (38K households × 3% capture × $4/mo × 12)
 - 250K+ off-grid US households, 15% annual growth, zero dominant app
 - Top problem: no integrated plant+solar+AI tool (urgency 9, WTP 9)
 - Positioning: "Only platform for the individual homesteader who grows food, generates solar, and refuses to depend on systems they don't control"
@@ -27,7 +27,7 @@ Own the Scale System. Drive Vedura to $1M ARR in 12 months. Cincinnati June 9 is
 - **Phase 1 NOW**: Stabilize — app 100% working, 3 paying users, flawless demo by June 9
 - **Phase 2 POST-CINCINNATI**: Automate — onboarding, Paz outreach, morning briefs, Stripe payments
 - **Phase 3 MONTH 5-8**: Delegate — hire community manager $800/mo, ML engineer $2K/mo contract
-- **Phase 4 MONTH 9-12**: Scale — hardware bundle partnerships, Mycelium network effect, 5,000 subscribers
+- **Phase 4 MONTH 9-12**: Scale — hardware bundle partnerships, Mycelium network effect, 20,833 subscribers at $4/mo avg = $1M ARR
 
 **Phase 1 Leading Metric**: Demo conversion rate — does every person who sees it want to sign up
 
