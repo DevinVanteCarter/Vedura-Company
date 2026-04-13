@@ -582,30 +582,29 @@ def _compute_health_score_and_alerts(result: dict):
     green_ratio = result.get("green_ratio", 1.0) or 1.0
 
     # ── Base score from ML severity / healthy flag ────────────
+    # Ranges: no anomalies = 70-95, mild issues = 50-70, serious disease < 50
     if is_healthy or low_conf:
         # ML confirmed healthy (or unsupported species → suppress disease).
-        # Fine-tune within 70–95 using green_ratio proxy.
-        base = 82 + int(min(13, max(-12, (green_ratio - 1.0) * 15)))
-        score = max(70, min(95, base))
+        # Distribute across 70–95 using green_ratio (0–1).
+        score = max(70, min(95, int(70 + 25 * green_ratio)))
 
     elif severity == "none":
         # Severity field says none but is_healthy wasn't set — treat as healthy.
-        base = 80 + int(min(10, max(-10, (green_ratio - 1.0) * 12)))
-        score = max(70, min(92, base))
+        score = max(70, min(92, int(70 + 22 * green_ratio)))
 
     elif severity == "mild":
-        score = max(55, min(74, 68 - int(max(0, (1.0 - green_ratio) * 15))))
+        score = max(50, min(70, int(68 - (1.0 - green_ratio) * 18)))
 
     elif severity == "moderate":
-        score = max(35, min(54, 46))
+        score = max(30, min(49, int(30 + 15 * green_ratio)))
 
     elif severity == "severe":
-        score = max(10, min(34, 22))
+        score = max(5, min(34, int(5 + 25 * green_ratio)))
 
     else:
         # CV fallback — severity == "unknown", use signal-only scoring.
-        base = 75 + int(min(10, max(-20, (green_ratio - 1.0) * 15)))
-        score = max(55, min(88, base))
+        base = 72 + int(min(8, max(-17, (green_ratio - 0.5) * 20)))
+        score = max(55, min(80, base))
 
     # ── Per-signal penalties and alert strings ────────────────
     # Only emit alerts (and apply penalties) when not suppressed by healthy/low_conf.
@@ -648,11 +647,18 @@ def _compute_health_score_and_alerts(result: dict):
     if low_conf and result.get("species_note"):
         alerts.append(result["species_note"])
 
-    score = max(5, min(100, score))
-
-    # Invariant guard: empty alerts must mean score >= 70.
-    if not alerts and score < 70:
-        score = 70
+    # Consistency clamp — enforces the three bands:
+    #   no anomalies / confirmed healthy → 70-95
+    #   mild issues                      → 50-70
+    #   serious disease (mod/severe)     → <50
+    # Note: species_note alerts are informational (added only when is_healthy/low_conf
+    # is True) and must not drag the score into the mild-issue band.
+    if not alerts or (is_healthy or low_conf):
+        score = max(70, min(95, score))
+    elif severity in ("moderate", "severe"):
+        score = max(5, min(49, score))
+    else:
+        score = max(50, min(70, score))
 
     return int(score), alerts
 
