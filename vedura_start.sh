@@ -21,6 +21,13 @@ echo ""
 IP=$(ipconfig getifaddr en1 2>/dev/null || ipconfig getifaddr en0 2>/dev/null || echo "unknown")
 
 # ─────────────────────────────────────────────
+# STEP 0 — Start Nexus AI gateway
+# ─────────────────────────────────────────────
+~/.nexus/bin/nexus --config '/Users/aspenlaurent/Vedura Company/nexus.toml' &
+echo -e "${GREEN}  ✅ Nexus gateway started on http://localhost:6000${RESET}"
+sleep 1
+
+# ─────────────────────────────────────────────
 # STEP 1 — Kill anything already running
 # ─────────────────────────────────────────────
 echo -e "${CREAM}Cleaning up previous sessions...${RESET}"
@@ -93,6 +100,7 @@ echo -e "${MOSS}  Mac browser:${RESET}  http://localhost:3001/zenvision_demo.htm
 echo -e "${MOSS}  iPhone:${RESET}       http://$IP:3001/zenvision_demo.html"
 echo -e "${MOSS}  API docs:${RESET}     http://localhost:8000/docs"
 echo -e "${MOSS}  OpenClaw:${RESET}     http://127.0.0.1:18789"
+echo -e "${MOSS}  Nexus:${RESET}        http://localhost:6000"
 echo ""
 echo -e "${CREAM}  Your IP address: $IP${RESET}"
 echo -e "${CREAM}  To stop everything: bash ~/vedura_stop.sh${RESET}"

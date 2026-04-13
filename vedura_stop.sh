@@ -8,6 +8,7 @@
 echo ""
 echo "🛑 Shutting down Vedura services..."
 
+pkill -f "nexus --config" 2>/dev/null && echo "  ✅ Nexus stopped"
 pkill -f uvicorn 2>/dev/null && echo "  ✅ Zen Vision API stopped"
 pkill -f "http.server 3001" 2>/dev/null && echo "  ✅ PWA server stopped"
 pkill -9 ollama 2>/dev/null && echo "  ✅ Ollama stopped"

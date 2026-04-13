@@ -1,0 +1,24 @@
+[server]
+listen_address = "127.0.0.1:6000"
+
+[llm]
+enabled = true
+
+[llm.protocols.anthropic]
+enabled = true
+path = "/llm/anthropic"
+
+[llm.providers.anthropic]
+type = "anthropic"
+api_key = "{{ env.ANTHROPIC_API_KEY }}"
+
+[llm.providers.anthropic.models."claude-sonnet-4-6"]
+
+[llm.providers.anthropic.models."claude-haiku-4-5-20251001"]
+
+[mcp]
+enabled = true
+path = "/mcp"
+
+[telemetry]
+service_name = "vedura-nexus"
