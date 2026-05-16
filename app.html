@@ -1158,9 +1158,35 @@ footer{
 .footer-copy{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;color:rgba(240,237,216,0.2)}
 
 /* ── Responsive ── */
+/* ── Mobile hamburger ── */
+.nav-hamburger{
+  display:none;flex-direction:column;justify-content:center;gap:5px;
+  background:none;border:none;cursor:pointer;padding:6px;
+}
+.nav-hamburger span{
+  display:block;width:20px;height:1.5px;background:var(--gold);
+  transition:transform .2s,opacity .2s;
+}
+.nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-hamburger.open span:nth-child(2){opacity:0}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
 @media(max-width:700px){
   nav{padding:14px 20px}
   .nav-tabs{display:none}
+  .nav-tabs.open{
+    display:flex;flex-direction:column;gap:0;
+    position:fixed;top:56px;left:0;right:0;z-index:99;
+    background:rgba(0,0,0,0.97);
+    border-bottom:1px solid var(--gold-border);
+    padding:8px 0;list-style:none;margin:0;
+  }
+  .nav-tabs.open li a{
+    display:block;padding:13px 28px;font-size:.7rem;
+    border:none;border-bottom:1px solid rgba(255,209,102,0.06);
+  }
+  .nav-tabs.open li:last-child a{border-bottom:none}
+  .nav-hamburger{display:flex}
   .section{padding:60px 20px}
   .solar-grid{grid-template-columns:1fr}
   .health-score-wrap{flex-direction:column;text-align:center}
@@ -1412,7 +1438,7 @@ footer{
     <a class="nav-logo" href="index.html" data-text="VEDURA">VEDURA</a>
     <div class="nav-status">SYSTEMS ONLINE</div>
   </div>
-  <ul class="nav-tabs">
+  <ul class="nav-tabs" id="nav-tabs">
     <li><a href="#plants" data-section="plants">PLANTS</a></li>
     <li><a href="#solar"  data-section="solar">SOLAR</a></li>
     <li><a href="#advisor" data-section="advisor">ADVISOR</a></li>
@@ -1420,6 +1446,9 @@ footer{
     <li><a href="#mycelium" data-section="mycelium" class="mycelium-tab">MYCELIUM</a></li>
     <li><a href="#barnforge" data-section="barnforge" class="barnforge-tab">BARNFORGE</a></li>
   </ul>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   <a href="index.html" class="nav-enter">← HOME</a>
 </nav>
 
@@ -2128,7 +2157,7 @@ function showSection(id){
   if(sec){ sec.classList.add('active'); window.scrollTo(0,0); }
   navLinks.forEach(a=>a.classList.toggle('active', a.dataset.section===id));
   if(id==='solar')     loadSolar();
-  if(id==='homestead'){ _hsLoaded=false; loadHomestead(); }
+  if(id==='homestead') loadHomestead();
   if(id==='mycelium')  initMycelium();
   if(id==='barnforge'){
     const fr = document.getElementById('barnforge-frame');
@@ -2141,7 +2170,19 @@ navLinks.forEach(a=>{
     e.preventDefault();
     showSection(a.dataset.section);
     history.pushState(null,'','#'+a.dataset.section);
+    // Close mobile nav on link click
+    const tabs = document.getElementById('nav-tabs');
+    const ham  = document.getElementById('nav-hamburger');
+    tabs.classList.remove('open');
+    ham.classList.remove('open');
   });
+});
+
+// Mobile hamburger toggle
+const _ham = document.getElementById('nav-hamburger');
+_ham.addEventListener('click', ()=>{
+  document.getElementById('nav-tabs').classList.toggle('open');
+  _ham.classList.toggle('open');
 });
 
 // Handle direct hash links and page load
