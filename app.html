@@ -2530,9 +2530,18 @@ async function analyzePlant(file){
 let _solarCoords       = { lat: 39.27, lon: -84.26 }; // default: Loveland, OH
 let _solarGeoAttempted = false;
 
+async function geocodeLocation(query){
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}});
+    const d = await r.json();
+    if(d && d[0]) return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: d[0].display_name.split(',').slice(0,2).join(',').trim() };
+  } catch(_){}
+  return null;
+}
+
 async function loadSolar(_retry = false){
   try{
-    setApiStatus(`API: ${API}`);
+    setApiStatus('');
 
     // Fetch sim data first — fast, never fails
     const simRes = await apiFetch('/solar/status');
@@ -2658,8 +2667,21 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   const locInput = document.getElementById('solar-location-input');
   if(locInput){
-    locInput.addEventListener('keydown', e=>{
-      if(e.key==='Enter') loadSolar();
+    locInput.addEventListener('keydown', async e=>{
+      if(e.key!=='Enter') return;
+      const q = locInput.value.trim();
+      if(!q) return;
+      setApiStatus('Locating...');
+      const geo = await geocodeLocation(q);
+      if(geo){
+        _solarCoords = { lat: geo.lat, lon: geo.lon };
+        locInput.value = geo.name;
+        setApiStatus('');
+        loadSolar();
+      } else {
+        setApiStatus('Location not found — try a city name or ZIP');
+        setTimeout(()=>setApiStatus(''), 3000);
+      }
     });
   }
 });
