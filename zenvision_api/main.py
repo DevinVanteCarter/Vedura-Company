@@ -106,6 +106,36 @@ def health():
     return {"status": "healthy"}
 
 
+@app.get("/debug")
+def debug():
+    import pathlib, sys
+    model_dir = pathlib.Path("/app/plant_health/models")
+    onnx_path = model_dir / "plant_disease_mobilenetv2.onnx"
+    data_path = model_dir / "plant_disease_mobilenetv2.onnx.data"
+    class_path = model_dir / "class_names.json"
+    try:
+        import onnxruntime as ort
+        ort_version = ort.__version__
+        ort_ok = True
+    except Exception as e:
+        ort_version = str(e)
+        ort_ok = False
+    from plant_health.image_analyzer import _model_available
+    return {
+        "python": sys.version,
+        "onnxruntime_installed": ort_ok,
+        "onnxruntime_version": ort_version,
+        "model_available": _model_available,
+        "onnx_file_exists": onnx_path.exists(),
+        "onnx_data_file_exists": data_path.exists(),
+        "class_names_exists": class_path.exists(),
+        "onnx_size_bytes": onnx_path.stat().st_size if onnx_path.exists() else 0,
+        "data_size_bytes": data_path.stat().st_size if data_path.exists() else 0,
+        "anthropic_key_set": bool(ANTHROPIC_API_KEY),
+        "groq_key_set": bool(os.environ.get("GROQ_API_KEY")),
+    }
+
+
 # ── EXISTING PLANT SCAN ENDPOINTS (preserved) ────────────
 
 @app.post("/plant/analyze/image")

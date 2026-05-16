@@ -2023,9 +2023,15 @@ async function sendAdvisor(){
   state.chat.busy=true;
   document.getElementById('adv-send').disabled=true;
   addAdvMsg('user',text);
-  state.chat.history.push({role:'user',content:buildDesignContext()+'\n\n---\n\n'+text});
+  state.chat.history.push({role:'user',content:text});
   addTypingDots();
   try{
+    // Inject current design context into the latest user message only — not stored in history
+    const messagesWithCtx = state.chat.history.map((m,i)=>
+      (m.role==='user' && i===state.chat.history.length-1)
+        ? {...m, content: buildDesignContext()+'\n\n---\n\n'+m.content}
+        : m
+    );
     const res=await fetch('/api/barnforge',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -2033,7 +2039,7 @@ async function sendAdvisor(){
         model:'claude-sonnet-4-6',
         max_tokens:1024,
         system:SYS_PROMPT,
-        messages:state.chat.history
+        messages:messagesWithCtx
       })
     });
     const d=await res.json();
