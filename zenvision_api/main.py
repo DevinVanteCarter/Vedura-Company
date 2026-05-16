@@ -33,6 +33,7 @@ app.add_middleware(
 )
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
@@ -150,8 +151,19 @@ async def analyze_plant_image(
 
 @app.post("/plant/analyze/video")
 async def analyze_plant_video(file: UploadFile = File(...)):
+    import tempfile, pathlib
     contents = await file.read()
-    result = analyze_video(contents)
+    suffix = pathlib.Path(file.filename or "upload.mp4").suffix or ".mp4"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+    try:
+        result = analyze_video(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
     return result
 
 
@@ -473,12 +485,12 @@ def solar_history(hours: int = 24):
     return {"history": db.get_solar_history(hours=hours)}
 
 
-# ── CLAUDE AI ADVISOR ────────────────────────────────────
+# ── GROQ AI ADVISOR ──────────────────────────────────────
 
 @app.post("/advisor")
 async def advisor(body: AdvisorRequest):
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+    if not GROQ_API_KEY:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured")
 
     # Build context from the garden
     context_parts = []
@@ -539,28 +551,29 @@ This session is private and leaves no record beyond this conversation."""
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
-            "https://api.anthropic.com/v1/messages",
+            "https://api.groq.com/openai/v1/chat/completions",
             headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
+                "Authorization": f"Bearer {GROQ_API_KEY}",
                 "content-type": "application/json"
             },
             json={
-                "model": "claude-sonnet-4-6",
+                "model": "llama-3.1-8b-instant",
                 "max_tokens": 1024,
-                "system": system_prompt,
-                "messages": [{"role": "user", "content": user_message}]
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ]
             }
         )
 
     if response.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"Claude API error: {response.text}")
+        raise HTTPException(status_code=502, detail=f"Groq API error: {response.text}")
 
     data = response.json()
-    reply = data["content"][0]["text"]
+    reply = data["choices"][0]["message"]["content"]
     return {
         "response": reply,
-        "model": "claude-sonnet-4-6",
+        "model": "llama-3.1-8b-instant",
         "context_included": bool(context_parts)
     }
 
@@ -568,8 +581,8 @@ This session is private and leaves no record beyond this conversation."""
 @app.post("/advisor/morning-brief")
 async def morning_brief():
     """Generate a personalized morning brief from garden + solar data."""
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+    if not GROQ_API_KEY:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured")
 
     plants = db.list_plants()
     totals = db.get_harvest_totals()
@@ -606,28 +619,29 @@ Tone: calm, knowledgeable, like a trusted advisor who knows the land."""
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
-            "https://api.anthropic.com/v1/messages",
+            "https://api.groq.com/openai/v1/chat/completions",
             headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
+                "Authorization": f"Bearer {GROQ_API_KEY}",
                 "content-type": "application/json"
             },
             json={
-                "model": "claude-sonnet-4-6",
+                "model": "llama-3.1-8b-instant",
                 "max_tokens": 512,
-                "system": system_prompt,
-                "messages": [{"role": "user", "content": context}]
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": context}
+                ]
             }
         )
 
     if response.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"Claude API error: {response.text}")
+        raise HTTPException(status_code=502, detail=f"Groq API error: {response.text}")
 
     data = response.json()
     return {
-        "brief": data["content"][0]["text"],
+        "brief": data["choices"][0]["message"]["content"],
         "generated_at": datetime.utcnow().isoformat(),
-        "model": "claude-sonnet-4-6"
+        "model": "llama-3.1-8b-instant"
     }
 
 

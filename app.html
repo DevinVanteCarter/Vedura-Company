@@ -2302,7 +2302,7 @@ async function runScan(){
 function startScanLoop(){
   setHudStatus('SCANNING...');
   runScan();
-  _scanLoop = setInterval(runScan, 2500);
+  _scanLoop = setInterval(runScan, 8000);
 }
 
 function stopScanLoop(){
@@ -2482,7 +2482,8 @@ async function analyzePlant(file){
 }
 
 // ── Solar dashboard ───────────────────────────────────────────────────────
-let _solarCoords = { lat: 39.27, lon: -84.26 }; // default: Loveland, OH
+let _solarCoords       = { lat: 39.27, lon: -84.26 }; // default: Loveland, OH
+let _solarGeoAttempted = false;
 
 async function loadSolar(_retry = false){
   try{
@@ -2548,6 +2549,21 @@ async function loadSolar(_retry = false){
 
       // Update recs with merged real + sim data
       _renderRecs(real.recommendations || [], d.recommendations || []);
+    }
+
+    // Silently geolocate once; if user is outside Ohio, reload with their coords
+    if(!_solarGeoAttempted && navigator.geolocation){
+      _solarGeoAttempted = true;
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const moved = Math.abs(pos.coords.latitude  - _solarCoords.lat) > 0.05 ||
+                      Math.abs(pos.coords.longitude - _solarCoords.lon) > 0.05;
+        if(moved){
+          _solarCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          const inp = document.getElementById('solar-location-input');
+          if(inp) inp.value = `${_solarCoords.lat.toFixed(3)}, ${_solarCoords.lon.toFixed(3)}`;
+          loadSolar();
+        }
+      }, ()=>{}, { timeout: 5000, maximumAge: 60000 });
     }
   } catch(err){
     if(!_retry){
