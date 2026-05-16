@@ -1106,13 +1106,13 @@ async function sendMessage() {
   messages.scrollTop = messages.scrollHeight;
 
   try {
-    const res = await fetch('/api/advisor', {
+    const res = await fetch('https://zen-vision-production.up.railway.app/advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text, include_garden_context: true })
     });
     const data = await res.json();
-    thinkingMsg.innerHTML = `<p class="msg-sender">Vedura AI</p>${data.reply}`;
+    thinkingMsg.innerHTML = `<p class="msg-sender">Vedura AI</p>${data.response || data.reply || 'No response received.'}`;
   } catch(err) {
     thinkingMsg.innerHTML = '<p class="msg-sender">Vedura AI</p>Unable to reach the advisor endpoint.';
   }

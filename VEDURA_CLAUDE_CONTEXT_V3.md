@@ -143,6 +143,25 @@ The Vedura Company is the world's first truly solarpunk technology company. We g
 
 ---
 
+## PRODUCTS
+
+### Zen Vision
+AI platform for off-grid homesteaders — plant health scanning, solar management, local AI advisor.
+- Frontend: Vercel (zen-vision-sigma.vercel.app)
+- Backend: Railway API (zen-vision-production.up.railway.app) — currently broken
+- AI: Groq (cloud) + Ollama on Mac Studio (local)
+
+### BarnForge
+Expert AI barndominium design assistant — floor plans, color systems, materials, 3D walkthroughs, off-grid integration. Powered by Claude (Anthropic).
+- Status: In development, not yet deployed
+- Lives at: `barnforge/index.html` in this repo
+- API: `/api/barnforge.js` (Vercel serverless — routes to Anthropic, key stays server-side)
+- Env var needed on Vercel: `ANTHROPIC_API_KEY`
+- Model: `claude-sonnet-4-6`
+- The natural pipeline: BarnForge designs the home → ZenVision runs on top of it once built
+
+---
+
 ## FILE STRUCTURE
 ```
 /Users/aspenlaurent/Vedura Company/
@@ -160,8 +179,11 @@ The Vedura Company is the world's first truly solarpunk technology company. We g
 ├── vedura_master_document.docx   ← Company bible
 ├── VEDURA_CLAUDE_CONTEXT_V2.md   ← Previous context file
 ├── VEDURA_CLAUDE_CONTEXT_V3.md   ← This file
+├── barnforge/
+│   └── index.html                ← BarnForge app (IN DEVELOPMENT)
 ├── api/
-│   └── advisor.js                ← Groq AI advisor (Vercel serverless)
+│   ├── advisor.js                ← Groq AI advisor for Zen Vision (Vercel serverless)
+│   └── barnforge.js              ← Anthropic proxy for BarnForge (Vercel serverless)
 └── zenvision_api/
     ├── main.py                   ← FastAPI app
     ├── requirements.txt          ← fastapi, uvicorn, opencv-python-headless, numpy, scikit-image

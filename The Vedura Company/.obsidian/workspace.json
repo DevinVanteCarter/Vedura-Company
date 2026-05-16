@@ -74,7 +74,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "6f74c7216764bc5b",
@@ -178,11 +179,16 @@
   },
   "active": "a4f0dc5944c501b7",
   "lastOpenFiles": [
-    "04 - Ishikawa/Metrics Log.md",
+    "06 - Paz/Outreach Log.md",
+    "07 - Borma/Mycelium Log.md",
+    "02 - Batou/Task Log.md",
     "01 - Major/Daily Log.md",
+    "00 - Command/Accounts and Services.md",
+    "05 - Saito/Copy Log.md",
+    "03 - Togusa/Intel Log.md",
+    "04 - Ishikawa/Metrics Log.md",
     "00 - Command/Vedura Company Bible.md",
     "log_to_obsidian.py",
-    "00 - Command/Accounts and Services.md",
     "09 - Pitch/Cincinnati Pitch Notes.md",
     "11 - Conversations/Conversations Log.md",
     "Welcome.md",
