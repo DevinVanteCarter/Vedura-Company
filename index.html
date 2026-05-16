@@ -475,10 +475,12 @@ nav{
 
 .cards-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(4,1fr);
   gap:1px;
   background:rgba(78,230,128,0.06);
 }
+@media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.cards-grid{grid-template-columns:1fr}}
 .feature-card{
   background:var(--bg);
   padding:48px 40px;
@@ -1012,6 +1014,7 @@ footer{
       <li><a href="app.html#solar">SOLAR</a></li>
       <li><a href="app.html#advisor">ADVISOR</a></li>
       <li><a href="app.html#homestead" style="color:#C0C0C0;border:1px solid rgba(192,192,192,0.2);padding:4px 10px">HOMESTEAD</a></li>
+      <li><a href="barnforge/" style="color:#E8A200;border:1px solid rgba(232,162,0,0.25);padding:4px 10px">BARNFORGE</a></li>
     </ul>
     <a href="app.html" class="nav-enter">ENTER</a>
   </nav>
@@ -1145,6 +1148,21 @@ footer{
         <h3 class="card-title">Private Advisor</h3>
         <p class="card-body">Ask anything about your land, crops, or energy setup. The Vedura advisor draws on your scan history to give specific, actionable guidance — no cloud storage, no surveillance.</p>
         <a href="app.html#advisor" class="card-link">ASK A QUESTION</a>
+      </div>
+
+      <!-- Card 4 — BarnForge -->
+      <div class="feature-card reveal" style="background:#050505;border-left:1px solid rgba(232,162,0,0.12)">
+        <div class="card-index" style="color:#E8A200;opacity:1">04 / BARNFORGE</div>
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none">
+          <path d="M4 18L20 4l16 14v18H4V18z" stroke="#E8A200" stroke-width="1.2" fill="rgba(232,162,0,0.05)"/>
+          <rect x="13" y="22" width="14" height="14" rx=".5" stroke="#E8A200" stroke-width="1"/>
+          <rect x="16" y="27" width="5" height="9" fill="rgba(232,162,0,0.15)" stroke="#E8A200" stroke-width=".8"/>
+          <path d="M13 22v-3a7 7 0 0 1 14 0v3" stroke="#E8A200" stroke-width=".9" opacity=".6"/>
+          <line x1="20" y1="4" x2="20" y2="8" stroke="#E8A200" stroke-width=".8" opacity=".4"/>
+        </svg>
+        <h3 class="card-title" style="color:#F0E8D0">BarnForge Designer</h3>
+        <p class="card-body" style="color:rgba(240,232,208,0.5)">Design your barndominium before you break ground. AI-powered floor plans, color systems, 3D walkthroughs, and off-grid integration — all in one conversation.</p>
+        <a href="barnforge/" class="card-link" style="color:#E8A200;border-color:rgba(232,162,0,0.3)">OPEN BARNFORGE</a>
       </div>
 
     </div>

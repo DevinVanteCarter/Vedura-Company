@@ -2002,8 +2002,8 @@ footer{
 
   <!-- ════ BARNFORGE ════ -->
   <div class="section section-barnforge" id="section-barnforge">
-    <iframe id="barnforge-frame" src="" allow="camera;microphone" allowfullscreen
-      style="width:100%;height:100%;border:none;display:block;"></iframe>
+    <iframe id="barnforge-frame" allow="camera;microphone" allowfullscreen
+      style="width:100%;height:calc(100vh - 56px);border:none;display:block;"></iframe>
   </div><!-- /section-barnforge -->
 
 </main>
@@ -2132,7 +2132,7 @@ function showSection(id){
   if(id==='mycelium')  initMycelium();
   if(id==='barnforge'){
     const fr = document.getElementById('barnforge-frame');
-    if(!fr.src || fr.src === window.location.href) fr.src = '/barnforge/';
+    if(!fr.getAttribute('src')) fr.setAttribute('src', '/barnforge/');
   }
 }
 
