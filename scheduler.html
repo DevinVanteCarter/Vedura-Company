@@ -1,965 +1,829 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vedura — Green Scheduler</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Scheduler — Vedura Grid Intelligence</title>
 <meta name="description" content="Carbon-aware AI job router. Schedule AI workloads during low-carbon, low-cost grid windows. Solarpunk intelligence for AI infrastructure." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Share+Tech+Mono&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --forest: #1B4332;
-    --moss: #52B788;
-    --sage: #95D5B2;
-    --cream: #F8F4E3;
-    --earth: #A3783A;
-    --deep: #081C15;
-    --amber: #FFD166;
-    --dim: rgba(248,244,227,0.45);
-    --border: rgba(148,213,178,0.18);
-    --border-strong: rgba(148,213,178,0.35);
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--deep);
-    color: var(--cream);
-    font-family: 'Jost', sans-serif;
-    font-weight: 300;
-    line-height: 1.6;
-    min-height: 100vh;
-    cursor: none;
-  }
-
-  /* ── Custom cursor ── */
-  #cursor {
-    width: 8px; height: 8px;
-    background: var(--moss);
-    border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9999;
-    transition: transform 0.15s ease;
-    mix-blend-mode: screen;
-  }
-  #cursor-ring {
-    width: 32px; height: 32px;
-    border: 1px solid var(--border-strong);
-    border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9998;
-    transition: transform 0.08s ease;
-  }
-
-  /* ── Nav ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 2.5rem;
-    background: rgba(8,28,21,0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    z-index: 100;
-  }
-
-  .nav-brand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    color: var(--cream);
-    text-decoration: none;
-  }
-
-  .nav-links {
-    display: flex; gap: 2rem; list-style: none;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .nav-links a {
-    color: var(--dim);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover, .nav-links a.active { color: var(--cream); }
-
-  .nav-status {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 2px;
-    color: var(--moss);
-    text-transform: uppercase;
-    display: flex; align-items: center; gap: 6px;
-  }
-
-  .dot-live {
-    width: 6px; height: 6px;
-    background: var(--moss);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
-
-  /* ── Hero ── */
-  .hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 0 2.5rem 4rem;
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .hero-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 80px 80px;
-    mask-image: radial-gradient(ellipse at 50% 60%, black 30%, transparent 75%);
-  }
-
-  .hero-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-  }
-  .orb-1 { width: 600px; height: 600px; background: rgba(27,67,50,0.6); top: -100px; right: -100px; }
-  .orb-2 { width: 400px; height: 400px; background: rgba(82,183,136,0.15); bottom: 100px; left: 5%; }
-  .orb-3 { width: 300px; height: 300px; background: rgba(255,209,102,0.08); top: 30%; right: 20%; }
-
-  .hero-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--moss);
-    margin-bottom: 1.2rem;
-  }
-
-  .hero-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(3rem, 7vw, 6rem);
-    font-weight: 400;
-    line-height: 1.0;
-    letter-spacing: -1px;
-    color: var(--cream);
-    max-width: 900px;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-title em {
-    font-style: italic;
-    color: var(--moss);
-  }
-
-  .hero-sub {
-    font-size: 1rem;
-    font-weight: 300;
-    color: var(--dim);
-    max-width: 520px;
-    margin-bottom: 2.5rem;
-    line-height: 1.75;
-  }
-
-  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
-
-  .btn {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 0.85rem 1.8rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 2px;
-    background: transparent;
-    color: var(--cream);
-    cursor: none;
-    text-decoration: none;
-    display: inline-flex; align-items: center; gap: 8px;
-    transition: all 0.2s;
-  }
-  .btn:hover { background: rgba(82,183,136,0.12); border-color: var(--moss); color: var(--cream); }
-  .btn-primary { background: var(--forest); border-color: var(--moss); }
-  .btn-primary:hover { background: rgba(27,67,50,0.9); }
-  .btn:disabled { opacity: 0.4; pointer-events: none; }
-
-  /* ── Sections ── */
-  section { padding: 5rem 2.5rem; border-bottom: 1px solid var(--border); }
-
-  .section-eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--moss);
-    margin-bottom: 0.5rem;
-  }
-
-  .section-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2rem, 4vw, 3.2rem);
-    font-weight: 400;
-    line-height: 1.1;
-    color: var(--cream);
-    margin-bottom: 1rem;
-  }
-  .section-title em { font-style: italic; color: var(--moss); }
-
-  .section-desc {
-    font-size: 0.95rem;
-    color: var(--dim);
-    max-width: 560px;
-    line-height: 1.8;
-    margin-bottom: 3rem;
-  }
-
-  /* ── Metrics row ── */
-  .metrics-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1px;
-    border: 1px solid var(--border);
-    margin-bottom: 3rem;
-  }
-
-  .metric {
-    padding: 1.5rem;
-    background: rgba(27,67,50,0.12);
-  }
-
-  .metric-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 0.6rem;
-  }
-
-  .metric-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2rem;
-    font-weight: 500;
-    line-height: 1;
-    color: var(--cream);
-  }
-  .metric-value.green { color: var(--moss); }
-  .metric-value.amber { color: var(--amber); }
-  .metric-value.red   { color: #E07070; }
-
-  .metric-unit {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-    color: var(--dim);
-    margin-top: 4px;
-    text-transform: uppercase;
-  }
-
-  /* ── Region selector ── */
-  .region-row {
-    display: flex; align-items: center; gap: 1rem;
-    margin-bottom: 2rem; flex-wrap: wrap;
-  }
-
-  .region-row label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-
-  .region-row select {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    padding: 0.5rem 1rem;
-    background: rgba(27,67,50,0.3);
-    border: 1px solid var(--border-strong);
-    border-radius: 2px;
-    color: var(--cream);
-    cursor: none;
-    outline: none;
-  }
-  .region-row select option { background: #0d2b1e; }
-
-  /* ── Timeline ── */
-  .timeline-section { margin-bottom: 3rem; }
-
-  .timeline-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 0.75rem;
-  }
-
-  .timeline-grid {
-    display: grid;
-    grid-template-columns: repeat(24, 1fr);
-    gap: 2px;
-    margin-bottom: 4px;
-  }
-
-  .t-hour {
-    height: 40px;
-    border-radius: 2px;
-    cursor: none;
-    transition: opacity 0.15s, transform 0.15s;
-    position: relative;
-  }
-  .t-hour:hover { opacity: 0.75 !important; transform: scaleY(1.08); }
-  .t-hour.now { outline: 2px solid var(--cream); outline-offset: 1px; }
-
-  .timeline-hlabels {
-    display: grid;
-    grid-template-columns: repeat(24, 1fr);
-    gap: 2px;
-  }
-  .t-hlabel {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--dim);
-    text-align: center;
-  }
-
-  .timeline-legend {
-    display: flex; gap: 1.5rem; margin-top: 0.75rem; flex-wrap: wrap;
-  }
-  .legend-item {
-    display: flex; align-items: center; gap: 5px;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-  .legend-swatch { width: 10px; height: 10px; border-radius: 1px; }
-
-  /* ── Job queue ── */
-  .queue-section { margin-bottom: 3rem; }
-
-  .add-row {
-    display: flex; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap;
-  }
-
-  .add-row input, .add-row select {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    padding: 0.65rem 1rem;
-    background: rgba(27,67,50,0.2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--cream);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .add-row input::placeholder { color: rgba(248,244,227,0.3); }
-  .add-row input:focus, .add-row select:focus { border-color: var(--border-strong); }
-  .add-row input.name-input { flex: 1; min-width: 200px; }
-  .add-row input.dur-input  { width: 100px; }
-  .add-row select option { background: #0d2b1e; }
-
-  .job-list {
-    display: flex; flex-direction: column; gap: 1px;
-    border: 1px solid var(--border);
-  }
-
-  .job-row {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: rgba(27,67,50,0.08);
-    transition: background 0.15s;
-  }
-  .job-row:hover { background: rgba(27,67,50,0.2); }
-
-  .job-name {
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: var(--cream);
-  }
-  .job-meta {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 1px;
-    color: var(--dim);
-    margin-top: 2px;
-    text-transform: uppercase;
-  }
-
-  .job-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 1px;
-  }
-  .badge-urgent     { border: 1px solid rgba(224,112,112,0.5); color: #E07070; }
-  .badge-deferrable { border: 1px solid rgba(82,183,136,0.4); color: var(--moss); }
-  .badge-flexible   { border: 1px solid rgba(255,209,102,0.4); color: var(--amber); }
-
-  .job-scheduled {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 1px;
-    color: var(--dim);
-    text-align: right;
-    min-width: 70px;
-    transition: color 0.3s;
-  }
-  .job-scheduled.scheduled { color: var(--moss); }
-
-  .job-check {
-    width: 20px; height: 20px;
-    border: 1px solid var(--border-strong);
-    border-radius: 50%;
-    cursor: none;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem;
-    transition: all 0.2s;
-  }
-  .job-check:hover { border-color: var(--moss); }
-  .job-check.done { background: var(--forest); border-color: var(--moss); color: var(--moss); }
-
-  .empty-queue {
-    padding: 2rem 1.25rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 1px;
-    color: var(--dim);
-    text-transform: uppercase;
-    text-align: center;
-    background: rgba(27,67,50,0.06);
-  }
-
-  /* ── Actions ── */
-  .action-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 3rem; }
-
-  /* ── Analysis panel ── */
-  .analysis-panel {
-    border: 1px solid var(--border-strong);
-    border-left: 3px solid var(--moss);
-    padding: 1.5rem 1.75rem;
-    margin-bottom: 2rem;
-    background: rgba(27,67,50,0.15);
-    display: none;
-  }
-
-  .analysis-header {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--moss);
-    margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  .analysis-body {
-    font-size: 0.9rem;
-    line-height: 1.8;
-    color: rgba(248,244,227,0.85);
-    white-space: pre-wrap;
-  }
-
-  .analysis-body.streaming::after {
-    content: '▊';
-    animation: blink 0.7s step-end infinite;
-    color: var(--moss);
-  }
-  @keyframes blink { 50%{opacity:0} }
-
-  /* ── Report ── */
-  .report-panel {
-    border: 1px solid var(--border);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    display: none;
-  }
-
-  .report-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    border: 1px solid var(--border);
-    margin: 1.5rem 0;
-  }
-
-  .report-stat {
-    padding: 1.25rem 1.5rem;
-    background: rgba(27,67,50,0.15);
-  }
-  .report-stat-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 0.5rem;
-  }
-  .report-stat-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2.2rem;
-    font-weight: 500;
-    color: var(--moss);
-    line-height: 1;
-  }
-  .report-stat-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-    color: var(--dim);
-    margin-top: 4px;
-    text-transform: uppercase;
-  }
-
-  .sched-list { display: flex; flex-direction: column; }
-
-  .sched-item {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-  }
-  .sched-item:last-child { border-bottom: none; }
-
-  .sched-time {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--moss);
-    min-width: 52px;
-    letter-spacing: 1px;
-  }
-  .sched-name { flex: 1; color: var(--cream); font-weight: 400; }
-  .sched-saving {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.5px;
-    color: var(--dim);
-  }
-
-  /* ── Spinner ── */
-  .spinner {
-    display: inline-block;
-    width: 10px; height: 10px;
-    border: 1.5px solid var(--border);
-    border-top-color: var(--moss);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── How it works ── */
-  .steps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1px;
-    border: 1px solid var(--border);
-  }
-
-  .step {
-    padding: 2rem 1.5rem;
-    background: rgba(27,67,50,0.06);
-    border-left: 2px solid transparent;
-    transition: all 0.2s;
-  }
-  .step:hover { background: rgba(27,67,50,0.2); border-left-color: var(--moss); }
-
-  .step-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2.5rem;
-    font-weight: 400;
-    color: rgba(82,183,136,0.3);
-    line-height: 1;
-    margin-bottom: 0.75rem;
-  }
-  .step-title {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--cream);
-    margin-bottom: 0.5rem;
-  }
-  .step-desc {
-    font-size: 0.85rem;
-    color: var(--dim);
-    line-height: 1.7;
-  }
-
-  /* ── Footer ── */
-  footer {
-    padding: 2.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 1rem;
-  }
-  .footer-brand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.9rem;
-    letter-spacing: 5px;
-    text-transform: uppercase;
-    color: rgba(248,244,227,0.4);
-  }
-  .footer-links {
-    display: flex; gap: 1.5rem; list-style: none;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-  .footer-links a { color: var(--dim); text-decoration: none; }
-  .footer-links a:hover { color: var(--cream); }
-  .footer-copy {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-    color: rgba(248,244,227,0.25);
-    text-transform: uppercase;
-  }
-
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--deep); }
-  ::-webkit-scrollbar-thumb { background: var(--border-strong); }
-
-  /* ── Mobile ── */
-  @media (max-width: 680px) {
-    nav { padding: 1rem 1.25rem; }
-    .nav-links { display: none; }
-    section { padding: 3rem 1.25rem; }
-    .hero { padding: 0 1.25rem 3rem; }
-    .job-row { grid-template-columns: 1fr auto auto; }
-    .job-scheduled { display: none; }
-    .report-grid { grid-template-columns: 1fr; }
-    footer { padding: 1.5rem 1.25rem; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#000805;
+  --green:#4EE680;
+  --amber:#FFD166;
+  --cream:#F0EDD8;
+  --green-dim:rgba(78,230,128,0.12);
+  --green-glow:rgba(78,230,128,0.4);
+  --scan:rgba(78,230,128,0.03);
+  --font-display:'Cormorant Garamond',serif;
+  --font-mono:'Share Tech Mono',monospace;
+  --font-body:'Jost',sans-serif;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:var(--font-body);
+  font-weight:300;
+  overflow-x:hidden;
+  cursor:none;
+  min-height:100vh;
+}
+
+/* ── Custom Cursor ── */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  background:var(--green);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform .1s,opacity .2s;
+  box-shadow:0 0 8px var(--green);
+}
+#cursor-ring{
+  position:fixed;width:36px;height:36px;
+  border:1px solid var(--green);border-radius:50%;
+  pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:transform .18s ease-out,width .2s,height .2s;
+  opacity:.6;
+  box-shadow:0 0 12px var(--green-glow),inset 0 0 6px rgba(78,230,128,0.1);
+}
+#cursor-ring::before{
+  content:'';position:absolute;inset:-6px;
+  border:1px dashed rgba(78,230,128,0.25);border-radius:50%;
+  animation:ring-spin 8s linear infinite;
+}
+@keyframes ring-spin{to{transform:rotate(360deg)}}
+
+/* ── Particle Canvas ── */
+#particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;}
+
+/* ── Scan lines ── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,var(--scan) 3px,var(--scan) 4px);
+  pointer-events:none;z-index:1;
+  animation:scanline-drift 12s linear infinite;
+}
+@keyframes scanline-drift{0%{background-position:0 0}100%{background-position:0 100px}}
+
+/* ── Tower scan ── */
+#tower-scan{position:fixed;right:0;top:0;bottom:0;width:280px;pointer-events:none;z-index:2;overflow:hidden;}
+#tower-scan::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--green),transparent);opacity:.2;}
+#tower-scan::after{
+  content:'';position:absolute;left:0;right:0;height:120px;
+  background:linear-gradient(to bottom,transparent,rgba(78,230,128,0.06),transparent);
+  animation:tower-sweep 5s ease-in-out infinite;
+}
+@keyframes tower-sweep{0%{top:-120px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+
+/* ── Layout shell ── */
+.site-wrap{position:relative;z-index:3;}
+
+/* ── Nav ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 48px;
+  border-bottom:1px solid rgba(78,230,128,0.08);
+  background:rgba(0,8,5,0.85);backdrop-filter:blur(12px);
+}
+.nav-logo{
+  font-family:var(--font-mono);font-size:1rem;letter-spacing:.25em;
+  color:var(--green);text-decoration:none;
+  position:relative;display:flex;flex-direction:column;gap:0;
+}
+.nav-logo .glitch-text{position:relative;display:inline-block;}
+.nav-logo .glitch-text::before,.nav-logo .glitch-text::after{
+  content:attr(data-text);position:absolute;left:0;top:0;width:100%;height:100%;
+}
+.nav-logo .glitch-text::before{color:var(--amber);animation:glitch-1 4s infinite;clip-path:polygon(0 0,100% 0,100% 35%,0 35%);opacity:.7;}
+.nav-logo .glitch-text::after{color:var(--green);animation:glitch-2 4s infinite;clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%);opacity:.5;}
+@keyframes glitch-1{0%,90%,100%{transform:translate(0)}92%{transform:translate(-2px,1px)}94%{transform:translate(2px,-1px)}96%{transform:translate(-1px,0)}}
+@keyframes glitch-2{0%,88%,100%{transform:translate(0)}90%{transform:translate(2px,1px)}93%{transform:translate(-2px,-1px)}96%{transform:translate(1px,0)}}
+.nav-status{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:var(--green);opacity:.6;margin-top:2px;}
+.nav-status::before{content:'● ';animation:blink 2s step-end infinite;}
+.nav-location{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.14em;
+  color:var(--amber);opacity:.75;margin-top:3px;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.nav-location-ping{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--amber);box-shadow:0 0 6px rgba(255,209,102,0.8);
+  flex-shrink:0;animation:loc-pulse 2.4s ease-in-out infinite;
+}
+@keyframes loc-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.nav-links{display:flex;align-items:center;gap:36px;list-style:none;}
+.nav-links a{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.2em;
+  color:rgba(240,237,216,0.5);text-decoration:none;transition:color .2s;
+}
+.nav-links a:hover{color:var(--green)}
+.nav-links a.active{color:var(--green)}
+
+.nav-enter{
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;
+  color:var(--bg);background:var(--green);padding:8px 20px;text-decoration:none;
+  transition:background .2s,box-shadow .2s;
+  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+}
+.nav-enter:hover{background:var(--amber);box-shadow:0 0 20px rgba(255,209,102,0.4);}
+
+/* ── Hero ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;padding:120px 48px 80px;
+  position:relative;overflow:hidden;
+}
+.hero-eyebrow{
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.35em;
+  color:var(--green);opacity:.7;margin-bottom:32px;
+  display:flex;align-items:center;gap:12px;
+}
+.hero-eyebrow::before{content:'';display:inline-block;width:32px;height:1px;background:var(--green);opacity:.5;}
+.hero-title{
+  font-family:var(--font-display);font-size:clamp(4rem,9vw,9rem);
+  font-weight:300;line-height:1.15;letter-spacing:-.01em;
+  margin-bottom:0;padding-bottom:.15em;display:block;
+}
+.hero-title-line{display:block;}
+.hero-title-line span{display:block;}
+.hero-title-line.italic-line{font-style:italic;color:var(--green);}
+.hero-title-line.amber-line{color:var(--amber);}
+.hero-tagline{
+  font-family:var(--font-mono);font-size:.75rem;letter-spacing:.3em;
+  color:rgba(240,237,216,0.45);margin-top:40px;margin-bottom:52px;text-transform:uppercase;
+}
+.hero-cta-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+.btn-primary{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.2em;
+  color:var(--bg);background:var(--green);padding:14px 32px;
+  text-decoration:none;display:inline-block;transition:box-shadow .2s,background .2s;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  border:none;cursor:none;
+}
+.btn-primary:hover{box-shadow:0 0 30px var(--green-glow);}
+.btn-ghost{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.2em;
+  color:var(--green);text-decoration:none;
+  border:1px solid rgba(78,230,128,0.3);padding:13px 28px;
+  transition:border-color .2s,box-shadow .2s;
+  background:none;cursor:none;
+}
+.btn-ghost:hover{border-color:var(--green);box-shadow:0 0 20px var(--green-dim);}
+
+/* ── Hero signal decoration ── */
+.hero-signal{
+  position:absolute;right:6vw;top:50%;transform:translateY(-50%);
+  width:320px;opacity:.14;pointer-events:none;
+}
+
+/* ── Section shell ── */
+.section-block{padding:100px 48px;border-top:1px solid rgba(78,230,128,0.08);}
+.section-tag{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.3em;
+  color:var(--green);opacity:.6;display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.section-tag::before{content:'';display:inline-block;width:20px;height:1px;background:var(--green);}
+.section-title{
+  font-family:var(--font-display);font-size:clamp(2.4rem,5vw,4rem);
+  font-weight:300;line-height:1.1;letter-spacing:-.01em;margin-bottom:16px;
+}
+.section-title em{font-style:italic;color:var(--green);}
+.section-desc{
+  font-size:.9rem;color:rgba(240,237,216,0.5);max-width:560px;line-height:1.8;margin-bottom:48px;
+}
+
+/* ── Metrics row ── */
+.metrics-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:1px;background:rgba(78,230,128,0.06);margin-bottom:48px;
+}
+.metric-tile{
+  background:var(--bg);padding:28px 24px;position:relative;
+  border-right:none;transition:background .25s;
+}
+.metric-tile:hover{background:#000f07}
+.metric-tile-label{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.22em;
+  color:rgba(78,230,128,0.4);text-transform:uppercase;margin-bottom:10px;
+}
+.metric-tile-value{
+  font-family:var(--font-display);font-size:2.4rem;font-weight:300;
+  line-height:1;color:var(--green);margin-bottom:4px;
+}
+.metric-tile-value.amber{color:var(--amber);}
+.metric-tile-value.red{color:rgba(255,80,60,0.85);}
+.metric-tile-unit{
+  font-family:var(--font-mono);font-size:.5rem;letter-spacing:.12em;
+  color:rgba(240,237,216,0.25);text-transform:uppercase;
+}
+
+/* ── Region row ── */
+.region-row{
+  display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap;
+}
+.region-row label{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;
+  color:rgba(240,237,216,0.4);text-transform:uppercase;
+}
+.region-row select{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;
+  padding:8px 16px;background:rgba(78,230,128,0.04);
+  border:1px solid rgba(78,230,128,0.2);color:var(--cream);
+  outline:none;cursor:none;transition:border-color .2s;
+}
+.region-row select:focus{border-color:rgba(78,230,128,0.5);}
+.region-row select option{background:#000f07;}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 6px rgba(78,230,128,0.8);
+  animation:blink 2s step-end infinite;
+}
+
+/* ── Timeline ── */
+.timeline-wrap{margin-bottom:36px;}
+.timeline-sub{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.2em;
+  color:rgba(240,237,216,0.3);text-transform:uppercase;margin-bottom:10px;
+}
+.timeline-grid{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-bottom:4px;}
+.t-hour{
+  height:44px;border-radius:1px;cursor:none;
+  transition:opacity .15s,transform .15s;position:relative;
+}
+.t-hour:hover{opacity:.7!important;transform:scaleY(1.1);}
+.t-hour.now{outline:1.5px solid var(--cream);outline-offset:2px;}
+.t-hour.past{opacity:.22!important;}
+.timeline-hlabels{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-bottom:10px;}
+.t-hlabel{font-family:var(--font-mono);font-size:.48rem;color:rgba(240,237,216,0.25);text-align:center;}
+.timeline-legend{display:flex;gap:24px;flex-wrap:wrap;}
+.legend-item{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.1em;
+  color:rgba(240,237,216,0.35);
+}
+.legend-swatch{width:10px;height:10px;border-radius:1px;}
+
+/* ── Add job / queue ── */
+.add-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.add-row input,.add-row select{
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;
+  padding:10px 14px;background:rgba(78,230,128,0.03);
+  border:1px solid rgba(78,230,128,0.15);color:var(--cream);
+  outline:none;cursor:none;transition:border-color .2s;
+}
+.add-row input::placeholder{color:rgba(240,237,216,0.25);}
+.add-row input:focus,.add-row select:focus{border-color:rgba(78,230,128,0.4);}
+.add-row input.name-input{flex:1;min-width:200px;}
+.add-row input.dur-input{width:110px;}
+.add-row select option{background:#000f07;}
+
+.queue-label{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.22em;
+  color:rgba(78,230,128,0.4);text-transform:uppercase;margin-bottom:10px;
+}
+.job-list{
+  display:flex;flex-direction:column;gap:1px;
+  background:rgba(78,230,128,0.05);margin-bottom:28px;
+}
+.job-row{
+  display:grid;grid-template-columns:1fr auto auto auto;align-items:center;
+  gap:16px;padding:14px 18px;background:var(--bg);transition:background .15s;
+}
+.job-row:hover{background:#000f07;}
+.job-name{font-size:.88rem;font-weight:400;color:var(--cream);}
+.job-meta{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;
+  color:rgba(240,237,216,0.3);margin-top:3px;text-transform:uppercase;
+}
+.job-badge{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.12em;
+  padding:3px 10px;border:1px solid;text-transform:uppercase;
+}
+.badge-urgent{border-color:rgba(255,80,60,0.4);color:rgba(255,80,60,0.85);}
+.badge-deferrable{border-color:rgba(78,230,128,0.35);color:var(--green);}
+.badge-flexible{border-color:rgba(255,209,102,0.35);color:var(--amber);}
+.job-scheduled{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.1em;
+  color:rgba(240,237,216,0.3);text-align:right;min-width:64px;transition:color .3s;
+}
+.job-scheduled.scheduled{color:var(--green);}
+.job-check{
+  width:22px;height:22px;border:1px solid rgba(78,230,128,0.25);border-radius:50%;
+  cursor:none;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:var(--green);transition:all .2s;
+}
+.job-check:hover{border-color:var(--green);}
+.job-check.done{background:rgba(78,230,128,0.15);border-color:var(--green);}
+.empty-queue{
+  padding:28px 18px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.2em;
+  color:rgba(240,237,216,0.25);text-align:center;text-transform:uppercase;
+  background:rgba(78,230,128,0.02);
+}
+
+/* ── Action row ── */
+.action-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px;}
+
+/* ── Analysis panel ── */
+.analysis-panel{
+  border:1px solid rgba(78,230,128,0.15);border-left:2px solid var(--green);
+  padding:24px 28px;margin-bottom:24px;
+  background:rgba(78,230,128,0.03);display:none;
+}
+.analysis-header{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.25em;
+  color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:8px;
+  text-transform:uppercase;
+}
+.analysis-body{font-size:.88rem;line-height:1.8;color:rgba(240,237,216,0.8);white-space:pre-wrap;}
+.analysis-body.streaming::after{content:'▊';animation:blink 0.7s step-end infinite;color:var(--green);}
+
+/* ── Report ── */
+.report-panel{
+  border:1px solid rgba(78,230,128,0.1);padding:28px;
+  margin-bottom:24px;background:rgba(78,230,128,0.02);display:none;
+}
+.report-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:rgba(78,230,128,0.06);margin:20px 0;
+}
+.report-stat{padding:20px 24px;background:var(--bg);}
+.report-stat-label{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.22em;
+  color:rgba(240,237,216,0.35);text-transform:uppercase;margin-bottom:8px;
+}
+.report-stat-value{
+  font-family:var(--font-display);font-size:2.4rem;font-weight:300;
+  color:var(--green);line-height:1;
+}
+.report-stat-sub{
+  font-family:var(--font-mono);font-size:.52rem;letter-spacing:.1em;
+  color:rgba(240,237,216,0.3);margin-top:6px;text-transform:uppercase;
+}
+.sched-list{display:flex;flex-direction:column;}
+.sched-item{
+  display:flex;align-items:center;gap:16px;
+  padding:12px 0;border-bottom:1px solid rgba(78,230,128,0.06);font-size:.85rem;
+}
+.sched-item:last-child{border-bottom:none;}
+.sched-time{font-family:var(--font-mono);font-size:.68rem;color:var(--green);min-width:52px;}
+.sched-name{flex:1;color:var(--cream);font-weight:400;}
+.sched-saving{font-family:var(--font-mono);font-size:.58rem;color:rgba(240,237,216,0.4);}
+
+/* ── Spinner ── */
+.spinner{
+  display:inline-block;width:10px;height:10px;
+  border:1.5px solid rgba(78,230,128,0.2);border-top-color:var(--green);
+  border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Steps ── */
+.steps-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:1px;background:rgba(78,230,128,0.06);
+}
+.step{
+  background:var(--bg);padding:40px 32px;
+  border-left:2px solid transparent;transition:background .25s,border-color .25s;
+}
+.step:hover{background:#000f07;border-left-color:var(--green);}
+.step-num{
+  font-family:var(--font-display);font-size:2.6rem;font-weight:300;
+  color:rgba(78,230,128,0.2);line-height:1;margin-bottom:14px;
+}
+.step-title{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cream);margin-bottom:10px;
+}
+.step-desc{font-size:.83rem;line-height:1.7;color:rgba(240,237,216,0.45);}
+
+/* ── Manifesto strip ── */
+.manifesto-strip{
+  padding:100px 48px;text-align:center;position:relative;
+  border-top:1px solid rgba(78,230,128,0.08);overflow:hidden;
+}
+.manifesto-strip::before{
+  content:'';position:absolute;left:50%;top:50%;
+  width:600px;height:600px;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(78,230,128,0.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.manifesto-eyebrow{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.3em;
+  color:rgba(78,230,128,0.5);margin-bottom:36px;
+}
+.manifesto-quote{
+  font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,3.2rem);
+  font-weight:300;font-style:italic;line-height:1.25;
+  max-width:800px;margin:0 auto 32px;color:var(--cream);
+}
+.manifesto-quote em{font-style:normal;color:var(--green);}
+.manifesto-sub{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.18em;
+  color:rgba(240,237,216,0.25);text-transform:uppercase;
+}
+
+/* ── Footer ── */
+footer{
+  padding:48px;border-top:1px solid rgba(78,230,128,0.08);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.footer-logo{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.25em;color:var(--green);opacity:.5;}
+.footer-copy{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:rgba(240,237,216,0.25);}
+.footer-url{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:rgba(78,230,128,0.35);text-decoration:none;}
+
+/* ── Scroll reveal ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(78,230,128,0.2);}
+
+/* ── Mobile ── */
+@media(max-width:900px){
+  nav{padding:16px 24px}
+  .nav-links{gap:20px}
+  .hero{padding:100px 24px 60px}
+  .section-block{padding:64px 24px}
+  .manifesto-strip{padding:64px 24px}
+  footer{padding:32px 24px}
+  .steps-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .nav-logo .glitch-text::before,.nav-logo .glitch-text::after{display:none}
+  .hero-title{font-size:clamp(3rem,14vw,5rem)}
+  .nav-enter{display:none}
+  .nav-location{display:none}
+  .nav-links{gap:14px}
+  .job-row{grid-template-columns:1fr auto auto}
+  .job-scheduled{display:none}
+  .report-grid{grid-template-columns:1fr}
+  .steps-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
+<canvas id="particle-canvas"></canvas>
+<div id="tower-scan"></div>
 
-<!-- NAV -->
-<nav>
-  <a href="index.html" class="nav-brand">Vedura</a>
-  <ul class="nav-links">
-    <li><a href="app.html#plants">Plants</a></li>
-    <li><a href="app.html#solar">Solar</a></li>
-    <li><a href="app.html#advisor">Advisor</a></li>
-    <li><a href="scheduler.html" class="active">Scheduler</a></li>
-    <li><a href="barnforge/">Barnforge</a></li>
-  </ul>
-  <div class="nav-status">
-    <span class="dot-live"></span>
-    Grid intelligence · online
-  </div>
-</nav>
+<div class="site-wrap">
 
-<!-- HERO -->
-<section class="hero" id="top">
-  <div class="hero-grid"></div>
-  <div class="orb-1 hero-orb"></div>
-  <div class="orb-2 hero-orb"></div>
-  <div class="orb-3 hero-orb"></div>
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <div class="glitch-text" data-text="VEDURA">VEDURA</div>
+      <div class="nav-status">SYSTEMS ONLINE</div>
+      <div class="nav-location">
+        <span class="nav-location-ping"></span>
+        39.2686° N · 84.2631° W · LOVELAND OH
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="app.html#plants">PLANTS</a></li>
+      <li><a href="app.html#solar">SOLAR</a></li>
+      <li><a href="app.html#advisor">ADVISOR</a></li>
+      <li><a href="app.html#homestead" style="color:#C0C0C0;border:1px solid rgba(192,192,192,0.2);padding:4px 10px">HOMESTEAD</a></li>
+      <li><a href="scheduler.html" class="active">SCHEDULER</a></li>
+      <li><a href="barnforge/" style="color:#E8A200;border:1px solid rgba(232,162,0,0.25);padding:4px 10px">BARNFORGE</a></li>
+    </ul>
+    <a href="app.html" class="nav-enter">ENTER</a>
+  </nav>
 
-  <div style="position:relative;">
-    <div class="hero-label">06 / Grid Intelligence</div>
-    <h1 class="hero-title">Run AI<br>when the grid<br><em>is clean.</em></h1>
-    <p class="hero-sub">Carbon-aware job routing for AI workloads. The same intelligence that manages your solar array decides when your GPU runs — automatically, at the lowest carbon and cost window.</p>
-    <div class="hero-actions">
-      <a href="#scheduler" class="btn btn-primary">Open scheduler ↓</a>
-      <a href="#how-it-works" class="btn">How it works</a>
+  <!-- Hero -->
+  <section class="hero">
+
+    <svg class="hero-signal" viewBox="0 0 320 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="80"  x2="320" y2="80"  stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="0" y1="160" x2="320" y2="160" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="0" y1="240" x2="320" y2="240" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="0" y1="320" x2="320" y2="320" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="64"  y1="0" x2="64"  y2="400" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="128" y1="0" x2="128" y2="400" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="192" y1="0" x2="192" y2="400" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <line x1="256" y1="0" x2="256" y2="400" stroke="#4EE680" stroke-width=".4" opacity=".3"/>
+      <path d="M0 300 C40 280 60 180 100 160 C130 145 150 200 180 180 C210 160 230 80 280 60 C295 55 310 58 320 55" stroke="#4EE680" stroke-width="1.5" fill="none"/>
+      <path d="M0 300 C40 280 60 180 100 160 C130 145 150 200 180 180 C210 160 230 80 280 60 C295 55 310 58 320 55 L320 400 L0 400Z" fill="rgba(78,230,128,0.04)"/>
+      <rect x="220" y="40" width="100" height="340" fill="rgba(78,230,128,0.05)" stroke="rgba(78,230,128,0.2)" stroke-width=".8" stroke-dasharray="3 4"/>
+      <text x="225" y="32" font-family="monospace" font-size="8" fill="rgba(78,230,128,0.5)" letter-spacing="1">OPTIMAL</text>
+      <circle cx="100" cy="160" r="3" fill="#4EE680" opacity=".7"/>
+      <circle cx="180" cy="180" r="3" fill="#FFD166" opacity=".6"/>
+      <circle cx="270" cy="65"  r="4" fill="#4EE680"/>
+      <line x1="270" y1="65" x2="270" y2="400" stroke="#4EE680" stroke-width=".8" stroke-dasharray="4 5" opacity=".4"/>
+      <text x="4" y="76"  font-family="monospace" font-size="7" fill="rgba(78,230,128,0.35)" letter-spacing="1">HIGH</text>
+      <text x="4" y="316" font-family="monospace" font-size="7" fill="rgba(78,230,128,0.35)" letter-spacing="1">LOW</text>
+    </svg>
+
+    <div class="hero-eyebrow">06 / GRID INTELLIGENCE — BUILD 2026.05</div>
+
+    <div class="hero-title">
+      <div class="hero-title-line"><span>Run AI</span></div>
+      <div class="hero-title-line italic-line"><span>when the grid</span></div>
+      <div class="hero-title-line amber-line reveal"><span>is clean.</span></div>
     </div>
-  </div>
-</section>
 
-<!-- SCHEDULER -->
-<section id="scheduler">
-  <div class="section-eyebrow">Carbon-aware router</div>
-  <h2 class="section-title">Schedule your jobs.<br><em>Save carbon. Save money.</em></h2>
-  <p class="section-desc">Add your AI workloads below. Claude reasons about urgency vs. deferability, cross-references the 24-hour grid forecast, and recommends optimal run windows.</p>
+    <p class="hero-tagline reveal">Carbon-aware job routing for AI workloads</p>
 
-  <!-- Region + live metrics -->
-  <div class="region-row">
-    <label>Grid region</label>
-    <select id="regionSelect">
-      <option value="MISO">MISO — Midwest</option>
-      <option value="PJM">PJM — Mid-Atlantic</option>
-      <option value="CAISO">CAISO — California</option>
-      <option value="ERCOT">ERCOT — Texas</option>
-      <option value="NYISO">NYISO — New York</option>
-      <option value="WECC">WECC — Mountain West</option>
-    </select>
-    <span class="dot-live"></span>
-  </div>
+    <div class="hero-cta-row reveal">
+      <a href="#scheduler" class="btn-primary">OPEN SCHEDULER ↓</a>
+      <a href="#how-it-works" class="btn-ghost">HOW IT WORKS →</a>
+    </div>
 
-  <div class="metrics-row">
-    <div class="metric">
-      <div class="metric-label">Carbon intensity now</div>
-      <div class="metric-value" id="carbonNow">—</div>
-      <div class="metric-unit">g CO₂ / kWh</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Grid price now</div>
-      <div class="metric-value" id="priceNow">—</div>
-      <div class="metric-unit">¢ / kWh</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Best window today</div>
-      <div class="metric-value green" id="bestWindow">—</div>
-      <div class="metric-unit">Lowest carbon + cost</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Jobs queued</div>
-      <div class="metric-value" id="jobCount">—</div>
-      <div class="metric-unit">Pending analysis</div>
-    </div>
-  </div>
+  </section>
 
-  <!-- 24-hour timeline -->
-  <div class="timeline-section">
-    <div class="timeline-label">24-hour carbon + price forecast (current hour outlined)</div>
-    <div class="timeline-grid" id="timelineGrid"></div>
-    <div class="timeline-hlabels" id="timelineLabels"></div>
-    <div class="timeline-legend">
-      <div class="legend-item"><div class="legend-swatch" style="background:#3B6D11;"></div>Low carbon · cheap</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#BA7517;"></div>Medium</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#A32D2D;"></div>High carbon · peak</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#185FA5;"></div>Scheduled window</div>
-    </div>
-  </div>
+  <!-- Scheduler -->
+  <section class="section-block" id="scheduler">
+    <div class="section-tag reveal">CARBON-AWARE ROUTER</div>
+    <h2 class="section-title reveal">Schedule your jobs.<br><em>Save carbon. Save money.</em></h2>
+    <p class="section-desc reveal">Add your AI workloads below. Claude reasons about urgency vs. deferability, cross-references the 24-hour grid forecast, and recommends optimal run windows.</p>
 
-  <!-- Add job + queue -->
-  <div class="queue-section">
-    <div class="timeline-label" style="margin-bottom:0.75rem;">Job queue</div>
-    <div class="add-row">
-      <input type="text" class="name-input" id="newJobName" placeholder="Job name — e.g. fine-tune llama3" />
-      <input type="number" class="dur-input" id="newJobDuration" placeholder="Hours" min="0.5" step="0.5" />
-      <select id="newJobUrgency">
-        <option value="deferrable">Deferrable</option>
-        <option value="flexible">Flexible</option>
-        <option value="urgent">Urgent</option>
+    <!-- Region + live indicator -->
+    <div class="region-row reveal">
+      <label>GRID REGION</label>
+      <select id="regionSelect">
+        <option value="MISO">MISO — Midwest</option>
+        <option value="PJM">PJM — Mid-Atlantic</option>
+        <option value="CAISO">CAISO — California</option>
+        <option value="ERCOT">ERCOT — Texas</option>
+        <option value="NYISO">NYISO — New York</option>
+        <option value="WECC">WECC — Mountain West</option>
       </select>
-      <button class="btn" onclick="addJob()">+ Add job</button>
+      <div class="live-dot"></div>
     </div>
-    <div class="job-list" id="jobList"></div>
+
+    <!-- Metrics -->
+    <div class="metrics-row reveal">
+      <div class="metric-tile">
+        <div class="metric-tile-label">Carbon Intensity Now</div>
+        <div class="metric-tile-value" id="carbonNow">—</div>
+        <div class="metric-tile-unit">g CO₂ / kWh</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-tile-label">Grid Price Now</div>
+        <div class="metric-tile-value" id="priceNow">—</div>
+        <div class="metric-tile-unit">¢ / kWh</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-tile-label">Best Window Today</div>
+        <div class="metric-tile-value" id="bestWindow">—</div>
+        <div class="metric-tile-unit">Lowest carbon + cost</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-tile-label">Jobs Queued</div>
+        <div class="metric-tile-value" id="jobCount">—</div>
+        <div class="metric-tile-unit">Pending analysis</div>
+      </div>
+    </div>
+
+    <!-- 24h timeline -->
+    <div class="timeline-wrap reveal">
+      <div class="timeline-sub">24-hour carbon + price forecast (current hour outlined)</div>
+      <div class="timeline-grid" id="timelineGrid"></div>
+      <div class="timeline-hlabels" id="timelineLabels"></div>
+      <div class="timeline-legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#3B6D11"></div>Low carbon · cheap</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#BA7517"></div>Medium</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#A32D2D"></div>High carbon · peak</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#185FA5"></div>Scheduled window</div>
+      </div>
+    </div>
+
+    <!-- Add job + queue -->
+    <div class="reveal">
+      <div class="queue-label">Job Queue</div>
+      <div class="add-row">
+        <input type="text" class="name-input" id="newJobName" placeholder="Job name — e.g. fine-tune llama3" />
+        <input type="number" class="dur-input" id="newJobDuration" placeholder="Hours" min="0.5" step="0.5" />
+        <select id="newJobUrgency">
+          <option value="deferrable">Deferrable</option>
+          <option value="flexible">Flexible</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <button class="btn-ghost" onclick="addJob()" style="padding:10px 20px;font-size:.65rem">+ ADD JOB</button>
+      </div>
+      <div class="job-list" id="jobList"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row reveal">
+      <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()">ANALYZE WITH CLAUDE ↗</button>
+      <button class="btn-ghost" onclick="refreshGridData()" style="padding:13px 24px;font-size:.65rem">REFRESH GRID DATA</button>
+      <button class="btn-ghost" onclick="clearCompleted()" style="padding:13px 24px;font-size:.65rem">CLEAR COMPLETED</button>
+    </div>
+
+    <!-- Claude reasoning -->
+    <div class="analysis-panel" id="analysisPanel">
+      <div class="analysis-header">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        CLAUDE REASONING
+      </div>
+      <div class="analysis-body" id="analysisText"></div>
+    </div>
+
+    <!-- Report -->
+    <div class="report-panel" id="reportPanel">
+      <div class="queue-label">Optimized Schedule · Savings Report</div>
+      <div class="report-grid" id="reportStats"></div>
+      <div class="queue-label" style="margin-top:20px;margin-bottom:8px;">Recommended Schedule</div>
+      <div class="sched-list" id="scheduleList"></div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section-block" id="how-it-works">
+    <div class="section-tag reveal">ARCHITECTURE</div>
+    <h2 class="section-title reveal">How the<br><em>router thinks.</em></h2>
+    <p class="section-desc reveal">Five layers of intelligence, running in sequence every time you submit a job queue.</p>
+
+    <div class="steps-grid reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Grid Carbon Fetch</div>
+        <div class="step-desc">Pulls real-time carbon intensity by region — MISO, CAISO, PJM, ERCOT, NYISO, WECC. Renewable mix, fossil load, and marginal emissions per kWh.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Spot Price Fetch</div>
+        <div class="step-desc">Live electricity pricing from grid operators. Identifies off-peak windows where compute costs a fraction of peak rates.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Claude Reasoning</div>
+        <div class="step-desc">Claude classifies each job — time-sensitive vs. deferrable — and reasons about optimal windows given the combined carbon + cost forecast.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Schedule Generation</div>
+        <div class="step-desc">Produces a per-job schedule with start times, carbon savings percentage, and cost savings vs. running immediately.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-title">Savings Report</div>
+        <div class="step-desc">Quantifies total CO₂ avoided in kg, dollar savings, and equivalent real-world impact — miles not driven, trees not burned.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manifesto -->
+  <div class="manifesto-strip">
+    <div class="manifesto-eyebrow reveal">// MANIFESTO</div>
+    <p class="manifesto-quote reveal">
+      "The same intelligence that manages your solar array<br>should manage
+      <em>when your AI runs.</em>"
+    </p>
+    <p class="manifesto-sub reveal">The Vedura Company · Loveland, Ohio · 2026</p>
   </div>
 
-  <!-- Actions -->
-  <div class="action-row">
-    <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()">Analyze with Claude ↗</button>
-    <button class="btn" onclick="refreshGridData()">Refresh grid data</button>
-    <button class="btn" onclick="clearCompleted()">Clear completed</button>
-  </div>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">VEDURA</div>
+    <span class="footer-copy">© 2026 The Vedura Company</span>
+    <a href="/" class="footer-url">vedura.co</a>
+  </footer>
 
-  <!-- Claude reasoning -->
-  <div class="analysis-panel" id="analysisPanel">
-    <div class="analysis-header">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      Claude reasoning
-    </div>
-    <div class="analysis-body" id="analysisText"></div>
-  </div>
-
-  <!-- Report -->
-  <div class="report-panel" id="reportPanel">
-    <div class="timeline-label">Optimized schedule · savings report</div>
-    <div class="report-grid" id="reportStats"></div>
-    <div class="timeline-label" style="margin-top:1.25rem; margin-bottom:0.5rem;">Recommended schedule</div>
-    <div class="sched-list" id="scheduleList"></div>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section id="how-it-works">
-  <div class="section-eyebrow">Architecture</div>
-  <h2 class="section-title">How the<br><em>router thinks.</em></h2>
-  <p class="section-desc">Five layers of intelligence, running in sequence every time you submit a job queue.</p>
-
-  <div class="steps-grid">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-title">Grid carbon fetch</div>
-      <div class="step-desc">Pulls real-time carbon intensity by region — MISO, CAISO, PJM, ERCOT, NYISO, WECC. Renewable mix, fossil load, and marginal emissions per kWh.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-title">Spot price fetch</div>
-      <div class="step-desc">Live electricity pricing from grid operators. Identifies off-peak windows where compute costs a fraction of peak rates.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-title">Claude reasoning</div>
-      <div class="step-desc">Claude classifies each job — time-sensitive vs. deferrable — and reasons about optimal windows given the combined carbon + cost forecast.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <div class="step-title">Schedule generation</div>
-      <div class="step-desc">Produces a per-job schedule with start times, carbon savings percentage, and cost savings vs. running immediately.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">05</div>
-      <div class="step-title">Savings report</div>
-      <div class="step-desc">Quantifies total CO₂ avoided in kg, dollar savings, and equivalent real-world impact — miles not driven, trees not burned.</div>
-    </div>
-  </div>
-</section>
-
-<!-- MANIFESTO STRIP -->
-<section style="padding: 4rem 2.5rem; text-align: center; border-bottom: 1px solid var(--border);">
-  <div class="section-eyebrow" style="text-align:center; margin-bottom:1.25rem;">// Manifesto</div>
-  <blockquote style="font-family:'Cormorant Garamond',serif; font-size:clamp(1.5rem,3vw,2.5rem); font-weight:400; font-style:italic; color:var(--cream); max-width:700px; margin:0 auto 1.5rem; line-height:1.3;">
-    "The same intelligence that manages your solar array should manage when your AI runs."
-  </blockquote>
-  <p style="font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:2px; text-transform:uppercase; color:var(--dim);">The Vedura Company · Loveland, Ohio · 2026</p>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-brand">Vedura</div>
-  <ul class="footer-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="app.html">Zen Vision</a></li>
-    <li><a href="scheduler.html">Scheduler</a></li>
-    <li><a href="barnforge/">Barnforge</a></li>
-  </ul>
-  <div class="footer-copy">© 2026 The Vedura Company</div>
-</footer>
+</div><!-- /site-wrap -->
 
 <script>
-// ── Cursor ──
-const cur = document.getElementById('cursor');
-const ring = document.getElementById('cursor-ring');
-let mx = 0, my = 0, rx = 0, ry = 0;
-document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-(function animCursor() {
-  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
-  cur.style.transform  = `translate(${mx - 4}px, ${my - 4}px)`;
-  ring.style.transform = `translate(${rx - 16}px, ${ry - 16}px)`;
-  requestAnimationFrame(animCursor);
-})();
+(function(){
+'use strict';
 
-// ── Grid data ──
-const REGIONS = {
-  MISO:  { baseCarbon: 420, basePrice: 4.2, renewablePct: 28 },
-  PJM:   { baseCarbon: 380, basePrice: 5.1, renewablePct: 22 },
-  CAISO: { baseCarbon: 180, basePrice: 8.4, renewablePct: 62 },
-  ERCOT: { baseCarbon: 350, basePrice: 3.8, renewablePct: 35 },
-  NYISO: { baseCarbon: 200, basePrice: 7.2, renewablePct: 55 },
-  WECC:  { baseCarbon: 310, basePrice: 4.6, renewablePct: 42 },
+// ── Cursor ──────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
+document.addEventListener('mousedown',()=>{cursor.style.transform='translate(-50%,-50%) scale(0.6)';ring.style.width='48px';ring.style.height='48px';});
+document.addEventListener('mouseup',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';ring.style.width='36px';ring.style.height='36px';});
+document.querySelectorAll('a,button,select,input').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='52px';ring.style.height='52px';ring.style.borderColor='var(--amber)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='var(--green)';});
+});
+
+// ── Particles ────────────────────────────────────────────────────────
+const canvas=document.getElementById('particle-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+function mkP(){return{x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:-Math.random()*.4-.1,r:Math.random()*1.2+.3,life:0,maxLife:180+Math.random()*240,hue:Math.random()<.75?'g':'a'};}
+for(let i=0;i<120;i++){const p=mkP();p.life=Math.random()*p.maxLife;particles.push(p);}
+function drawP(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach((p,i)=>{
+    const a=Math.sin(p.life/p.maxLife*Math.PI)*.55;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.hue==='g'?`rgba(78,230,128,${a})`:`rgba(255,209,102,${a*.6})`;ctx.fill();
+    for(let j=i+1;j<Math.min(i+8,particles.length);j++){
+      const q=particles[j],dx=q.x-p.x,dy=q.y-p.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<80){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle=`rgba(78,230,128,${(1-d/80)*.06})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    p.x+=p.vx;p.y+=p.vy;p.life++;
+    if(p.life>=p.maxLife)particles[i]=mkP();
+  });
+  requestAnimationFrame(drawP);
+}
+drawP();
+
+// ── Scroll reveal ────────────────────────────────────────────────────
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ── Grid data ────────────────────────────────────────────────────────
+const REGIONS={
+  MISO: {baseCarbon:420,basePrice:4.2,renewablePct:28},
+  PJM:  {baseCarbon:380,basePrice:5.1,renewablePct:22},
+  CAISO:{baseCarbon:180,basePrice:8.4,renewablePct:62},
+  ERCOT:{baseCarbon:350,basePrice:3.8,renewablePct:35},
+  NYISO:{baseCarbon:200,basePrice:7.2,renewablePct:55},
+  WECC: {baseCarbon:310,basePrice:4.6,renewablePct:42},
 };
 
-function seededRng(seed) {
-  let s = seed;
-  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 4294967296; };
-}
+function seededRng(seed){let s=seed;return()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/4294967296;};}
 
-function genHourly(region) {
-  const r = REGIONS[region];
-  const rng = seededRng(region.charCodeAt(0) * 1337 + (Date.now() / 3600000 | 0));
-  const now = new Date().getHours();
-  return Array.from({ length: 24 }, (_, h) => {
-    const mp = h >= 7 && h <= 9, ep = h >= 17 && h <= 20;
-    const sp = h >= 10 && h <= 15 && r.renewablePct > 35;
-    const night = h >= 1 && h <= 5;
-    let cm = mp ? 1.35 : ep ? 1.45 : night ? 0.70 : sp ? 0.65 : 1.0;
-    let pm = mp ? 1.60 : ep ? 1.80 : night ? 0.50 : sp ? 0.70 : 1.0;
-    cm += (rng() - 0.5) * 0.2;
-    pm += (rng() - 0.5) * 0.15;
-    return {
-      hour: h,
-      carbon: Math.round(r.baseCarbon * Math.max(0.3, cm)),
-      price: parseFloat((r.basePrice * Math.max(0.2, pm)).toFixed(2)),
-      isPast: h < now,
-      isNow: h === now,
-    };
+function genHourly(region){
+  const r=REGIONS[region];
+  const rng=seededRng(region.charCodeAt(0)*1337+(Date.now()/3600000|0));
+  const now=new Date().getHours();
+  return Array.from({length:24},(_,h)=>{
+    const mp=h>=7&&h<=9,ep=h>=17&&h<=20,sp=h>=10&&h<=15&&r.renewablePct>35,night=h>=1&&h<=5;
+    let cm=mp?1.35:ep?1.45:night?.70:sp?.65:1.0;
+    let pm=mp?1.60:ep?1.80:night?.50:sp?.70:1.0;
+    cm+=(rng()-.5)*.2;pm+=(rng()-.5)*.15;
+    return{hour:h,carbon:Math.round(r.baseCarbon*Math.max(.3,cm)),price:parseFloat((r.basePrice*Math.max(.2,pm)).toFixed(2)),isPast:h<now,isNow:h===now};
   });
 }
 
-let currentRegion = 'MISO';
-let hourlyData = [];
-let jobs = [
-  { id: 1, name: 'Batch inference — product recommendations', duration: 2, urgency: 'deferrable', done: false },
-  { id: 2, name: 'Model fine-tune — support LLM', duration: 6, urgency: 'flexible', done: false },
-  { id: 3, name: 'Nightly ETL pipeline', duration: 1, urgency: 'urgent', done: false },
+let currentRegion='MISO';
+let hourlyData=[];
+let jobs=[
+  {id:1,name:'Batch inference — product recommendations',duration:2,urgency:'deferrable',done:false},
+  {id:2,name:'Model fine-tune — support LLM',duration:6,urgency:'flexible',done:false},
+  {id:3,name:'Nightly ETL pipeline',duration:1,urgency:'urgent',done:false},
 ];
-let nextId = 4;
+let nextId=4;
 
-function score(h) {
-  const maxC = Math.max(...hourlyData.map(x => x.carbon));
-  const maxP = Math.max(...hourlyData.map(x => x.price));
-  return (h.carbon / maxC) * 0.6 + (h.price / maxP) * 0.4;
+function score(h){
+  const maxC=Math.max(...hourlyData.map(x=>x.carbon));
+  const maxP=Math.max(...hourlyData.map(x=>x.price));
+  return(h.carbon/maxC)*.6+(h.price/maxP)*.4;
 }
+function scoreColor(s){return s<.4?'#3B6D11':s<.65?'#BA7517':'#A32D2D';}
 
-function scoreColor(s) {
-  if (s < 0.4) return '#3B6D11';
-  if (s < 0.65) return '#BA7517';
-  return '#A32D2D';
-}
-
-function renderTimeline(scheduledHours = []) {
-  const grid = document.getElementById('timelineGrid');
-  const lbls = document.getElementById('timelineLabels');
-  grid.innerHTML = ''; lbls.innerHTML = '';
-  hourlyData.forEach(h => {
-    const s = score(h);
-    const col = scheduledHours.includes(h.hour) ? '#185FA5' : scoreColor(s);
-    const bar = document.createElement('div');
-    bar.className = 't-hour' + (h.isNow ? ' now' : '');
-    bar.style.background = col;
-    bar.style.opacity = h.isPast ? 0.28 : 1;
-    bar.title = `${String(h.hour).padStart(2,'0')}:00 — ${h.carbon} g CO₂/kWh · ${h.price.toFixed(1)}¢/kWh`;
+function renderTimeline(scheduledHours=[]){
+  const grid=document.getElementById('timelineGrid');
+  const lbls=document.getElementById('timelineLabels');
+  grid.innerHTML='';lbls.innerHTML='';
+  hourlyData.forEach(h=>{
+    const s=score(h);
+    const col=scheduledHours.includes(h.hour)?'#185FA5':scoreColor(s);
+    const bar=document.createElement('div');
+    bar.className='t-hour'+(h.isNow?' now':'')+(h.isPast?' past':'');
+    bar.style.background=col;
+    bar.title=`${String(h.hour).padStart(2,'0')}:00 — ${h.carbon} g CO₂/kWh · ${h.price.toFixed(1)}¢/kWh`;
     grid.appendChild(bar);
-    const lbl = document.createElement('div');
-    lbl.className = 't-hlabel';
-    lbl.textContent = h.hour % 6 === 0 ? `${h.hour}h` : '';
+    const lbl=document.createElement('div');
+    lbl.className='t-hlabel';
+    lbl.textContent=h.hour%6===0?`${h.hour}h`:'';
     lbls.appendChild(lbl);
   });
 }
 
-function updateMetrics() {
-  const now = new Date().getHours();
-  const h = hourlyData[now] || hourlyData[0];
-  const el_c = document.getElementById('carbonNow');
-  el_c.textContent = h.carbon;
-  el_c.className = 'metric-value ' + (h.carbon < 250 ? 'green' : h.carbon < 400 ? 'amber' : 'red');
-  const el_p = document.getElementById('priceNow');
-  el_p.textContent = h.price.toFixed(1);
-  el_p.className = 'metric-value ' + (h.price < 5 ? 'green' : h.price < 7 ? 'amber' : 'red');
-  const future = hourlyData.filter(x => !x.isPast);
-  const best = [...future].sort((a, b) => score(a) - score(b))[0];
-  document.getElementById('bestWindow').textContent = best ? `${String(best.hour).padStart(2,'0')}:00` : '—';
-  document.getElementById('jobCount').textContent = jobs.filter(j => !j.done).length;
+function updateMetrics(){
+  const now=new Date().getHours();
+  const h=hourlyData[now]||hourlyData[0];
+  const elC=document.getElementById('carbonNow');
+  elC.textContent=h.carbon;
+  elC.className='metric-tile-value'+(h.carbon<250?'':h.carbon<400?' amber':' red');
+  const elP=document.getElementById('priceNow');
+  elP.textContent=h.price.toFixed(1);
+  elP.className='metric-tile-value'+(h.price<5?'':h.price<7?' amber':' red');
+  const future=hourlyData.filter(x=>!x.isPast);
+  const best=[...future].sort((a,b)=>score(a)-score(b))[0];
+  document.getElementById('bestWindow').textContent=best?`${String(best.hour).padStart(2,'0')}:00`:'—';
+  document.getElementById('jobCount').textContent=jobs.filter(j=>!j.done).length;
 }
 
-function renderJobs() {
-  const list = document.getElementById('jobList');
-  const active = jobs.filter(j => !j.done);
-  if (!active.length) {
-    list.innerHTML = '<div class="empty-queue">Queue empty — add a job above</div>';
-    return;
-  }
-  list.innerHTML = active.map(j => `
+function renderJobs(){
+  const list=document.getElementById('jobList');
+  const active=jobs.filter(j=>!j.done);
+  if(!active.length){list.innerHTML='<div class="empty-queue">Queue empty — add a job above</div>';return;}
+  list.innerHTML=active.map(j=>`
     <div class="job-row" id="job-${j.id}">
       <div>
         <div class="job-name">${j.name}</div>
@@ -967,188 +831,108 @@ function renderJobs() {
       </div>
       <span class="job-badge badge-${j.urgency}">${j.urgency}</span>
       <div class="job-scheduled" id="sched-${j.id}">queued</div>
-      <div class="job-check${j.done?' done':''}" onclick="toggleDone(${j.id})" title="Mark complete">
-        ${j.done ? '✓' : ''}
-      </div>
+      <div class="job-check${j.done?' done':''}" onclick="toggleDone(${j.id})" title="Mark complete">${j.done?'✓':''}</div>
     </div>
   `).join('');
   updateMetrics();
 }
 
-function addJob() {
-  const name = document.getElementById('newJobName').value.trim();
-  const dur = parseFloat(document.getElementById('newJobDuration').value) || 2;
-  const urgency = document.getElementById('newJobUrgency').value;
-  if (!name) { document.getElementById('newJobName').focus(); return; }
-  jobs.push({ id: nextId++, name, duration: dur, urgency, done: false });
-  document.getElementById('newJobName').value = '';
-  document.getElementById('newJobDuration').value = '';
+window.addJob=function(){
+  const name=document.getElementById('newJobName').value.trim();
+  const dur=parseFloat(document.getElementById('newJobDuration').value)||2;
+  const urgency=document.getElementById('newJobUrgency').value;
+  if(!name){document.getElementById('newJobName').focus();return;}
+  jobs.push({id:nextId++,name,duration:dur,urgency,done:false});
+  document.getElementById('newJobName').value='';
+  document.getElementById('newJobDuration').value='';
   renderJobs();
-}
+};
 
-function toggleDone(id) {
-  const j = jobs.find(x => x.id === id);
-  if (j) { j.done = !j.done; renderJobs(); }
-}
+window.toggleDone=function(id){
+  const j=jobs.find(x=>x.id===id);
+  if(j){j.done=!j.done;renderJobs();}
+};
 
-function clearCompleted() {
-  jobs = jobs.filter(j => !j.done);
-  renderJobs();
-}
+window.clearCompleted=function(){jobs=jobs.filter(j=>!j.done);renderJobs();};
 
-function refreshGridData() {
-  currentRegion = document.getElementById('regionSelect').value;
-  hourlyData = genHourly(currentRegion);
-  renderTimeline();
-  updateMetrics();
-}
+window.refreshGridData=function(){
+  currentRegion=document.getElementById('regionSelect').value;
+  hourlyData=genHourly(currentRegion);
+  renderTimeline();updateMetrics();
+};
 
-async function runAnalysis() {
-  const btn = document.getElementById('analyzeBtn');
-  const active = jobs.filter(j => !j.done);
-  if (!active.length) return;
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>&nbsp; Analyzing…';
-
-  const panel = document.getElementById('analysisPanel');
-  const txt = document.getElementById('analysisText');
-  panel.style.display = 'block';
-  txt.textContent = '';
-  txt.classList.add('streaming');
-  document.getElementById('reportPanel').style.display = 'none';
-
-  const now = new Date().getHours();
-  const forecast = hourlyData.filter(h => !h.isPast)
-    .map(h => `  ${String(h.hour).padStart(2,'0')}:00 — ${h.carbon} g CO₂/kWh, ${h.price.toFixed(1)}¢/kWh`)
-    .join('\n');
-
-  const jobStr = active.map(j => `  - "${j.name}" | ${j.duration}h | urgency: ${j.urgency}`).join('\n');
-
-  const prompt = `You are a carbon-aware AI job scheduler. Your goal: minimize carbon emissions and electricity cost by scheduling AI workloads during clean, cheap grid windows.
-
-Current time: ${String(now).padStart(2,'0')}:00
-Grid region: ${currentRegion}
-
-Remaining hours today (carbon + price forecast):
-${forecast}
-
-Job queue:
-${jobStr}
-
-For each job, reason about:
-1. Whether it is time-sensitive or safely deferrable
-2. The best start-time window balancing both carbon and cost
-3. Estimated savings vs running right now
-
-Write a concise reasoning paragraph (4–6 sentences). Then output a JSON block:
-\`\`\`json
-{
-  "schedule": [
-    {"name": "exact job name", "start_hour": 2, "carbon_saved_pct": 35, "cost_saved_pct": 28}
-  ],
-  "total_carbon_saved_kg": 0.8,
-  "total_cost_saved_usd": 0.42
-}
-\`\`\``;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        stream: true,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    let full = '';
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      for (const line of dec.decode(value).split('\n').filter(l => l.startsWith('data: '))) {
-        const raw = line.slice(6);
-        if (raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          if (ev.type === 'content_block_delta' && ev.delta?.text) {
-            full += ev.delta.text;
-            txt.textContent = full.replace(/```json[\s\S]*?```/g, '').trim();
-          }
-        } catch {}
-      }
-    }
-
+window.runAnalysis=async function(){
+  const btn=document.getElementById('analyzeBtn');
+  const active=jobs.filter(j=>!j.done);
+  if(!active.length)return;
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>&nbsp; ANALYZING…';
+  const panel=document.getElementById('analysisPanel');
+  const txt=document.getElementById('analysisText');
+  panel.style.display='block';txt.textContent='';txt.classList.add('streaming');
+  document.getElementById('reportPanel').style.display='none';
+  const now=new Date().getHours();
+  const forecast=hourlyData.filter(h=>!h.isPast).map(h=>`  ${String(h.hour).padStart(2,'0')}:00 — ${h.carbon} g CO₂/kWh, ${h.price.toFixed(1)}¢/kWh`).join('\n');
+  const jobStr=active.map(j=>`  - "${j.name}" | ${j.duration}h | urgency: ${j.urgency}`).join('\n');
+  const prompt=`You are a carbon-aware AI job scheduler. Your goal: minimize carbon emissions and electricity cost by scheduling AI workloads during clean, cheap grid windows.\n\nCurrent time: ${String(now).padStart(2,'0')}:00\nGrid region: ${currentRegion}\n\nRemaining hours today (carbon + price forecast):\n${forecast}\n\nJob queue:\n${jobStr}\n\nFor each job, reason about:\n1. Whether it is time-sensitive or safely deferrable\n2. The best start-time window balancing both carbon and cost\n3. Estimated savings vs running right now\n\nWrite a concise reasoning paragraph (4–6 sentences). Then output a JSON block:\n\`\`\`json\n{\n  "schedule": [\n    {"name": "exact job name", "start_hour": 2, "carbon_saved_pct": 35, "cost_saved_pct": 28}\n  ],\n  "total_carbon_saved_kg": 0.8,\n  "total_cost_saved_usd": 0.42\n}\n\`\`\``;
+  try{
+    const res=await fetch('/api/barnforge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const full=data.content?.[0]?.text||'';
+    txt.textContent=full.replace(/```json[\s\S]*?```/g,'').trim();
     txt.classList.remove('streaming');
-    const parsed = parseResult(full);
-    if (parsed) renderReport(parsed, active);
-
-  } catch (e) {
+    const parsed=parseResult(full);
+    if(parsed)renderReport(parsed,active);
+  }catch(e){
     txt.classList.remove('streaming');
-    txt.textContent = 'Unable to reach Claude API. Ensure you are viewing this page via the Vedura deployment.';
+    txt.textContent='Unable to reach the API. Make sure ANTHROPIC_API_KEY is set on Vercel.';
     console.error(e);
   }
+  btn.disabled=false;btn.innerHTML='RE-ANALYZE ↗';
+};
 
-  btn.disabled = false;
-  btn.innerHTML = 'Re-analyze ↗';
+function parseResult(text){
+  try{const m=text.match(/```json\s*([\s\S]*?)```/);return m?JSON.parse(m[1]):null;}catch{return null;}
 }
 
-function parseResult(text) {
-  try {
-    const m = text.match(/```json\s*([\s\S]*?)```/);
-    return m ? JSON.parse(m[1]) : null;
-  } catch { return null; }
-}
-
-function renderReport(data, activeJobs) {
-  const panel = document.getElementById('reportPanel');
-  panel.style.display = 'block';
-
-  const scheduledHours = (data.schedule || []).map(s => s.start_hour);
+function renderReport(data,activeJobs){
+  const panel=document.getElementById('reportPanel');
+  panel.style.display='block';
+  const scheduledHours=(data.schedule||[]).map(s=>s.start_hour);
   renderTimeline(scheduledHours);
-
-  const kg = parseFloat(data.total_carbon_saved_kg || 0).toFixed(2);
-  const usd = parseFloat(data.total_cost_saved_usd || 0).toFixed(2);
-  const miles = (data.total_carbon_saved_kg * 2.5).toFixed(1);
-
-  document.getElementById('reportStats').innerHTML = `
+  const kg=parseFloat(data.total_carbon_saved_kg||0).toFixed(2);
+  const usd=parseFloat(data.total_cost_saved_usd||0).toFixed(2);
+  const miles=(data.total_carbon_saved_kg*2.5).toFixed(1);
+  document.getElementById('reportStats').innerHTML=`
     <div class="report-stat">
-      <div class="report-stat-label">Carbon saved</div>
+      <div class="report-stat-label">Carbon Saved</div>
       <div class="report-stat-value">${kg} kg</div>
       <div class="report-stat-sub">≈ ${miles} miles not driven</div>
     </div>
     <div class="report-stat">
-      <div class="report-stat-label">Cost saved</div>
+      <div class="report-stat-label">Cost Saved</div>
       <div class="report-stat-value">$${usd}</div>
       <div class="report-stat-sub">vs running all jobs immediately</div>
-    </div>
-  `;
-
-  document.getElementById('scheduleList').innerHTML = (data.schedule || []).map(s => `
+    </div>`;
+  document.getElementById('scheduleList').innerHTML=(data.schedule||[]).map(s=>`
     <div class="sched-item">
       <span class="sched-time">${String(s.start_hour).padStart(2,'0')}:00</span>
       <span class="sched-name">${s.name}</span>
-      <span class="sched-saving">−${s.carbon_saved_pct}% CO₂ &nbsp;·&nbsp; −${s.cost_saved_pct}% cost</span>
-    </div>
-  `).join('');
-
-  (data.schedule || []).forEach(s => {
-    const job = activeJobs.find(j => j.name === s.name);
-    if (!job) return;
-    const el = document.getElementById(`sched-${job.id}`);
-    if (el) { el.textContent = `→ ${String(s.start_hour).padStart(2,'0')}:00`; el.classList.add('scheduled'); }
+      <span class="sched-saving">−${s.carbon_saved_pct}% CO₂ · −${s.cost_saved_pct}% cost</span>
+    </div>`).join('');
+  (data.schedule||[]).forEach(s=>{
+    const job=activeJobs.find(j=>j.name===s.name);
+    if(!job)return;
+    const el=document.getElementById(`sched-${job.id}`);
+    if(el){el.textContent=`→ ${String(s.start_hour).padStart(2,'0')}:00`;el.classList.add('scheduled');}
   });
 }
 
-// ── Init ──
-document.getElementById('regionSelect').addEventListener('change', refreshGridData);
-refreshGridData();
+// ── Init ──────────────────────────────────────────────────────────────
+document.getElementById('regionSelect').addEventListener('change',window.refreshGridData);
+window.refreshGridData();
 renderJobs();
+
+})();
 </script>
 </body>
 </html>
