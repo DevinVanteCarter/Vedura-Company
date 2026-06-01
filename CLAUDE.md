@@ -13,7 +13,7 @@
 AI platform for off-grid homesteaders — plant health scanning, solar management, local AI advisor.
 - **Frontend**: Vercel → `zen-vision-sigma.vercel.app`
 - **App**: `zen-vision-sigma.vercel.app/app.html`
-- **Backend**: Railway → `zen-vision-production.up.railway.app` — **currently broken**
+- **Backend**: Railway → `zen-vision-production.up.railway.app` — ✅ Live
 - **AI (cloud)**: Groq via `/api/advisor.js` — `llama-3.1-8b-instant`
 - **AI (local)**: Ollama on Mac Studio — llama3.1 + Mistral
 - **Agent**: OpenClaw v2026.3.13 — iMessage + session memory
@@ -47,7 +47,7 @@ Expert AI barndominium design assistant — floor plans, color systems, 3D walkt
 │       ├── video_analyzer.py
 │       └── solar_ai.py
 ├── section9/           ← OpenClaw agent soul files
-└── VEDURA_CLAUDE_CONTEXT_V3.md  ← Full company context
+└── VEDURA_CLAUDE_CONTEXT_V4.md  ← Full company context
 ```
 
 ---
@@ -56,7 +56,7 @@ Expert AI barndominium design assistant — floor plans, color systems, 3D walkt
 | What | Where | Status |
 |------|-------|--------|
 | Website + BarnForge | Vercel (auto-deploys on push) | ✅ |
-| Zen Vision backend | Railway (auto-deploys on push) | ✅ Live |
+| Zen Vision backend + BarnForge AI | Railway + Vercel (auto-deploys on push) | ✅ Live |
 | GitHub | github.com/AspenLaurent/zen-vision | ✅ |
 
 **Deploy**: `git add . && git commit -m "message" && git push`
@@ -67,7 +67,7 @@ Expert AI barndominium design assistant — floor plans, color systems, 3D walkt
 | Var | Used by | Where | Status |
 |-----|---------|-------|--------|
 | `GROQ_API_KEY` | `/api/advisor.js` | Vercel | ✅ Set |
-| `ANTHROPIC_API_KEY` | `/api/barnforge.js` | Vercel | ❌ Not yet added — BarnForge AI won't work |
+| `ANTHROPIC_API_KEY` | `/api/barnforge.js` | Vercel | ✅ Set |
 | `ANTHROPIC_API_KEY` | `zenvision_api/main.py` (advisor, morning-brief, species scan) | Railway | ✅ Set |
 
 ---

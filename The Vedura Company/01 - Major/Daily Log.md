@@ -1957,3 +1957,280 @@ All 9 endpoints green. Demo infrastructure can run tonight. The stage is set —
 ---
 
 *24 days. The demo is built. Now someone has to use it.*
+
+## 2026-05-16 21:00
+MORNING BRIEF 2026-05-16: Cincinnati 24 days. Users: 0. API: healthy. Plant scanner: 35000+ species.
+
+## 2026-05-16 21:00
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-05-17 07:00
+MORNING BRIEF 2026-05-17: Cincinnati 23 days. Users: 0. API: healthy. Plant scanner: 35000+ species.
+
+## 2026-05-17 07:00
+MORNING BRIEF 2026-05-17: Priority 1: Cincinnati AI Week June 9 2026 - 23 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: M ARR north star. No verified blockers.
+
+## 2026-05-17 07:00
+```
+🌱 VEDURA DAILY — Day 34 of 57
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 BLOCKED:
+- 0 paying users (Paz outreach velocity unclear)
+- Railway billing card status unknown — verify tonight
+- Cincinnati Startup Showcase registration unconfirmed
+
+🟡 MOVING:
+- API: healthy, zero downtime
+- 23 days to demo — pitch window closing fast
+- Paz Ohio Facebook group outreach (Week 1 cadence)
+
+🟢 WIN:
+- API holding clean — demo-ready infrastructure
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TODAY'S 3:
+1. Confirm Railway billing card is added — demo dies without it
+2. Register for Cincinnati Startup Showcase at cincyaiweek.com TODAY
+3. Paz delivers first paying user this week — push hard, no slippage
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cincinnati: 23 days · MRR: $0 · Users: 0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ MAJOR FLAG: Zero users at Day 34 is a mission risk.
+3 paying users in 23 days is still achievable —
+but only if Paz executes this week, not next.
+```
+
+## 2026-05-17 07:01 — SECTION 9 MASTER BRIEF
+# VEDURA MASTER BRIEF — 2026-05-17 · Day 34 of 57 · T-23 Cincinnati
+
+---
+
+## TOP 3 STRATEGIC PRIORITIES
+
+1. **Cincinnati Startup Showcase registration** — window is closing, slot is not guaranteed. Aspen does this today.
+2. **Paz executes first Ohio Facebook post tomorrow before noon** — Week 1 hasn't started. Week 4 is the demo.
+3. **Seed the database** — Aspen or Paz runs live plant scans this week. Empty state at demo is a kill shot.
+
+---
+
+## BLOCKED / WHO OWNS IT
+
+| Blocker | Owner |
+|---|---|
+| Cincinnati signup unconfirmed | **Aspen** — no delegation possible |
+| Zero outreach executed | **Paz** — minimum: 3 FB groups by tomorrow noon |
+| 0 plants/harvests in system | **Aspen + Paz** — founder demo post first, then outreach |
+| Supabase not wired (Mycelium dead) | **Batou + Borma** — unblock this week |
+| Railway billing card unconfirmed | **Aspen** — verify tonight |
+
+---
+
+## BIGGEST WIN TODAY
+
+Infrastructure held clean. Zero crashes, all 9 endpoints live. Demo-ready platform. The tool works — it just has no users.
+
+---
+
+## CINCINNATI READINESS
+
+🟢 API / infra / endpoints
+🟢 Pitch materials (80% — funding ask missing)
+🔴 Paying users (0 of 3)
+🔴 Demo database (empty)
+🔴 Showcase registration (unconfirmed)
+🔴 Outreach (not started)
+
+---
+
+## AGENT DIRECTIVES — TOMORROW
+
+- **Batou**: Wire Supabase with Borma. Unblock Mycelium data sync.
+- **Togusa**: Pull Cincinnati speaker list. Identify Drive Capital attendees.
+- **Ishikawa**: Track first FB post engagement when Paz fires.
+- **Saito**: Get one piece of content live. Stop drafting. Post.
+- **Paz**: 3 Ohio FB groups, real language, before noon. No more waiting.
+- **Borma**: Coordinate with Batou on Supabase. Target 10 nodes by June 9.
+
+## 2026-05-17 21:00
+MORNING BRIEF 2026-05-17: Cincinnati 23 days. Users: 0. API: healthy. Plant scanner: 35000+ species.
+
+## 2026-05-17 21:00
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-05-18 07:00
+MORNING BRIEF 2026-05-18: Cincinnati 22 days. Users: 0. API: healthy. Plant scanner: 35000+ species.
+
+## 2026-05-18 07:00
+MORNING BRIEF 2026-05-18: Priority 1: Cincinnati AI Week June 9 2026 - 22 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: 1M ARR north star. No verified blockers.
+
+## 2026-05-18 07:00
+```
+🌱 VEDURA DAILY — Day 35 of 57
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 BLOCKED:
+- 0 paying users (Paz outreach velocity unclear)
+- Railway billing card status unknown — 14-day window may have lapsed
+- Cincinnati Startup Showcase registration unconfirmed
+
+🟡 MOVING:
+- API healthy, all 5 tabs live, demo-ready
+- Anthropic credits stable (~$0.15/day burn)
+
+🟢 WIN:
+- 22 days out, core product is solid — demo risk is execution, not tech
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TODAY'S 3:
+1. CONFIRM Railway billing card added — if not, do it today, demo dies without it
+2. CONFIRM Cincinnati Showcase registration at cincyaiweek.com — deadline risk
+3. PAZ: activate Facebook group outreach — 10 Ohio homesteading groups, first post today, not tomorrow
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cincinnati: 22 days · MRR: $0 · Users: 0
+```
+
+**Note to Aspen**: 22 days with zero users is the signal. Railway and Showcase are table stakes — Paz outreach is the variable that moves the number. Everything else is ready. The gap is distribution.
+
+## 2026-05-18 07:01 — SECTION 9 MASTER BRIEF
+# VEDURA MASTER BRIEF — 2026-05-18
+### Day 35 of 57 | 22 Days to Cincinnati | MRR: $0 | Users: 0
+
+---
+
+## TOP 3 STRATEGIC PRIORITIES
+
+1. **PAZ EXECUTES TODAY** — 3 Ohio Facebook group posts, minimum. No more planning. First paying user by June 1 or the Cincinnati pitch is dead on arrival.
+2. **RAILWAY BILLING CONFIRMED** — 35 days past the 14-day flag. If the card isn't in, the demo dies before we land. Aspen confirms this tonight.
+3. **CINCINNATI SHOWCASE REGISTERED** — cincyaiweek.com. If we're not on the list, none of this matters.
+
+---
+
+## BLOCKERS & OWNERS
+
+| Blocker | Owner |
+|---|---|
+| 0 paying users | Paz |
+| Railway billing unknown | Aspen → confirm tonight |
+| Showcase registration unconfirmed | Aspen → register today |
+| Supabase not configured (Mycelium dead) | Batou + Borma |
+
+---
+
+## BIGGEST WIN TODAY
+Core product is demo-ready. Tech risk is zero. The only gap is distribution.
+
+---
+
+## CINCINNATI READINESS
+
+🟢 App live, all 5 tabs, API healthy
+🟢 Pitch materials 80% complete
+🔴 0 users, 0 proof layer for investors
+🔴 Showcase registration unconfirmed
+🔴 Railway billing status unknown
+
+---
+
+## AGENT DIRECTIVES — TOMORROW
+
+- **Batou**: Confirm Railway billing status, resolve Supabase config with Borma
+- **Togusa**: Pull Cincinnati attendee list, flag investor conflicts
+- **Ishikawa**: Flag any Paz outreach signal from Ohio groups
+- **Saito**: Hold content — no pitch until first user exists
+- **Paz**: 3 Facebook posts. Today was the last slip.
+- **Borma**: Supabase live by EOD with Batou
+
+## 2026-05-19 14:50
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-05-19 14:51
+MORNING BRIEF 2026-05-19: Priority 1: Cincinnati AI Week June 9 2026 - 21 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: 1M ARR north star. No verified blockers.
+
+## 2026-05-23 14:35
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-05-23 14:35
+MORNING BRIEF 2026-05-23: Priority 1: Cincinnati AI Week June 9 2026 - 17 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: M ARR north star. No verified blockers.
+
+## 2026-05-27 22:27
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-05-27 22:27
+MORNING BRIEF 2026-05-27: Priority 1: Cincinnati AI Week June 9 2026 - 13 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: 1M ARR north star. No verified blockers.
+
+## 2026-06-01 12:08
+MORNING BRIEF 2026-06-01: Priority 1: Cincinnati AI Week June 9 2026 - 8 days. Priority 2: First 10 Ohio homesteader users - 0 confirmed. Priority 3: 1M ARR north star. No verified blockers.
+
+## 2026-06-01 12:08
+EOD 2026-04-05: Railway API healthy. Plant scanner live 35000+ species. Days to Cincinnati: 64. First 10 users: 0 confirmed.
+
+## 2026-06-01 18:02
+```
+🌱 VEDURA DAILY — Day 49 of 57
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 BLOCKED:
+- 0 paying users, 0 plants tracked — demo shows empty state, not live usage
+- Railway billing card status unknown — 8 days to Cincinnati, cannot risk downtime
+- Cincinnati Startup Showcase registration — confirmed or not?
+
+🟡 MOVING:
+- API: healthy, all endpoints live
+- 8 days = final prep window, not acquisition window
+
+🟢 WIN:
+- Infrastructure holding. API green. Nothing is broken.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TODAY'S 3:
+1. Paz — confirm at least 1 paying user before June 9, last call
+2. Aspen — add Railway billing card TODAY, non-negotiable
+3. Saito — build demo script that covers empty-state gracefully; real data preferred, scripted fallback required
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cincinnati: 8 days · MRR: $0 · Users: 0
+
+⚠️ ASSESSMENT: We walk into Cincinnati with a healthy API and zero proof of demand. That is a story problem, not a tech problem. The next 8 days are Paz and Saito's to own.
+```
+
+## 2026-06-01 18:04 — SECTION 9 MASTER BRIEF
+# VEDURA MASTER BRIEF — 2026-06-01
+### Day 49 of 57 · Cincinnati: 8 days · MRR: $0 · Users: 0
+
+---
+
+**TOP 3 PRIORITIES**
+
+1. **Demo data loaded by June 8** — empty state kills the pitch. Batou seeds plants, harvests, solar metrics today.
+2. **Paz executes direct outreach NOW** — iMessage/email to warm contacts this week. Facebook groups are too slow. Reddit posts go up today. 3 paying users is a dead goal; 1 real user is the new floor.
+3. **Cincinnati Showcase registration confirmed** — Aspen does this tonight at cincyaiweek.com. Non-negotiable.
+
+---
+
+**BLOCKED / OWNERS**
+
+| Blocker | Owner | Deadline |
+|---|---|---|
+| Railway billing card | Aspen | Tonight |
+| Showcase registration | Aspen | Tonight |
+| Demo seed data | Batou | June 6 |
+| Supabase credentials → Railway env | Aspen + Batou | June 6 |
+| Real user acquisition | Paz | June 8 |
+
+---
+
+**BIGGEST WIN TODAY**
+
+All 9 endpoints green. Infrastructure is not the problem.
+
+---
+
+**CINCINNATI READINESS**
+
+🟢 API, app, all tabs, pitch deck, demo script, content ready
+🔴 Zero users, zero plants, zero Mycelium nodes, Showcase unconfirmed, Railway billing unknown
+
+---
+
+**AGENT DIRECTIVES — JUNE 2**
+
+- **Batou**: Seed demo data — 3 plants, 2 harvests, solar history
+- **Paz**: 20 direct iMessages today, 2 Reddit posts, report back by EOD
+- **Saito**: Post Monday plant scan video NOW, don't wait for users
+- **Borma**: Push Supabase config once credentials land
+- **Togusa**: Confirm Showcase registration once Aspen acts
+- **Ishikawa**: Track any Paz-driven signups in real time

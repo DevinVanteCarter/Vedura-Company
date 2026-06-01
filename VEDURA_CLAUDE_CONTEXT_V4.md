@@ -1,6 +1,6 @@
 # THE VEDURA COMPANY — CLAUDE PRO CONTEXT FILE v4
 ## Upload this to your Claude Pro Project for instant full context
-### Last updated: May 16, 2026
+### Last updated: June 1, 2026
 
 ---
 
@@ -227,7 +227,7 @@ git add . && git commit -m "message" && git push
 ---
 
 ## CINCINNATI AI WEEK — JUNE 9, 2026
-**~24 days away**
+**8 days away — June 9, 2026**
 
 - Pitch deck: vedura_pitch_v3.pptx (12 slides — needs update for Green Scheduler)
 - Live demo: zen-vision-sigma.vercel.app/app.html + scheduler.html (both LIVE)
@@ -325,7 +325,7 @@ Same thing that happened when Google built Maps — the local guide networks (Al
 25. Fixed homestead 30-minute cache (was reloading on every tab visit)
 
 **Total cost so far**: ~$0 (all free tiers — Vercel, Railway hobby, Groq free, Anthropic API pay-per-use)
-**Days until Cincinnati**: ~24
+**Days until Cincinnati**: 8 (June 9, 2026)
 
 ---
 

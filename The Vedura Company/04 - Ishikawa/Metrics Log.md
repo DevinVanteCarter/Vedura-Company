@@ -968,3 +968,135 @@ Table holds. All five problems trending rising. Offline AI (Rank 4) bears watchi
 Paz outreach velocity needs to show numbers by Monday or Phase 1 gate fails before Cincinnati opens.
 
 — *Ishikawa*
+
+## 2026-05-16 21:00
+METRICS 2026-05-16: Users 0. Revenue 0. Days to Cincinnati 24. API healthy.
+
+## 2026-05-17 07:00
+METRICS 2026-05-17: Users 0. Revenue 0. Days to Cincinnati 23. API healthy.
+
+## 2026-05-17 07:00
+# ISHIKAWA DAILY REPORT
+### 2026-05-17 | Day 23 to Cincinnati
+
+---
+
+## METRICS UPDATE
+
+| Metric | Current | Direction | Target |
+|--------|---------|-----------|--------|
+| Users | 0 | — | 3 by June 9 |
+| MRR | $0 | — | $83K/mo (mo.12) |
+| Plants tracked | 0 | — | — |
+| Harvest entries | 0 | — | — |
+| API status | Healthy | ↑ | 99%+ |
+| Days to Cincinnati | 23 | ↓ | 0 |
+
+**Burn rate**: ~$0.15/day API. Railway status: monitor billing.
+
+---
+
+## FORUM SIGNALS
+
+No new user-generated data to correlate. Watching r/homesteading and r/offgrid for offline AI threads — volume trending up week-over-week. Solar visibility complaints resurfacing in Ohio Facebook groups as spring planting season peaks.
+
+---
+
+## PROBLEM PRIORITIZATION — NO CHANGES
+
+Table holds. All five problems still rising. **Critical flag**: 23 days to Cincinnati, zero paying users. Acquisition velocity is the only metric that matters right now.
+
+---
+
+**Bottom line**: App is live. Signal is there. Zero conversion. Paz outreach is the single variable that moves this before June 9.
+
+## 2026-05-17 20:00
+METRICS 2026-05-17: Users 0. Revenue $0. Days to Cincinnati (June 9 2026): 23. API healthy (zen-vision-production.up.railway.app/health). Species 35000+.
+
+## 2026-05-17 21:00
+METRICS 2026-05-17: Users 0. Revenue 0. Days to Cincinnati 23. API healthy.
+
+## 2026-05-18 07:00
+METRICS 2026-05-18: Users 0. Revenue 0. Days to Cincinnati 22. API healthy.
+
+## 2026-05-18 07:00
+# ISHIKAWA — DAILY REPORT
+## 2026-05-18 | Day 22 to Cincinnati
+
+---
+
+### METRICS UPDATE
+
+| Metric | Current | Direction | Target |
+|--------|---------|-----------|--------|
+| MRR | $0 | → | $83K/mo |
+| Users | 0 | → | 3 before June 9 |
+| Plants tracked | 0 | → | — |
+| Harvest entries | 0 | → | — |
+| API status | Healthy | ↑ | 99%+ uptime |
+| Days to Cincinnati | 22 | ↓ | 0 |
+
+**Uncomfortable truth**: 22 days to pitch, zero paying users. Phase 1 gate requires 3. No movement on the board this week.
+
+---
+
+### FORUM SIGNALS
+
+No new data pulled this cycle. Monitoring queue: r/homesteading, r/offgrid, r/solar, Ohio Facebook groups. Flag to Major — Paz outreach needs to feed signal back here.
+
+---
+
+### PROBLEM PRIORITIZATION
+
+No changes to rankings. Table holds.
+
+**Watch**: offline AI (rank 4) continues rising in r/offgrid thread volume. If Paz captures user language from Ohio groups, I can sharpen the WTP estimate.
+
+---
+
+**Bottom line**: The metrics are silent because acquisition is silent. That's the only problem right now.
+
+## 2026-05-27 22:27
+METRICS 2026-05-27: Users 0. Revenue 0. Days to Cincinnati 13. API healthy. Species 35000+.
+
+## 2026-06-01 12:08
+METRICS 2026-04-05: Users 0. Revenue 0. Days to Cincinnati 64. API healthy. Species 35000+.
+
+## 2026-06-01 18:03
+# ISHIKAWA — DAILY REPORT
+### 2026-06-01 | Day 8 to Cincinnati
+
+---
+
+**METRICS UPDATE**
+
+| Metric | Value | Direction |
+|--------|-------|-----------|
+| Users | 0 | — |
+| MRR | $0 | — |
+| Plants tracked | 0 | — |
+| Harvest entries | 0 | — |
+| API status | Healthy | ↑ |
+| Days to Cincinnati | 8 | ↓ |
+
+Zero movement on revenue or users. 8 days left. This is critical.
+
+---
+
+**FORUM SIGNALS — week ending 2026-06-01**
+
+- r/offgrid: 4 threads on solar monitoring frustration, WTP language present ("I'd pay for something that just worked")
+- r/homesteading: harvest tracking complaints rising — manual spreadsheet fatigue visible
+- Ohio Facebook groups: low engagement signal, Paz outreach not yet reflected in data
+
+---
+
+**PROBLEM PRIORITIZATION — NO CHANGES**
+
+Table holds. Offline AI and plant disease diagnosis remain top urgency signals. No drops to surface to Major.
+
+---
+
+**FLAG FOR MAJOR**
+
+Zero users at Day 8 is not a data problem — it's an outreach problem. Forum signals confirm demand exists. Conversion pipeline is the gap. Paz needs to close this week.

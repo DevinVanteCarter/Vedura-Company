@@ -97,7 +97,7 @@ def root():
         "status": "alive",
         "version": "2.0.0",
         "message": "The earth knows how to sustain us.",
-        "build": "2026.04"
+        "build": "2026.06"
     }
 
 
