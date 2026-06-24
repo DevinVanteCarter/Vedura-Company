@@ -1,38 +1,35 @@
-# The Vedura Company
+Vedura — Full-Stack AI Platform
+A production AI platform built solo by Devin Carter — combining computer vision, LLM agents, and carbon-aware compute scheduling. FastAPI backend, Vercel frontend, deployed live.
+What it does
+Zen Vision — AI for off-grid living
 
-AI-powered platform for off-grid homesteaders.
+Computer-vision plant health analysis (OpenCV — HSV color analysis, edge detection, morphological ops)
+Solar load-routing engine with priority-based, explainable decisions
+Local-first AI advisor (runs against your own hardware for privacy)
 
-© 2026 The Vedura Company. All rights reserved.
-Unauthorized use, copying, or distribution prohibited.
+Green Scheduler — carbon- and cost-aware AI job routing
 
----
+Schedules AI workloads into low-carbon, low-cost grid windows
+Uses an LLM as a live reasoning engine to balance urgency against grid conditions
+Built around a simple thesis: as AI gets expensive to run, when you run it matters
 
-## Products
+BarnForge — AI barndominium design assistant
 
-### Zen Vision
-AI platform for off-grid living — plant health scanning, solar management, and local AI advisor.
-→ [zen-vision-sigma.vercel.app](https://zen-vision-sigma.vercel.app)
+Floor plans, materials, and off-grid integration guidance
 
-### BarnForge
-Expert AI barndominium design assistant — floor plans, color systems, materials, 3D spatial walkthroughs, and off-grid integration.
-→ `zen-vision-sigma.vercel.app/barnforge`
+Stack
 
----
+Backend: Python, FastAPI (deployed on Railway)
+Frontend: HTML/CSS/JS, deployed on Vercel
+AI: LLM API integration; local inference via Ollama; computer vision via OpenCV
+Vision: OpenCV, NumPy, scikit-image
 
-## Structure
-
-```
+Architecture
 /
-├── index.html          ← Vedura Company website
-├── app.html            ← Zen Vision demo
-├── barnforge/
-│   └── index.html      ← BarnForge app
-├── api/
-│   ├── advisor.js      ← Zen Vision AI advisor (Groq)
-│   └── barnforge.js    ← BarnForge AI (Anthropic)
-└── zenvision_api/      ← FastAPI backend (Railway)
-```
-
-## Env Vars (Vercel)
-- `GROQ_API_KEY` — Zen Vision advisor
-- `ANTHROPIC_API_KEY` — BarnForge
+├── index.html          Company website
+├── app.html            Zen Vision demo
+├── barnforge/          BarnForge app
+├── api/                Serverless AI functions (Vercel)
+└── zenvision_api/      FastAPI backend (Railway)
+About
+Built end-to-end by Devin Carter — data operations professional and AI systems builder, Loveland, Ohio. This project demonstrates full-stack AI development: production deployment, LLM integration, computer vision, and a focus on the operating economics of AI.
