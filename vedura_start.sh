@@ -23,7 +23,7 @@ IP=$(ipconfig getifaddr en1 2>/dev/null || ipconfig getifaddr en0 2>/dev/null ||
 # ─────────────────────────────────────────────
 # STEP 0 — Start Nexus AI gateway
 # ─────────────────────────────────────────────
-~/.nexus/bin/nexus --config '/Users/aspenlaurent/Vedura Company/nexus.toml' &
+~/.nexus/bin/nexus --config "$HOME/Vedura Company/nexus.toml" &
 echo -e "${GREEN}  ✅ Nexus gateway started on http://localhost:6000${RESET}"
 sleep 1
 
@@ -54,7 +54,7 @@ fi
 # STEP 3 — Start Zen Vision API
 # ─────────────────────────────────────────────
 echo -e "${CREAM}Starting Zen Vision API...${RESET}"
-cd '/Users/aspenlaurent/Vedura Company/zenvision_api'
+cd "$HOME/Vedura Company/zenvision_api"
 uvicorn main:app --host 0.0.0.0 --port 8000 > /tmp/zenvision_api.log 2>&1 &
 API_PID=$!
 sleep 3

@@ -16,8 +16,8 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
     raise EnvironmentError("ANTHROPIC_API_KEY not set in environment")
 
-VAULT = pathlib.Path("/Users/aspenlaurent/Vedura Company/The Vedura Company")
-SECTION9 = pathlib.Path("/Users/aspenlaurent/Vedura Company/section9")
+VAULT = pathlib.Path.home() / "Vedura Company" / "The Vedura Company"
+SECTION9 = pathlib.Path.home() / "Vedura Company" / "section9"
 RAILWAY_URL = "https://zen-vision-production.up.railway.app"
 CINCINNATI = datetime.date(2026, 6, 9)
 

@@ -9,7 +9,7 @@ import datetime
 import os
 from pathlib import Path
 
-VAULT = Path("/Users/aspenlaurent/Vedura Company/The Vedura Company")
+VAULT = Path.home() / "Vedura Company" / "The Vedura Company"
 
 AGENT_FOLDERS = {
     "major": "01 - Major/Daily Log.md",

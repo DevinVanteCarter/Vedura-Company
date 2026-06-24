@@ -11,7 +11,7 @@ Also writes ~/.openclaw/queue/morning_brief.json — Major's aggregated
 view of all 7 agents, grouped by goal: CINCINNATI → ARR → USERS → OPS
 
 Cron entry (add with: crontab -e):
-    0 3 * * * /usr/bin/python3 "/Users/aspenlaurent/Vedura Company/section9/sleep_cycle.py"
+    0 3 * * * /usr/bin/python3 "$HOME/Vedura Company/section9/sleep_cycle.py"
 """
 
 import json

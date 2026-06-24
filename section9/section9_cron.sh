@@ -3,7 +3,7 @@
 # Runs section9_daily_report.py at 7:00 AM every day
 
 PYTHON=/opt/anaconda3/bin/python3
-SCRIPT="/Users/aspenlaurent/Vedura Company/section9/section9_daily_report.py"
+SCRIPT="$HOME/Vedura Company/section9/section9_daily_report.py"
 LOG=/tmp/section9_daily.log
 
 echo "Installing Section 9 daily report cron job..."

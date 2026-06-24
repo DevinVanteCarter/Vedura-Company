@@ -12,5 +12,38 @@ dist/
 # OS files
 .DS_Store
 vedura.db
-.DS_Store
+
+# Obsidian vault — private operational data
 The Vedura Company/
+
+# Business documents — private
+*.key
+*.pptx
+*.docx
+Vedura Comapany Phase 1 Outline /
+
+# Section 9 agent internals — private config and souls
+section9/SOUL_*.md
+section9/openclaw.json
+section9/knowledge_graph.py
+section9/agent_memory.py
+section9/brain_graph_server.py
+
+# Archives
+*.zip
+
+# Screenshots
+Screenshot*.png
+
+# Environment / secrets
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Context docs — internal architecture details
+VEDURA_CLAUDE_CONTEXT*.md
+
+# Untracked agent scripts — not yet reviewed for public release
+agents/axis_daily_briefing.py
+agents/log_event.py

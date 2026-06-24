@@ -3,7 +3,7 @@
 # Start the Zen Vision local backend and local static web server.
 # Usage: bash run_zenvision_local.sh
 
-ROOT="/Users/aspenlaurent/Vedura Company"
+ROOT="$HOME/Vedura Company"
 API_DIR="$ROOT/zenvision_api"
 WEB_DIR="$ROOT"
 LOG_DIR="/tmp"
